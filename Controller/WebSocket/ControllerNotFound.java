@@ -18,6 +18,7 @@ public class ControllerNotFound implements WebSocketInterface{
     @Override
     public void onOpen(WebSocketEvent e, ArrayList<String> args) {
         System.out.println("Connected.");
+        e.close();
     }
 
     @Override

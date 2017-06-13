@@ -66,7 +66,24 @@ public class WebSocketEvent extends WebSocketManager{
                     onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),String.class,args.getClass());
                     onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
                 } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
+                    //Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
+                    //System.out.println("HERE");
+                    try {
+                        c = Class.forName(JHS.WS_CONTROLLER_PACKAGE_NAME+".ControllerNotFound");
+                        x = c.newInstance();
+                        if(uri.length > 2){
+                            //System.out.println("Parameters defined");
+                            for(int i = 2;i<uri.length;i++){
+                                args.add(uri[i]);
+                            }
+                        }
+
+                        onOpenMethod = x.getClass().getMethod("onOpen",this.getClass(),args.getClass());
+                        onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),String.class,args.getClass());
+                        onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
+                    } catch (ClassNotFoundException ex1) {
+                        Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex1);
+                    }
                 }
             }else{
                 try {

@@ -173,7 +173,16 @@ public abstract class WebSocketManager{
         }
         
     }
-
+    
+    public void close(){
+        try {
+            connected = false;
+            client.close();
+        } catch (IOException ex) {
+            Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public void send(String message) {
             
         try {
