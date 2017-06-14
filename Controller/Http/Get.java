@@ -24,8 +24,10 @@ public class Get implements HttpInterface{
     }
     public void file(HttpEvent e, ArrayList<String> args) throws FileNotFoundException, IOException{
         e.setContentType(JHS.processContentType(args.get(0)));
-        e.sendFileContents(JHS.PUBLIC_WWW+"/"+args.get(0));
+        System.out.println(args);
+        e.sendFileContents("/"+(args.get(0).equals("")?args.get(1):args.get(0)));
     }
+    
     class Cookie{
         String 
                 DataType,

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javahttpserver.JHS;
+import javax.xml.bind.DatatypeConverter;
 
 /**
  *
@@ -223,4 +224,5 @@ public abstract class HttpEventManager {
         }
 
     }
+    
 }
