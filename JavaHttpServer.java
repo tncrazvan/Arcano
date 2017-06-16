@@ -20,10 +20,13 @@ public class JavaHttpServer {
      */
     public static void listen(String[] args) throws IOException, NoSuchAlgorithmException {
         if(args.length > 0){
-            JHS.PUBLIC_WWW = args[0];
+            if(args[0].substring(args[0].length()-1, args[0].length()).equals("/")){
+                JHS.PUBLIC_WWW = args[0].substring(0,args[0].length()-1);
+            }else{
+                JHS.PUBLIC_WWW = args[0];
+            }
             if(args.length > 1) JHS.PORT = Integer.parseInt(args[1]);
         }
-        
         ServerSocket ss = new ServerSocket(JHS.PORT);
         while(true){
             new HttpEventListener(ss.accept()).execute();

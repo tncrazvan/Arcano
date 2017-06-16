@@ -82,50 +82,59 @@ public class HttpEvent extends HttpEventManager{
                                 InvocationTargetException | 
                                 IOException ex) {
                             Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
+                            try {
+                                client.close();
+                            } catch (IOException ex2) {
+                                Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex2);
+                            }
                         }
                     }).start();
                 }
             } catch (ClassNotFoundException ex) {
                 //Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
-                try {
-                    final Class<?> cNotFound = Class.forName(JHS.HTTP_CONTROLLER_PACKAGE_NAME+"."+JHS.HTTP_CONTROLLER_NOT_FOUND);
-                    final Object xNotFound = cNotFound.newInstance();
-                    final Method mNotFound = xNotFound.getClass().getDeclaredMethod("main",this.getClass(),args.getClass());
-                    mNotFound.invoke(xNotFound,singleton,args);
-                    client.close();
-                } catch (IOException ex1) {
-                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
-                } catch (ClassNotFoundException ex1) {
-                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
-                } catch (InstantiationException ex1) {
-                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
-                } catch (IllegalAccessException ex1) {
-                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
-                } catch (NoSuchMethodException ex1) {
-                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
-                } catch (SecurityException ex1) {
-                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
-                } catch (IllegalArgumentException ex1) {
-                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
-                } catch (InvocationTargetException ex1) {
-                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
-                }
+
+                    
+                    new Thread(()->{
+                        try {
+                            final Class<?> cNotFound = Class.forName(JHS.HTTP_CONTROLLER_PACKAGE_NAME+"."+JHS.HTTP_CONTROLLER_NOT_FOUND);
+                            final Object xNotFound = cNotFound.newInstance();
+                            final Method mNotFound = xNotFound.getClass().getDeclaredMethod("main",this.getClass(),args.getClass());
+                            mNotFound.invoke(xNotFound,singleton,args);
+                            client.close();
+                        } catch (ClassNotFoundException | IOException | IllegalAccessException | 
+                                IllegalArgumentException | InvocationTargetException | NoSuchMethodException | 
+                                SecurityException | InstantiationException ex1) {
+                            Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
+                            try {
+                                client.close();
+                            } catch (IOException ex2) {
+                                Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex2);
+                            }
+                        }
+                    }).start();
+                    
+                    
+   
             } catch (InstantiationException | 
                     IllegalAccessException | 
                     NoSuchMethodException | 
                     SecurityException | 
-                    IllegalArgumentException ex) {
+                    IllegalArgumentException | IOException ex) {
                 Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-            
-             catch (IOException ex) {
-                Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
+                try {
+                    client.close();
+                } catch (IOException ex2) {
+                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex2);
+                }
             }
         }else{
             try {
                 setContentType("text/html");
                 sendFileContents(JHS.INDEX_FILE);
+            } catch (IOException ex) {
+                Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
                 client.close();
             } catch (IOException ex) {
                 Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);

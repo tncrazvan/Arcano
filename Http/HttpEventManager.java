@@ -185,7 +185,9 @@ public abstract class HttpEventManager {
     public void send(byte[] data){
         send(new String(data));
     }
-    
+    public void send(){
+        send("");
+    }
     public void setContentType(String type){
         header.set("Content-Type", type);
     }
@@ -210,19 +212,12 @@ public abstract class HttpEventManager {
         
         OutputStream os = client.getOutputStream();
         os.write((header.toString()+"\r\n").getBytes());
-        try {
-            int byteRead = 0;
-            while ((byteRead = fis.read(buffer)) != -1) {
-               os.write(buffer, 0, byteRead);
-            }
-        } catch (Exception excp) {
-            client.close();
-            excp.printStackTrace();
-        } finally {
-            os.close();
-            fis.close();
+        int byteRead = 0;
+        int counter = 0;
+        while ((byteRead = fis.read(buffer)) != -1 && counter < f.length()) {
+            counter += byteRead;
+           os.write(buffer, 0, byteRead);
         }
-
     }
     
 }

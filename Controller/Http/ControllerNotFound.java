@@ -16,6 +16,7 @@ import javahttpserver.Http.HttpInterface;
 public class ControllerNotFound implements HttpInterface{
     @Override
     public void main(HttpEvent e, ArrayList<String> args){
-        e.send("Controller not found!");
+        e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
+        e.send();
     }
 }

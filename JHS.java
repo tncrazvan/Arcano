@@ -11,6 +11,7 @@ import java.net.URLDecoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.WebSocket.WebSocketEvent;
@@ -21,7 +22,7 @@ import javax.xml.bind.DatatypeConverter;
  * @author Razvan
  */
 public class JHS {
-    public static final String DOMAIN_NAME = "127.0.0.1";
+    public static String DOMAIN_NAME = "127.0.0.1";
     public static String PUBLIC_WWW = "./src/public";
     public static String INDEX_FILE = "/index.html";
     public static String RESOURCE_NOT_FOUND_FILE = "/404.html";
@@ -31,7 +32,7 @@ public class JHS {
     public static String WS_CONTROLLER_NOT_FOUND = "ControllerNotFound";
     public static final ArrayList<WebSocketEvent> EVENT_WS = new ArrayList<>();  
     public static final ArrayList<HttpEvent> EVENT_HTTP = new ArrayList<>();
-    public static final String WS_ACCEPT_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    public static String WS_ACCEPT_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static int PORT = 8888;
     public static int WS_CHUNKC_SIZE = 560000;
     public static final Date DATE = new Date();
@@ -44,10 +45,19 @@ public class JHS {
         return DatatypeConverter.parseHexBinary((s.length()==1?"0"+s:s))[0];
     }
     
+    
+    
     public static byte hexToBinary(String hexValue){
         return DatatypeConverter.parseHexBinary(hexValue)[0];
     }
     
+    public static String atob(String value){
+        return new String(Base64.getDecoder().decode(value));
+    }
+    
+    public static String bota(String value){
+        return new String(Base64.getEncoder().encode(value.getBytes()));
+    }
     
     public static byte[] stringToSha1(String input) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         return MessageDigest.getInstance("SHA-1").digest(input.getBytes("UTF-8"));

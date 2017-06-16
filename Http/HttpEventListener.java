@@ -37,11 +37,12 @@ public class HttpEventListener extends HttpRequestReader{
                     new HttpEvent(writer,clientHeader,client).execute();
                 } catch (IOException ex) {
                     try {
-                        client.close();
+                    client.close();
                     } catch (IOException ex1) {
                         Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex1);
                     }
                 }
+                
             }else if(clientHeader.get("Connection").equals("Upgrade") || clientHeader.get("Connection").equals("keep-alive, Upgrade")){
                 if(clientHeader.get("Upgrade").equals("websocket")){
                     try {

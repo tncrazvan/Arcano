@@ -104,7 +104,7 @@ public class HttpHeader {
     
     public void setCookie(String key, String v, String path, String domain, String expire, String fieldName){
         String [] b = new String[5];
-        b[0] = new String(Base64.getEncoder().encode(new String(v).getBytes()));
+        b[0] = new String(Base64.getEncoder().encode(v.getBytes()));
         b[1] = path;
         b[2] = domain;
         b[3] = expire;
