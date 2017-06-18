@@ -70,7 +70,7 @@ public abstract class HttpEventManager {
         
         
         
-        File f = new File(JHS.PUBLIC_WWW+location);
+        File f = new File(java.net.URLDecoder.decode(JHS.PUBLIC_WWW+location, "UTF-8"));
         header.set("Content-Type", JHS.processContentType(location));
         if(f.exists() && !location.equals(JHS.INDEX_FILE)){
             if(!f.isDirectory()){
@@ -87,6 +87,7 @@ public abstract class HttpEventManager {
             }else{
                 header.set("Content-Type", "text/html");
                 header.set("Status", "HTTP/1.1 404 Not Found");
+                System.out.println("sending file:"+JHS.PUBLIC_WWW+location);
                 sendFileContents(JHS.RESOURCE_NOT_FOUND_FILE);
                 client.close();
             }
@@ -202,6 +203,11 @@ public abstract class HttpEventManager {
             }
         }
     }
+    
+    public void flushHeaders(){
+        send();
+    }
+    
     public void send(byte[] data){
         send(new String(data));
     }
@@ -228,7 +234,6 @@ public abstract class HttpEventManager {
     }
     
     private void sendFileContents(File f){
-        
         FileInputStream fis = null;
         try {
             int BUFF_SIZE = 65000;
@@ -236,7 +241,10 @@ public abstract class HttpEventManager {
             fis = new FileInputStream(f);
             OutputStream os = client.getOutputStream();
             if(os != null){
-                os.write((header.toString()+"\r\n").getBytes());
+                if(firstMessage && defaultHeaders){
+                    firstMessage = false;
+                    os.write((header.toString()+"\r\n").getBytes());
+                }
                 int byteRead = 0;
                 int counter = 0;
                 while ((byteRead = fis.read(buffer)) != -1 && counter < f.length()) {
