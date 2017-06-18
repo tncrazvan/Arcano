@@ -178,9 +178,18 @@ public abstract class WebSocketManager{
         try {
             connected = false;
             client.close();
+            onClose(client);
         } catch (IOException ex) {
             Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public void send(byte[] data){
+        send(new String(data));
+    }
+    
+    public void send(int data){
+        send(""+data);
     }
     
     public void send(String message) {

@@ -18,24 +18,29 @@ import java.util.logging.Logger;
  *
  * @author Razvan
  */
-public abstract class HttpRequestReader{
-    protected final Socket client;
-    protected final BufferedReader reader;
-    protected final BufferedWriter writer;
+public abstract class HttpRequestReader extends Thread{
+    protected Socket client=null;
+    protected BufferedReader reader=null;
+    protected BufferedWriter writer=null;
     private String output = "";
-    public HttpRequestReader(Socket client) throws IOException {
-        this.client=client;
-        reader = new BufferedReader(
+    public HttpRequestReader(Socket client) {
+        try {
+            this.client=client;
+            reader = new BufferedReader(
                     new InputStreamReader(
                             client
                                     .getInputStream()));
-        writer = new BufferedWriter(
+            writer = new BufferedWriter(
                     new OutputStreamWriter(
                             client
                                     .getOutputStream()));
+        } catch (IOException ex) {
+            Logger.getLogger(HttpRequestReader.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
-    public void execute(){
+    @Override
+    public void run(){
         try {
             String line = reader.readLine();
             while(line != null && line.length() > 0){
@@ -44,7 +49,11 @@ public abstract class HttpRequestReader{
             }
             this.onRequest(output);
         } catch (IOException ex) {
-            Logger.getLogger(HttpRequestReader.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                client.close();
+            } catch (IOException ex1) {
+                Logger.getLogger(HttpRequestReader.class.getName()).log(Level.SEVERE, null, ex1);
+            }
         }
     }
     

@@ -22,11 +22,7 @@ public class HttpEventListener extends HttpRequestReader{
     public HttpEventListener(Socket client) throws IOException, NoSuchAlgorithmException{
         super(client);
         requestId = new String(JHS.stringToSha1(System.identityHashCode(client)+"::"+System.currentTimeMillis()));
-        
     }
-
-    
-    
     
     @Override
     public void onRequest(String result) {
@@ -37,7 +33,7 @@ public class HttpEventListener extends HttpRequestReader{
                     new HttpEvent(writer,clientHeader,client).execute();
                 } catch (IOException ex) {
                     try {
-                    client.close();
+                        client.close();
                     } catch (IOException ex1) {
                         Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex1);
                     }

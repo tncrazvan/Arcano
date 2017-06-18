@@ -4,7 +4,6 @@
  * and open the template in the editor.
  */
 package javahttpserver;
-
 import com.google.gson.Gson;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -40,6 +39,7 @@ public class JHS {
     public static final Gson JSON_PARSER = new Gson();
     public static boolean running = false;
     
+    
     public static byte integerToBinary(int intValue){
         String s = Integer.toHexString(intValue);
         return DatatypeConverter.parseHexBinary((s.length()==1?"0"+s:s))[0];
@@ -55,8 +55,16 @@ public class JHS {
         return new String(Base64.getDecoder().decode(value));
     }
     
-    public static String bota(String value){
+    public static byte[] atobByte(String value){
+        return Base64.getDecoder().decode(value);
+    }
+    
+    public static String btoa(String value){
         return new String(Base64.getEncoder().encode(value.getBytes()));
+    }
+    
+    public static byte[] btoaByte(String value){
+        return Base64.getEncoder().encode(value.getBytes());
     }
     
     public static byte[] stringToSha1(String input) throws NoSuchAlgorithmException, UnsupportedEncodingException {

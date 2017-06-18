@@ -5,9 +5,12 @@
  */
 package javahttpserver.Http;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
@@ -16,7 +19,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javahttpserver.JHS;
-import javax.xml.bind.DatatypeConverter;
 
 /**
  *
@@ -58,10 +60,10 @@ public abstract class HttpEventManager {
     
     public boolean execute() throws IOException{
         findUserLanguages();
-        if(alreadyExecuted)
+        /*if(alreadyExecuted)
             return false;
         
-        alreadyExecuted = true;
+        alreadyExecuted = true;*/
         String location=clientHeader.get("Resource");
         header = new HttpHeader();
         
@@ -147,8 +149,16 @@ public abstract class HttpEventManager {
         return clientHeader.getCookie(name);
     }
     
-    public void setUserObject(String name, Object o){
+    public void setUserObject(String name, Object o) throws IOException{
         send("<script>window."+name+"="+JHS.JSON_PARSER.toJson(o)+";</script>");
+    }
+    
+    public void setUserObject(String name, JsonObject o){
+        send("<script>window."+name+"="+o.toString()+";</script>");
+    }
+    
+    public void setUserArray(String name, JsonArray a){
+        send("<script>window."+name+"="+a.toString()+";</script>");
     }
     
     public boolean cookieIsset(String key){
@@ -168,8 +178,13 @@ public abstract class HttpEventManager {
                     writer.flush();
                     alive = true;
                 } catch (IOException ex) {
-                    Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+                    ex.printStackTrace();
                     alive=false;
+                    try {
+                        client.close();
+                    } catch (IOException ex1) {
+                        Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex1);
+                    }
                 }
             }
             try {
@@ -177,8 +192,13 @@ public abstract class HttpEventManager {
                 writer.flush();
                 alive = true;
             } catch (IOException ex) {
-                Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
                 alive=false;
+                try {
+                    client.close();
+                } catch (IOException ex1) {
+                    Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex1);
+                }
             }
         }
     }
@@ -187,6 +207,9 @@ public abstract class HttpEventManager {
     }
     public void send(){
         send("");
+    }
+    public void send(int data){
+        send(""+data);
     }
     public void setContentType(String type){
         header.set("Content-Type", type);
@@ -204,20 +227,36 @@ public abstract class HttpEventManager {
         defaultHeaders = true;
     }
     
-    private void sendFileContents(File f) throws IOException{
+    private void sendFileContents(File f){
         
-        int BUFF_SIZE = 65000;
-        byte[] buffer = new byte[BUFF_SIZE];
-        FileInputStream fis = new FileInputStream(f);
-        
-        OutputStream os = client.getOutputStream();
-        os.write((header.toString()+"\r\n").getBytes());
-        int byteRead = 0;
-        int counter = 0;
-        while ((byteRead = fis.read(buffer)) != -1 && counter < f.length()) {
-            counter += byteRead;
-           os.write(buffer, 0, byteRead);
+        FileInputStream fis = null;
+        try {
+            int BUFF_SIZE = 65000;
+            byte[] buffer = new byte[BUFF_SIZE];
+            fis = new FileInputStream(f);
+            OutputStream os = client.getOutputStream();
+            if(os != null){
+                os.write((header.toString()+"\r\n").getBytes());
+                int byteRead = 0;
+                int counter = 0;
+                while ((byteRead = fis.read(buffer)) != -1 && counter < f.length()) {
+                    counter += byteRead;
+                    os.write(buffer, 0, byteRead);
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            System.out.println("SUCA");
+            ex.printStackTrace();
+        } finally {
+            try {
+                fis.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         }
+        
     }
     
 }

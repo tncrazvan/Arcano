@@ -29,7 +29,7 @@ public class JavaHttpServer {
         }
         ServerSocket ss = new ServerSocket(JHS.PORT);
         while(true){
-            new HttpEventListener(ss.accept()).execute();
+            new HttpEventListener(ss.accept()).start();
         }
     }
 }
