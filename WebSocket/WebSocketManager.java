@@ -48,7 +48,7 @@ public abstract class WebSocketManager{
     public void execute(){
         new Thread(()->{
             try {
-                String acceptKey = DatatypeConverter.printBase64Binary(JHS.stringToSha1(clientHeader.get("Sec-WebSocket-Key") + JHS.WS_ACCEPT_KEY));
+                String acceptKey = DatatypeConverter.printBase64Binary(JHS.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + JHS.WS_ACCEPT_KEY));
                 HttpHeader header = new HttpHeader();
                 header.set("Status", "HTTP/1.1 101 Switching Protocols");
                 header.set("Connection","Upgrade");

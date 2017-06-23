@@ -21,14 +21,14 @@ public class HttpEventListener extends HttpRequestReader{
     private final String requestId;
     public HttpEventListener(Socket client) throws IOException, NoSuchAlgorithmException{
         super(client);
-        requestId = new String(JHS.stringToSha1(System.identityHashCode(client)+"::"+System.currentTimeMillis()));
+        requestId = JHS.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());
     }
     
     @Override
     public void onRequest(String result) {
         HttpHeader clientHeader = HttpHeader.fromString(result);
         if(clientHeader != null && clientHeader.get("Connection")!=null){
-            if(clientHeader.get("Connection").equals("keep-alive")){
+            if(clientHeader.get("Connection").toLowerCase().equals("keep-alive")){
                 try {
                     new HttpEvent(writer,clientHeader,client).execute();
                 } catch (IOException ex) {

@@ -6,12 +6,15 @@
 package javahttpserver;
 import com.google.gson.Gson;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.URLDecoder;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.security.MessageDigest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.WebSocket.WebSocketEvent;
 import javax.xml.bind.DatatypeConverter;
@@ -67,7 +70,24 @@ public class JHS {
         return Base64.getEncoder().encode(value.getBytes());
     }
     
-    public static byte[] stringToSha1(String input) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+    public static String getSha1String(String str){
+        try {
+            MessageDigest crypt = MessageDigest.getInstance("SHA-1");
+            crypt.reset();
+            crypt.update(str.getBytes("UTF-8"));
+            
+            return new BigInteger(1, crypt.digest()).toString(16);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+    
+    public static byte[] getSha1Bytes(String input) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+        
         return MessageDigest.getInstance("SHA-1").digest(input.getBytes("UTF-8"));
     }
     
