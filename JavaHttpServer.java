@@ -20,6 +20,7 @@ public class JavaHttpServer {
     /**
      * @param args the command line arguments
      */
+    public static void main(String[] args){}
     public static void listen(String[] args) throws IOException, NoSuchAlgorithmException {
         if(args.length > 0){
             if(args[0].substring(args[0].length()-1, args[0].length()).equals("/")){

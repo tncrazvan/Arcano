@@ -14,7 +14,9 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javahttpserver.Http.HttpHeader;
@@ -31,6 +33,7 @@ public abstract class WebSocketManager{
     protected final BufferedReader reader;
     protected final String requesteId;
     protected final OutputStream outputStream;
+    private Map<String,String> userLanguages = new HashMap<String,String>();
     protected byte[] oldMask;
     protected int oldOpCode;
     protected int oldLength;
@@ -45,6 +48,40 @@ public abstract class WebSocketManager{
         this.outputStream = client.getOutputStream();
     }
     
+    public HttpHeader getClientHeader(){
+        return clientHeader;
+    }
+    
+    private void findUserLanguages(){
+        String[] tmp = new String[2];
+        String[] languages = clientHeader.get("Accept-Language").split(",");
+        userLanguages.put("DEFAULT-LANGUAGE", languages[0]);
+        for(int i=1;i<languages.length;i++){
+            tmp=languages[i].split(";");
+            userLanguages.put(tmp[0], tmp[1]);
+        }
+    }
+    
+    public Map<String,String> getUserLanguages(){
+        return userLanguages;
+    }
+    
+    public String getUserDefaultLanguage(){
+        return userLanguages.get("DEFAULT-LANGUAGE");
+    }
+    
+    public String getUserAgent(){
+        return clientHeader.get("User-Agent");
+    }
+    
+    public String getCookie(String name){
+        return clientHeader.getCookie(name);
+    }
+    
+    public boolean cookieIsset(String key){
+        return clientHeader.cookieIsset(key);
+    }
+
     public void execute(){
         new Thread(()->{
             try {

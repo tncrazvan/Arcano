@@ -47,7 +47,6 @@ public class Set implements HttpInterface{
             }
         }
         
-        System.out.println(args);
         String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", args.get(1)));
         e.send(jsonCookie);
     }
