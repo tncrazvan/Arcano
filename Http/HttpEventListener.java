@@ -71,7 +71,6 @@ public class HttpEventListener extends HttpRequestReader{
             } catch (IOException ex) {
                 Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
             }
-            System.out.println(post);
         }
         if(clientHeader != null && clientHeader.get("Connection")!=null){
             if(clientHeader.get("Connection").toLowerCase().equals("keep-alive")){
