@@ -5,6 +5,7 @@
  */
 package javahttpserver.Controller.Http;
 
+import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.Http.HttpInterface;
@@ -17,7 +18,7 @@ import javahttpserver.JHS;
 public class Set implements HttpInterface{
 
     @Override
-    public void main(HttpEvent e, ArrayList<String> args) {
+    public void main(HttpEvent e, ArrayList<String> args,JsonObject post) {
         
     }
     class Cookie{
@@ -31,7 +32,7 @@ public class Set implements HttpInterface{
         }
         
     }
-    public void cookie(HttpEvent e, ArrayList<String> args){
+    public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
         e.setContentType("application/json");
         try{
             e.setCookie(args.get(0), args.get(1),"/"+args.get(2),args.get(3),args.get(4));

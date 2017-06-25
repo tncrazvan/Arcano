@@ -5,6 +5,7 @@
  */
 package javahttpserver.Http;
 
+import com.google.gson.JsonObject;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -21,9 +22,11 @@ import javahttpserver.JHS;
  */
 public class HttpEvent extends HttpEventManager{
     private final HttpEvent singleton;
-    public HttpEvent(BufferedWriter writer, HttpHeader clientHeader, Socket client) {
+    private final JsonObject post;
+    public HttpEvent(BufferedWriter writer, HttpHeader clientHeader, Socket client,JsonObject post) {
         super(writer,clientHeader,client);
         singleton = this;
+        this.post = post;
     }
     
     @Override
@@ -64,17 +67,17 @@ public class HttpEvent extends HttpEventManager{
                             for(int i = 3;i<uri.length;i++){
                                 args.add(uri[i]);
                             }
-                            m = x.getClass().getDeclaredMethod(uri[2],this.getClass(),args.getClass());
+                            m = x.getClass().getDeclaredMethod(uri[2],this.getClass(),args.getClass(),post.getClass());
                         }else{
                             //System.out.println("Parameters not defined");
-                            m = x.getClass().getDeclaredMethod(uri[2],this.getClass(),args.getClass());
+                            m = x.getClass().getDeclaredMethod(uri[2],this.getClass(),args.getClass(),post.getClass());
                         }
                     }else{
                         //System.out.println("Method not defined");
-                        m = x.getClass().getMethod("main",this.getClass(),args.getClass());
+                        m = x.getClass().getMethod("main",this.getClass(),args.getClass(),post.getClass());
                     }
                     try {
-                        m.invoke(x,singleton,args);
+                        m.invoke(x,singleton,args,post);
                         client.close();
                     } catch (IllegalAccessException | 
                             IllegalArgumentException | 
@@ -95,8 +98,8 @@ public class HttpEvent extends HttpEventManager{
                 try {
                     final Class<?> cNotFound = Class.forName(JHS.HTTP_CONTROLLER_PACKAGE_NAME+"."+JHS.HTTP_CONTROLLER_NOT_FOUND);
                     final Object xNotFound = cNotFound.newInstance();
-                    final Method mNotFound = xNotFound.getClass().getDeclaredMethod("main",this.getClass(),args.getClass());
-                    mNotFound.invoke(xNotFound,singleton,args);
+                    final Method mNotFound = xNotFound.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),post.getClass());
+                    mNotFound.invoke(xNotFound,singleton,args,post);
                     client.close();
                 } catch (ClassNotFoundException | IOException | IllegalAccessException | 
                         IllegalArgumentException | InvocationTargetException | NoSuchMethodException | 

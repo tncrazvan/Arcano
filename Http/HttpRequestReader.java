@@ -8,9 +8,12 @@ package javahttpserver.Http;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,6 +26,7 @@ public abstract class HttpRequestReader extends Thread{
     protected BufferedReader reader=null;
     protected BufferedWriter writer=null;
     private String output = "";
+    private Map<String,String> form = new HashMap<>();
     public HttpRequestReader(Socket client) {
         try {
             this.client=client;
@@ -42,13 +46,17 @@ public abstract class HttpRequestReader extends Thread{
     @Override
     public void run(){
         try {
-            String line = reader.readLine();
-            while(line != null && line.length() > 0){
-                output +=line+"\r\n";
+            String line = "";
+            boolean canRead = true;
+            while (canRead) { //check null reference
                 line = reader.readLine();
+                if(line == null || line.length() == 0){
+                    canRead = false;
+                }
+                output +=line+"\r\n";
             }
             this.onRequest(output);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             try {
                 client.close();
             } catch (IOException ex1) {

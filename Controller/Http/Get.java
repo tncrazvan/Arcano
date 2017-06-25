@@ -5,7 +5,7 @@
  */
 package javahttpserver.Controller.Http;
 
-import java.io.File;
+import com.google.gson.JsonObject;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,10 +19,10 @@ import javahttpserver.JHS;
  */
 public class Get implements HttpInterface{
     @Override
-    public void main(HttpEvent e, ArrayList<String> args){
+    public void main(HttpEvent e, ArrayList<String> args,JsonObject post){
         e.send("No resource specified");
     }
-    public void file(HttpEvent e, ArrayList<String> args) throws FileNotFoundException, IOException{
+    public void file(HttpEvent e, ArrayList<String> args,JsonObject post) throws FileNotFoundException, IOException{
         e.setContentType(JHS.processContentType(args.get(0)));
         e.sendFileContents("/"+(args.get(0).equals("")?args.get(1):args.get(0)));
     }
@@ -39,7 +39,7 @@ public class Get implements HttpInterface{
         
     }
     
-    public void cookie(HttpEvent e, ArrayList<String> args){
+    public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
         e.setContentType("application/json");
         if(e.cookieIsset(args.get(0))){
             String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(args.get(0))));

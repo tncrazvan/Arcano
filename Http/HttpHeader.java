@@ -158,9 +158,12 @@ public class HttpHeader {
                     header.set(item[0],item[1]);
                 }
             }else{
-                if(tmp[i].substring(0,3).equals("GET")
-                        || tmp[i].substring(0,4).equals("POST")){
+                if(tmp[i].substring(0,3).equals("GET")){
                     header.set("Resource",tmp[i]);
+                    header.set("Method","GET");
+                }else if(tmp[i].substring(0,4).equals("POST")){
+                    header.set("Resource",tmp[i]);
+                    header.set("Method","POST");
                 }else{
                     header.set(tmp[i],tmp[i]);
                 }

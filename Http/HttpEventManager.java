@@ -255,7 +255,6 @@ public abstract class HttpEventManager {
         } catch (FileNotFoundException ex) {
             Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            System.out.println("SUCA");
             ex.printStackTrace();
         } finally {
             try {

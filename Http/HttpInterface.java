@@ -5,6 +5,7 @@
  */
 package javahttpserver.Http;
 
+import com.google.gson.JsonObject;
 import java.util.ArrayList;
 
 /**
@@ -12,5 +13,5 @@ import java.util.ArrayList;
  * @author Razvan
  */
 public interface HttpInterface {
-    public void main(HttpEvent e, ArrayList<String> args);
+    public void main(HttpEvent e, ArrayList<String> args,JsonObject post);
 }

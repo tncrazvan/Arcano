@@ -5,6 +5,7 @@
  */
 package javahttpserver.Controller.Http;
 
+import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.Http.HttpInterface;
@@ -17,11 +18,11 @@ import javahttpserver.JHS;
 public class Unset implements HttpInterface{
 
     @Override
-    public void main(HttpEvent e, ArrayList<String> args) {
+    public void main(HttpEvent e, ArrayList<String> args,JsonObject post) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
-    public void cookie(HttpEvent e, ArrayList<String> args){
+    public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
         try{
             e.unsetCookie(args.get(0), args.get(1),"/"+args.get(2));
         }catch(Exception e2){
