@@ -47,6 +47,9 @@ public class HttpEventListener extends HttpRequestReader{
                     //System.out.println(line);
                     if(currentObjectName == null && line.matches("^\\-+.*$")){
                         currentObjectName = line;
+                        if(line.substring(line.length()-2,line.length()).equals("--")){
+                            canRead = false;
+                        }
                     }else if(currentObjectName != null && line.equals(currentObjectName)){
                         post.addProperty(currentLabel, currentValue);
                         currentLabel = null;

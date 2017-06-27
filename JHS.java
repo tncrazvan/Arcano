@@ -5,6 +5,7 @@
  */
 package javahttpserver;
 import com.google.gson.Gson;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URLDecoder;
@@ -42,13 +43,26 @@ public class JHS {
     public static final Gson JSON_PARSER = new Gson();
     public static boolean running = false;
     
+
+    
+    public static void rmdir(File folder){
+        File[] files = folder.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    rmdir(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        folder.delete();
+    }
     
     public static byte integerToBinary(int intValue){
         String s = Integer.toHexString(intValue);
         return DatatypeConverter.parseHexBinary((s.length()==1?"0"+s:s))[0];
     }
-    
-    
     
     public static byte hexToBinary(String hexValue){
         return DatatypeConverter.parseHexBinary(hexValue)[0];

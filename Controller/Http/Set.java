@@ -33,22 +33,25 @@ public class Set implements HttpInterface{
         
     }
     public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
-        e.setContentType("application/json");
-        try{
-            e.setCookie(args.get(0), args.get(1),"/"+args.get(2),args.get(3),args.get(4));
-        }catch(Exception e0){
+        if(e.getClientHeader().get("Method").equals("POST")){
+            e.setContentType("application/json");
+            String value = post.get("Value").getAsString();
             try{
-                e.setCookie(args.get(0), args.get(1),"/"+args.get(2),args.get(3));
-            }catch(Exception e1){
+                e.setCookie(args.get(0), value,"/"+args.get(1),args.get(2),args.get(3));
+            }catch(Exception e0){
                 try{
-                    e.setCookie(args.get(0), args.get(1),"/"+args.get(2));
-                }catch(Exception e2){
-                    e.setCookie(args.get(0), args.get(1));
+                    e.setCookie(args.get(0), value,"/"+args.get(1),args.get(2));
+                }catch(Exception e1){
+                    try{
+                        e.setCookie(args.get(0), value,"/"+args.get(1));
+                    }catch(Exception e2){
+                        e.setCookie(args.get(0), value);
+                    }
                 }
             }
+
+            String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", value));
+            e.send(jsonCookie);
         }
-        
-        String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", args.get(1)));
-        e.send(jsonCookie);
     }
 }
