@@ -5,6 +5,7 @@
  */
 package javahttpserver.Http;
 
+import com.google.gson.JsonObject;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -16,6 +17,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javahttpserver.JHS;
 
 /**
  *
@@ -27,6 +31,7 @@ public abstract class HttpRequestReader extends Thread{
     protected BufferedWriter writer=null;
     private String output = "";
     private Map<String,String> form = new HashMap<>();
+    private JsonObject post = new JsonObject();
     public HttpRequestReader(Socket client) {
         try {
             this.client=client;
@@ -55,7 +60,54 @@ public abstract class HttpRequestReader extends Thread{
                 }
                 output +=line+"\r\n";
             }
-            this.onRequest(output);
+            
+            HttpHeader clientHeader = HttpHeader.fromString(output);
+            if(clientHeader.get("Method").equals("POST")){
+                try {
+                    line = "";
+                    String currentObjectName = null;
+                    canRead = true;
+                    String currentLabel = null,
+                            currentValue = "";
+                    Pattern pattern1 = Pattern.compile("^Content-Disposition");
+                    Pattern pattern2 = Pattern.compile("(?<=name\\=\\\").*?(?=\\\")");
+                    Matcher matcher;
+
+                    while(canRead){
+                        line = reader.readLine();
+                        //System.out.println(line);
+                        if(currentObjectName == null && line.matches("^\\-+.*$")){
+                            currentObjectName = line;
+                            if(line.substring(line.length()-2,line.length()).equals("--")){
+                                canRead = false;
+                            }
+                        }else if(currentObjectName != null && line.equals(currentObjectName)){
+                            post.addProperty(currentLabel, currentValue);
+                            currentLabel = null;
+                            currentValue = "";
+                        }else if(currentObjectName != null && line.equals(currentObjectName+"--")){
+                            canRead = false;
+                            post.addProperty(currentLabel, currentValue);
+                        }else if(currentObjectName != null){
+
+                            matcher = pattern1.matcher(line);
+                            if(matcher.find()){
+                                matcher = pattern2.matcher(line);
+                                if(matcher.find() && currentLabel == null){
+                                    currentLabel = matcher.group();
+                                }
+                            }else if(currentLabel != null && !line.equals("")){
+                                currentValue = JHS.atob(line);
+                            }
+                        }
+
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            this.onRequest(clientHeader,post);
         } catch (Exception ex) {
             try {
                 client.close();
@@ -65,6 +117,7 @@ public abstract class HttpRequestReader extends Thread{
         }
     }
     
-    public abstract void onRequest(String result);
+    
+    public abstract void onRequest(HttpHeader clientHeader, JsonObject post);
     
 }

@@ -86,9 +86,18 @@ public abstract class WebSocketManager{
         new Thread(()->{
             try {
                 String acceptKey = DatatypeConverter.printBase64Binary(JHS.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + JHS.WS_ACCEPT_KEY));
+                
                 HttpHeader header = new HttpHeader();
                 header.set("Status", "HTTP/1.1 101 Switching Protocols");
-                header.set("Connection","Upgrade");
+                
+                if(clientHeader.get("Connection").equals("Upgrade")){
+                    //webkit (and others) response
+                    header.set("Connection","Upgrade");
+                }else if(clientHeader.get("Connection").equals("keep-alive, Upgrade")){
+                    //mozilla response
+                    header.set("Connection","keep-alive, Upgrade");
+                }
+                
                 header.set("Upgrade","websocket");
                 header.set("Sec-WebSocket-Accept",acceptKey);
                 outputStream.write((header.toString()+"\r\n").getBytes());
@@ -102,7 +111,7 @@ public abstract class WebSocketManager{
                 String currentMessage = null;
                 while(connected){
                     bytes = read.read(data);
-                    currentMessage = new String(unmask(data,bytes));
+                    currentMessage = new String(unmask(data, bytes));
 
                     if(this.oldOpCode==8){
                         connected = false;
@@ -154,16 +163,12 @@ public abstract class WebSocketManager{
              +---------------------------------------------------------------+
         */
     
-    
-    
-    
-    
     public byte[] unmask(byte[] payload,int bytes){
         ByteBuffer buf = ByteBuffer.wrap(payload);
         int fin =  payload[0] & 0x77;
         this.oldOpCode = (byte)(payload[0] & 0x0F);
+        byte[] result;
         if(fin != 1){
-            byte[] result;
             if(this.oldLength == 126){
                 for(int i=0;i<8;i++) buf.get();
             }else if(this.oldLength == 127){
@@ -173,18 +178,16 @@ public abstract class WebSocketManager{
             }
             
             int resultOffset=buf.position();
-            result = new byte[bytes-resultOffset];
+            result = new byte[bytes];
             
             byte currentByte;
             if(!Arrays.toString(this.oldMask).equals("null"))
             for(int i = 0;i<result.length;i++){
-                currentByte = (byte) (payload[resultOffset+i] ^ this.oldMask[i%this.oldMask.length]);
+                currentByte = (byte) (payload[i] ^ this.oldMask[i%this.oldMask.length]);
                 result[i] = currentByte;
 
             }
-            return result;
         }else{
-            byte[] result;
             byte[] masks = new byte[4];
             int length = (int)payload[1] & 127;
             this.oldLength = length;
@@ -209,6 +212,7 @@ public abstract class WebSocketManager{
             return result;
         }
         
+        return result;
     }
     
     public void close(){
