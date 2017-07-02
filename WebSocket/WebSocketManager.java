@@ -104,7 +104,7 @@ public abstract class WebSocketManager{
                 outputStream.flush();
                 onOpen(client);
                 Charset UTF8 = Charset.forName("UTF-8");
-                byte[] data = new byte[JHS.WS_CHUNKC_SIZE];
+                byte[] data = new byte[JHS.WS_MTU];
                 //char[] data = new char[128];
                 InputStream read = client.getInputStream();
                 int bytes = 0;
