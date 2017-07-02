@@ -38,6 +38,7 @@ public abstract class WebSocketManager{
     protected int oldOpCode;
     protected int oldLength;
     private boolean connected = true;
+    private boolean isMoz = false;
     
     private long prev_hit;
     public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader,String requestId) throws IOException {
@@ -46,6 +47,7 @@ public abstract class WebSocketManager{
         this.reader=reader;
         this.requesteId=requestId;
         this.outputStream = client.getOutputStream();
+        isMoz = clientHeader.get("Connection").equals("keep-alive, Upgrade");
     }
     
     public HttpHeader getClientHeader(){
@@ -111,7 +113,7 @@ public abstract class WebSocketManager{
                 String currentMessage = null;
                 while(connected){
                     bytes = read.read(data);
-                    currentMessage = new String(unmask(data, bytes));
+                    currentMessage = new String(isMoz?unmaskMoz(data, bytes):unmask(data, bytes));
 
                     if(this.oldOpCode==8){
                         connected = false;
@@ -163,7 +165,7 @@ public abstract class WebSocketManager{
              +---------------------------------------------------------------+
         */
     
-    public byte[] unmask(byte[] payload,int bytes){
+    public byte[] unmaskMoz(byte[] payload,int bytes){
         ByteBuffer buf = ByteBuffer.wrap(payload);
         int fin =  payload[0] & 0x77;
         this.oldOpCode = (byte)(payload[0] & 0x0F);
@@ -198,7 +200,7 @@ public abstract class WebSocketManager{
         return result;
     }
     
-    /*public byte[] unmask(byte[] payload,int bytes){
+    public byte[] unmask(byte[] payload,int bytes){
         ByteBuffer buf = ByteBuffer.wrap(payload);
         int fin =  payload[0] & 0x77;
         this.oldOpCode = (byte)(payload[0] & 0x0F);
@@ -249,7 +251,7 @@ public abstract class WebSocketManager{
             return result;
         }
         
-    }*/
+    }
     
     public void close(){
         try {
