@@ -170,15 +170,61 @@ public abstract class WebSocketManager{
         byte[] result;
         if(fin != 1){
             result = new byte[bytes];
+            for(int i = 0;i<result.length;i++){
+                result[i] = (byte) (payload[i] ^ this.oldMask[i%this.oldMask.length]);
+            }
+        }else{
+            byte[] masks = new byte[4];
+            int length = (int)payload[1] & 127;
+            this.oldLength = length;
+            if(length == 126){
+                for(int i=0;i<4;i++) buf.get();
+            }else if(length == 127){
+                for(int i=0;i<10;i++) buf.get();
+            }else{
+                for(int i=0;i<2;i++) buf.get();
+            }
+            
+            buf.get(masks, 0, masks.length);
+            int resultOffset=buf.position();
+            result = new byte[bytes-resultOffset];
+            
+            for(int i = 0;i<result.length;i++){
+                result[i] = (byte) (payload[resultOffset+i] ^ masks[i%masks.length]);
+            }
+            this.oldMask = masks;
+        }
+        
+        return result;
+    }
+    
+    /*public byte[] unmask(byte[] payload,int bytes){
+        ByteBuffer buf = ByteBuffer.wrap(payload);
+        int fin =  payload[0] & 0x77;
+        this.oldOpCode = (byte)(payload[0] & 0x0F);
+        if(fin != 1){
+            byte[] result;
+            if(this.oldLength == 126){
+                for(int i=0;i<8;i++) buf.get();
+            }else if(this.oldLength == 127){
+                for(int i=0;i<14;i++) buf.get();
+            }else{
+                for(int i=0;i<6;i++) buf.get();
+            }
+            
+            int resultOffset=buf.position();
+            result = new byte[bytes-resultOffset];
             
             byte currentByte;
             if(!Arrays.toString(this.oldMask).equals("null"))
             for(int i = 0;i<result.length;i++){
-                currentByte = (byte) (payload[i] ^ this.oldMask[i%this.oldMask.length]);
+                currentByte = (byte) (payload[resultOffset+i] ^ this.oldMask[i%this.oldMask.length]);
                 result[i] = currentByte;
 
             }
+            return result;
         }else{
+            byte[] result;
             byte[] masks = new byte[4];
             int length = (int)payload[1] & 127;
             this.oldLength = length;
@@ -203,8 +249,7 @@ public abstract class WebSocketManager{
             return result;
         }
         
-        return result;
-    }
+    }*/
     
     public void close(){
         try {
