@@ -169,15 +169,6 @@ public abstract class WebSocketManager{
         this.oldOpCode = (byte)(payload[0] & 0x0F);
         byte[] result;
         if(fin != 1){
-            if(this.oldLength == 126){
-                for(int i=0;i<8;i++) buf.get();
-            }else if(this.oldLength == 127){
-                for(int i=0;i<14;i++) buf.get();
-            }else{
-                for(int i=0;i<6;i++) buf.get();
-            }
-            
-            int resultOffset=buf.position();
             result = new byte[bytes];
             
             byte currentByte;
