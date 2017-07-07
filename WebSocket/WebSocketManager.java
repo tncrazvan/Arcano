@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -37,8 +38,16 @@ public abstract class WebSocketManager{
     protected byte[] oldMask;
     protected int oldOpCode;
     protected int oldLength;
+    protected byte[] mask;
+    protected int opCode;
+    protected int length;
+    protected int payloadOffset = 0;
     private boolean connected = true;
     private boolean isMoz = false;
+    private byte[] digest = new byte[8];
+    private boolean startNew = true;
+    private int digestIndex = 0;
+    private String digestMessage = "";
     
     private long prev_hit;
     public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader,String requestId) throws IOException {
@@ -92,13 +101,9 @@ public abstract class WebSocketManager{
                 HttpHeader header = new HttpHeader();
                 header.set("Status", "HTTP/1.1 101 Switching Protocols");
                 
-                if(clientHeader.get("Connection").equals("Upgrade")){
-                    //webkit (and others) response
-                    header.set("Connection","Upgrade");
-                }else if(clientHeader.get("Connection").equals("keep-alive, Upgrade")){
-                    //mozilla response
-                    header.set("Connection","keep-alive, Upgrade");
-                }
+                
+                header.set("Connection","Upgrade");
+                
                 
                 header.set("Upgrade","websocket");
                 header.set("Sec-WebSocket-Accept",acceptKey);
@@ -110,27 +115,15 @@ public abstract class WebSocketManager{
                 //char[] data = new char[128];
                 InputStream read = client.getInputStream();
                 int bytes = 0;
-                String currentMessage = null;
                 while(connected){
                     bytes = read.read(data);
-                    currentMessage = new String(isMoz?unmaskMoz(data, bytes):unmask(data, bytes));
-
-                    if(this.oldOpCode==8){
-                        connected = false;
-                        client.close();
-                        onClose(client);
-                    }else{
-                        onMessage(client, currentMessage);
+                    if(unmask(data, bytes)){
+                        onMessage(client, digestMessage);
+                        startNew = true;
                     }
                 }
             } catch (IOException ex) {
-                try {
-                    connected = false;
-                    client.close();
-                    onClose(client);
-                } catch (IOException ex1) {
-                    Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex1);
-                }
+                close();
             } catch (NoSuchAlgorithmException ex) {
                 Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -165,42 +158,90 @@ public abstract class WebSocketManager{
              +---------------------------------------------------------------+
         */
     
-    public byte[] unmaskMoz(byte[] payload,int bytes){
-        ByteBuffer buf = ByteBuffer.wrap(payload);
-        int fin =  payload[0] & 0x77;
-        this.oldOpCode = (byte)(payload[0] & 0x0F);
-        byte[] result;
-        if(fin != 1){
-            result = new byte[bytes];
-            for(int i = 0;i<result.length;i++){
-                result[i] = (byte) (payload[i] ^ this.oldMask[i%this.oldMask.length]);
-            }
-        }else{
-            byte[] masks = new byte[4];
-            int length = (int)payload[1] & 127;
-            this.oldLength = length;
-            if(length == 126){
-                for(int i=0;i<4;i++) buf.get();
-            }else if(length == 127){
-                for(int i=0;i<10;i++) buf.get();
-            }else{
-                for(int i=0;i<2;i++) buf.get();
-            }
-            
-            buf.get(masks, 0, masks.length);
-            int resultOffset=buf.position();
-            result = new byte[bytes-resultOffset];
-            
-            for(int i = 0;i<result.length;i++){
-                result[i] = (byte) (payload[resultOffset+i] ^ masks[i%masks.length]);
-            }
-            this.oldMask = masks;
-        }
+    
+    public boolean unmask(byte[] payload,int bytes) throws UnsupportedEncodingException{
+        //System.out.println("---------- NEW -----------");
+        int i = 0;
+        boolean fin =  (int)(payload[0] & 0x77) != 1;
         
-        return result;
+        if(fin){
+            //System.out.println("Len:"+oldLength);
+            
+            byte currentByte;
+            while(digestIndex < digest.length && i < bytes){
+                currentByte = (byte) (payload[(i)] ^ mask[digestIndex%mask.length]);
+                if(currentByte != 0){
+                    digest[digestIndex] = currentByte;
+                    digestIndex++;
+                }
+                i++;
+            }
+            digestMessage = new String(digest,"UTF-8");
+            return true;
+        }else{
+            //System.out.println("Flag len:"+length);
+            opCode = (byte)(payload[0] & 0x0F);
+            mask = new byte[4];
+            length = (int)payload[1] & 127;
+            
+            if(length == 126){
+                length = ((payload[2] & 0xff) << 8) | (payload[3] & 0xff);
+                mask[0] = payload[4];
+                mask[1] = payload[5];
+                mask[2] = payload[6];
+                mask[3] = payload[7];
+                payloadOffset = 8;
+                
+            }else if(length == 127){
+                byte[] tmp = new byte[8];
+                tmp[0] = payload[2];
+                tmp[1] = payload[3];
+                tmp[2] = payload[4];
+                tmp[3] = payload[5];
+                tmp[4] = payload[6];
+                tmp[5] = payload[7];
+                tmp[6] = payload[8];
+                tmp[7] = payload[9];
+                
+                length = (int)ByteBuffer.wrap(tmp).getLong();
+                mask[0] = payload[10];
+                mask[1] = payload[11];
+                mask[2] = payload[12];
+                mask[3] = payload[13];
+                payloadOffset = 14;
+            }else{
+                mask[0] = payload[2];
+                mask[1] = payload[3];
+                mask[2] = payload[4];
+                mask[3] = payload[5];
+                payloadOffset = 6;
+            }
+            
+            
+            if(startNew){
+                startNew=false;
+                digest = new byte[length];
+                digestIndex = 0;
+            }
+            
+            byte currentByte;
+            while(digestIndex < digest.length && (payloadOffset+i) < bytes){
+                currentByte = (byte) (payload[(payloadOffset+i)] ^ mask[digestIndex%mask.length]);
+                if(currentByte != 0){
+                    digest[digestIndex] = currentByte;
+                    digestIndex++;
+                }
+                i++;
+            }
+            if(digestIndex >= digest.length){
+                digestMessage = new String(digest,"UTF-8");
+                return true;
+            }
+            return false;
+        }
     }
     
-    public byte[] unmask(byte[] payload,int bytes){
+    public byte[] oldUnmask(byte[] payload,int bytes){
         ByteBuffer buf = ByteBuffer.wrap(payload);
         int fin =  payload[0] & 0x77;
         this.oldOpCode = (byte)(payload[0] & 0x0F);
@@ -222,7 +263,6 @@ public abstract class WebSocketManager{
             for(int i = 0;i<result.length;i++){
                 currentByte = (byte) (payload[resultOffset+i] ^ this.oldMask[i%this.oldMask.length]);
                 result[i] = currentByte;
-
             }
             return result;
         }else{
@@ -296,13 +336,7 @@ public abstract class WebSocketManager{
             //Write the data.
             outputStream.write(messageBytes);
         } catch (IOException ex) {
-            try {
-                connected = false;
-                client.close();
-                onClose(client);
-            } catch (IOException ex1) {
-                Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex1);
-            }
+            close();
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }

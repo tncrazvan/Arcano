@@ -9,6 +9,8 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URLDecoder;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -59,29 +61,23 @@ public class JHS {
         folder.delete();
     }
     
-    public static byte integerToBinary(int intValue){
-        String s = Integer.toHexString(intValue);
-        return DatatypeConverter.parseHexBinary((s.length()==1?"0"+s:s))[0];
-    }
-    
-    public static byte hexToBinary(String hexValue){
-        return DatatypeConverter.parseHexBinary(hexValue)[0];
-    }
+
+
     
     public static String atob(String value){
-        return new String(Base64.getDecoder().decode(value));
+        return new String(Base64.getMimeDecoder().decode(value.replaceAll("\\s", "+")));
     }
     
     public static byte[] atobByte(String value){
-        return Base64.getDecoder().decode(value);
+        return Base64.getMimeDecoder().decode(value.replaceAll("\\s", "+"));
     }
     
     public static String btoa(String value){
-        return new String(Base64.getEncoder().encode(value.getBytes()));
+        return new String(Base64.getMimeEncoder().encode(value.replaceAll("\\s", "+").getBytes()));
     }
     
     public static byte[] btoaByte(String value){
-        return Base64.getEncoder().encode(value.getBytes());
+        return Base64.getMimeEncoder().encode(value.replaceAll("\\s", "+").getBytes());
     }
     
     public static String getSha1String(String str){
@@ -105,25 +101,6 @@ public class JHS {
         return MessageDigest.getInstance("SHA-1").digest(input.getBytes("UTF-8"));
     }
     
-    public static String charsToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for ( int j = 0; j < bytes.length; j++ ) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
-    
-    public static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for ( int j = 0; j < bytes.length; j++ ) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
 
     
     public static String decodeUrl(String data) {
