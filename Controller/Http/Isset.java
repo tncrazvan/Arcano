@@ -37,8 +37,9 @@ public class Isset implements HttpInterface{
     }
     
     public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
-        if(args.size() >= 0){
-            if(e.cookieIsset(args.get(0))){
+        if(post.has("name")){
+            String name = post.get("name").getAsString();
+            if(e.cookieIsset(name)){
                 e.send(0);
             }else{
                 e.send(-2);

@@ -7,10 +7,11 @@ package javahttpserver.Http;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
-import javahttpserver.JHS;
 
 /**
  *
@@ -91,41 +92,56 @@ public class HttpHeader {
     }
     
     public boolean cookieIsset(String key){
-        try{
-            String tmp = cookies.get(" "+key)[0];
-            return true;
-        }catch(Exception e){}
+        Iterator i = cookies.entrySet().iterator();
+        Map.Entry pair;
+        String tmp = "";
+        while(i.hasNext()){
+            pair = (Map.Entry)i.next();
+            tmp = (String) pair.getKey();
+            if(tmp.trim().equals(key.trim())){
+                return true;
+            }
+        }
         return false;
     }
     
     public String getCookie(String key){
-        return new String(Base64.getDecoder().decode(cookies.get(" "+key)[0]));
+        Iterator i = cookies.entrySet().iterator();
+        Map.Entry pair;
+        String tmp = "";
+        String[] tmp2 = new String[5];
+        while(i.hasNext()){
+            pair = (Map.Entry)i.next();
+            tmp = (String) pair.getKey();
+            if(tmp.trim().equals(key.trim())){
+                tmp2 = (String[]) pair.getValue();
+                return new String(Base64.getDecoder().decode(tmp2[0]));
+            }
+        }
+        return null;
     }
     
-    public void setCookie(String key, String v, String path, String domain, String expire, String fieldName){
+    public void setCookie(String key, String v, String path, String domain, String expire){
         String [] b = new String[5];
         b[0] = new String(Base64.getEncoder().encode(v.getBytes()));
         b[1] = path;
         b[2] = domain;
         b[3] = expire;
-        b[4] = fieldName;
+        b[4] = "Set-Cookie";
         cookies.put(key.trim(), b);
-    }
-    public void setCookie(String key,String v,String path, String domain, String expire){
-        setCookie(key, v, path, domain, expire,"Set-Cookie");
     }
     
     public void setCookie(String key,String v,String path, String domain){
-        setCookie(key, v, path, domain,null,"Set-Cookie");
+        setCookie(key, v, path, domain,null);
     }
     
     
     public void setCookie(String key,String v, String path){
-        setCookie(key, v, path, null, null,"Set-Cookie");
+        setCookie(key, v, path, null, null);
     }
     
     public void setCookie(String key, String v){
-        setCookie(key, v, "/", null, null,"Set-Cookie");
+        setCookie(key, v, "/", null, null);
     }
     
     public Map<String,String> getMap(){

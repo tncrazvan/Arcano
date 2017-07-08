@@ -23,35 +23,40 @@ public class Set implements HttpInterface{
     }
     class Cookie{
         String 
-                DataType,
-                Value;
+                type,
+                value;
 
-        public Cookie(String DataType,String Value) {
-            this.DataType=DataType;
-            this.Value=Value;
+        public Cookie(String type,String value) {
+            this.type=type;
+            this.value=value;
         }
         
     }
     public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
+        
         if(e.getClientHeader().get("Method").equals("POST")){
-            e.setContentType("application/json");
-            String value = post.get("Value").getAsString();
-            try{
-                e.setCookie(args.get(0), value,"/"+args.get(1),args.get(2),args.get(3));
-            }catch(Exception e0){
-                try{
-                    e.setCookie(args.get(0), value,"/"+args.get(1),args.get(2));
-                }catch(Exception e1){
-                    try{
-                        e.setCookie(args.get(0), value,"/"+args.get(1));
-                    }catch(Exception e2){
-                        e.setCookie(args.get(0), value);
-                    }
-                }
-            }
+            if(post.has("name") 
+                && post.has("value") 
+                && post.has("path") 
+                && post.has("domain") 
+                && post.has("expire")){
+                e.setContentType("application/json");
+                String 
+                    name = post.get("name").getAsString(),
+                    value = post.get("value").getAsString(),
+                    path = post.get("path").getAsString(),
+                    domain = post.get("domain").getAsString(),
+                    expire = post.get("expire").getAsString();
 
-            String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", value));
-            e.send(jsonCookie);
+                e.setCookie(name, value, path, domain, expire);
+
+                String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", value));
+                e.send(jsonCookie);
+            }else{
+                String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Error", "-1"));
+                e.send(jsonCookie);
+            }
+            
         }
     }
 }

@@ -23,17 +23,19 @@ public class Unset implements HttpInterface{
     }
     
     public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
-        try{
-            e.unsetCookie(args.get(0), args.get(1),"/"+args.get(2));
-        }catch(Exception e2){
-            try{
-                e.unsetCookie(args.get(0), args.get(1));
-            }catch(Exception e3){
-                e.unsetCookie(args.get(0));
+        if(post.has("name") && post.has("domain") && post.has("path")){
+            System.out.println("here");
+            String name = post.get("name").getAsString();
+            if(e.cookieIsset(name)){
+                e.unsetCookie(name, post.get("path").getAsString(), post.get("domain").getAsString());
+                e.send(0);
+            }else{
+                e.send(0);
             }
+        }else{
+            e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
+            e.flushHeaders();
         }
-            
-        e.send("");
     }
     
 }

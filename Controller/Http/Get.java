@@ -29,22 +29,30 @@ public class Get implements HttpInterface{
     
     class Cookie{
         String 
-                DataType,
-                Value;
+                type,
+                value;
 
-        public Cookie(String DataType,String Value) {
-            this.DataType=DataType;
-            this.Value=Value;
+        public Cookie(String type,String value) {
+            this.type=type;
+            this.value=value;
         }
         
     }
     
     public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
-        e.setContentType("application/json");
-        if(e.cookieIsset(args.get(0))){
-            String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(args.get(0))));
-            e.send(jsonCookie);
+        if(post.has("name")){
+            String name = post.get("name").getAsString();
+            if(e.cookieIsset(name)){
+                e.setContentType("application/json");
+                String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
+                e.send(jsonCookie);
+            }else{
+                e.setContentType("text/plain");
+                e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
+                e.send();
+            }
         }else{
+            e.setContentType("text/plain");
             e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
             e.send();
         }

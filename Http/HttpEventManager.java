@@ -122,7 +122,7 @@ public abstract class HttpEventManager {
     }
     
     public void unsetCookie(String key, String path, String domain){
-        header.setCookie(key,"0",path,domain,"Thu, 01 Jan 1970 00:00:00 GMT");
+        header.setCookie(key,"deleted",path,domain,"Thu, 01 Jan 1970 00:00:00 GMT");
     }
     
     public void unsetCookie(String key, String path){
