@@ -97,20 +97,14 @@ public abstract class WebSocketManager{
         new Thread(()->{
             try {
                 String acceptKey = DatatypeConverter.printBase64Binary(JHS.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + JHS.WS_ACCEPT_KEY));
-                
                 HttpHeader header = new HttpHeader();
                 header.set("Status", "HTTP/1.1 101 Switching Protocols");
-                
-                
                 header.set("Connection","Upgrade");
-                
-                
                 header.set("Upgrade","websocket");
                 header.set("Sec-WebSocket-Accept",acceptKey);
                 outputStream.write((header.toString()+"\r\n").getBytes());
                 outputStream.flush();
                 onOpen(client);
-                Charset UTF8 = Charset.forName("UTF-8");
                 byte[] data = new byte[JHS.WS_MTU];
                 //char[] data = new char[128];
                 InputStream read = client.getInputStream();
@@ -161,29 +155,33 @@ public abstract class WebSocketManager{
     
     public boolean unmask(byte[] payload,int bytes) throws UnsupportedEncodingException{
         //System.out.println("---------- NEW -----------");
+        if(bytes == -1){
+            close();
+            return false;
+        }
+        
         int i = 0;
         boolean fin =  (int)(payload[0] & 0x77) != 1;
-        
+        opCode = (byte)(payload[0] & 0x0F);
+        /*System.out.println("payload length:"+bytes);
+        System.out.println("FIN:"+fin);
+        System.out.println("OPCODE:"+opCode);*/
+        if(bytes == 6 && fin && opCode == 8){
+            close();
+            return false;
+        }
         if(fin){
-            //System.out.println("Len:"+oldLength);
-            
             byte currentByte;
             while(digestIndex < digest.length && i < bytes){
-                currentByte = (byte) (payload[(i)] ^ mask[digestIndex%mask.length]);
-                if(currentByte != 0){
-                    digest[digestIndex] = currentByte;
-                    digestIndex++;
-                }
+                currentByte = (byte) (payload[i] ^ mask[digestIndex%mask.length]);
+                digest[digestIndex] = currentByte;
+                digestIndex++;
                 i++;
             }
-            digestMessage = new String(digest,"UTF-8");
-            return true;
         }else{
             //System.out.println("Flag len:"+length);
-            opCode = (byte)(payload[0] & 0x0F);
             mask = new byte[4];
             length = (int)payload[1] & 127;
-            
             if(length == 126){
                 length = ((payload[2] & 0xff) << 8) | (payload[3] & 0xff);
                 mask[0] = payload[4];
@@ -217,7 +215,6 @@ public abstract class WebSocketManager{
                 payloadOffset = 6;
             }
             
-            
             if(startNew){
                 startNew=false;
                 digest = new byte[length];
@@ -227,18 +224,13 @@ public abstract class WebSocketManager{
             byte currentByte;
             while(digestIndex < digest.length && (payloadOffset+i) < bytes){
                 currentByte = (byte) (payload[(payloadOffset+i)] ^ mask[digestIndex%mask.length]);
-                if(currentByte != 0){
-                    digest[digestIndex] = currentByte;
-                    digestIndex++;
-                }
+                digest[digestIndex] = currentByte;
+                digestIndex++;
                 i++;
             }
-            if(digestIndex >= digest.length){
-                digestMessage = new String(digest,"UTF-8");
-                return true;
-            }
-            return false;
         }
+        digestMessage = new String(digest,"UTF-8").trim();
+        return true;
     }
     
     public byte[] oldUnmask(byte[] payload,int bytes){

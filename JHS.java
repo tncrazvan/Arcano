@@ -9,18 +9,16 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URLDecoder;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.WebSocket.WebSocketEvent;
-import javax.xml.bind.DatatypeConverter;
 
 /**
  *
@@ -39,13 +37,14 @@ public class JHS {
     public static final ArrayList<HttpEvent> EVENT_HTTP = new ArrayList<>();
     public static String WS_ACCEPT_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static int PORT = 8888;
-    public static int WS_MTU = 65000;
+    public static int WS_MTU = 65536;
     public static final Date DATE = new Date();
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
     public static final Gson JSON_PARSER = new Gson();
     public static boolean running = false;
     
 
+    
     
     public static void rmdir(File folder){
         File[] files = folder.listFiles();
@@ -62,22 +61,30 @@ public class JHS {
     }
     
 
+    public static byte[] trim(byte[] bytes){
+        int i = bytes.length - 1;
+        while (i >= 0 && bytes[i] == 0)
+        {
+            --i;
+        }
 
+        return Arrays.copyOf(bytes, i + 1);
+    }
     
     public static String atob(String value){
-        return new String(Base64.getMimeDecoder().decode(value.replaceAll("\\s", "+")));
+        return new String(Base64.getMimeDecoder().decode(value));
     }
     
     public static byte[] atobByte(String value){
-        return Base64.getMimeDecoder().decode(value.replaceAll("\\s", "+"));
+        return Base64.getMimeDecoder().decode(value);
     }
     
     public static String btoa(String value){
-        return new String(Base64.getMimeEncoder().encode(value.replaceAll("\\s", "+").getBytes()));
+        return new String(Base64.getMimeEncoder().encode(value.getBytes()));
     }
     
     public static byte[] btoaByte(String value){
-        return Base64.getMimeEncoder().encode(value.replaceAll("\\s", "+").getBytes());
+        return Base64.getMimeEncoder().encode(value.getBytes());
     }
     
     public static String getSha1String(String str){
