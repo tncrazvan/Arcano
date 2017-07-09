@@ -6,13 +6,14 @@
 package javahttpserver.WebSocket;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -48,6 +49,8 @@ public abstract class WebSocketManager{
     private boolean startNew = true;
     private int digestIndex = 0;
     private String digestMessage = "";
+    private File f = new File("test.txt");
+    private FileWriter fw = new FileWriter(f);
     
     private long prev_hit;
     public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader,String requestId) throws IOException {
@@ -57,6 +60,8 @@ public abstract class WebSocketManager{
         this.requesteId=requestId;
         this.outputStream = client.getOutputStream();
         isMoz = clientHeader.get("Connection").equals("keep-alive, Upgrade");
+        if(f.exists()) f.delete();
+        f.createNewFile();
     }
     
     public HttpHeader getClientHeader(){
@@ -170,67 +175,78 @@ public abstract class WebSocketManager{
             close();
             return false;
         }
-        if(fin){
-            byte currentByte;
-            while(digestIndex < digest.length && i < bytes){
-                currentByte = (byte) (payload[i] ^ mask[digestIndex%mask.length]);
-                digest[digestIndex] = currentByte;
-                digestIndex++;
-                i++;
-            }
+        
+        if(startNew){
+        mask = new byte[4];
+        length = (int)payload[1] & 127;
+        if(length == 126){
+            length = ((payload[2] & 0xff) << 8) | (payload[3] & 0xff);
+            mask[0] = payload[4];
+            mask[1] = payload[5];
+            mask[2] = payload[6];
+            mask[3] = payload[7];
+            payloadOffset = 8;
+
+        }else if(length == 127){
+            byte[] tmp = new byte[8];
+            tmp[0] = payload[2];
+            tmp[1] = payload[3];
+            tmp[2] = payload[4];
+            tmp[3] = payload[5];
+            tmp[4] = payload[6];
+            tmp[5] = payload[7];
+            tmp[6] = payload[8];
+            tmp[7] = payload[9];
+
+            length = (int)ByteBuffer.wrap(tmp).getLong();
+            mask[0] = payload[10];
+            mask[1] = payload[11];
+            mask[2] = payload[12];
+            mask[3] = payload[13];
+            payloadOffset = 14;
         }else{
-            //System.out.println("Flag len:"+length);
-            mask = new byte[4];
-            length = (int)payload[1] & 127;
-            if(length == 126){
-                length = ((payload[2] & 0xff) << 8) | (payload[3] & 0xff);
-                mask[0] = payload[4];
-                mask[1] = payload[5];
-                mask[2] = payload[6];
-                mask[3] = payload[7];
-                payloadOffset = 8;
-                
-            }else if(length == 127){
-                byte[] tmp = new byte[8];
-                tmp[0] = payload[2];
-                tmp[1] = payload[3];
-                tmp[2] = payload[4];
-                tmp[3] = payload[5];
-                tmp[4] = payload[6];
-                tmp[5] = payload[7];
-                tmp[6] = payload[8];
-                tmp[7] = payload[9];
-                
-                length = (int)ByteBuffer.wrap(tmp).getLong();
-                mask[0] = payload[10];
-                mask[1] = payload[11];
-                mask[2] = payload[12];
-                mask[3] = payload[13];
-                payloadOffset = 14;
-            }else{
-                mask[0] = payload[2];
-                mask[1] = payload[3];
-                mask[2] = payload[4];
-                mask[3] = payload[5];
-                payloadOffset = 6;
-            }
-            
-            if(startNew){
-                startNew=false;
-                digest = new byte[length];
-                digestIndex = 0;
-            }
-            
-            byte currentByte;
-            while(digestIndex < digest.length && (payloadOffset+i) < bytes){
-                currentByte = (byte) (payload[(payloadOffset+i)] ^ mask[digestIndex%mask.length]);
-                digest[digestIndex] = currentByte;
-                digestIndex++;
-                i++;
-            }
+            mask[0] = payload[2];
+            mask[1] = payload[3];
+            mask[2] = payload[4];
+            mask[3] = payload[5];
+            payloadOffset = 6;
         }
-        digestMessage = new String(digest,"UTF-8").trim();
-        return true;
+
+        startNew=false;
+        digest = new byte[length];
+        digestIndex = 0;
+    }else{
+        payloadOffset = 0;
+    }
+        
+        
+        
+        if(fin){
+            payloadOffset = 0;
+        }
+        
+        byte currentByte;
+        while(digestIndex < digest.length && (payloadOffset+i) < bytes){
+            currentByte = (byte) (payload[(payloadOffset+i)] ^ mask[digestIndex%mask.length]);
+            digest[digestIndex] = currentByte;
+            digestIndex++;
+            i++;
+        }
+        digestMessage = new String(JHS.trim(digest),"UTF-8").trim(); 
+        if(digestIndex == digest.length){
+            try {
+                fw.write("digestIndex("+digestIndex+"),digest.length("+digest.length+"),fin("+fin+"),opcode("+opCode+"):"+digestMessage+"\n\n");
+            } catch (IOException ex) {
+                Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            /*System.out.println("HERE 1 ____________");
+            System.out.println("digestIndex("+digestIndex+"),digest.length("+digest.length+"),fin("+fin+"),opcode("+opCode+"):");
+            System.out.println(digestMessage);
+            System.out.println("======================================================");*/
+            return true;
+        }
+        return false;
+        
     }
     
     public byte[] oldUnmask(byte[] payload,int bytes){
