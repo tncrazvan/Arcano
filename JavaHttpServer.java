@@ -66,6 +66,7 @@ public class JavaHttpServer {
     }
     
     private static SSLContext createSSLContext(){
+        System.setProperty("https.protocols", "TLSv1.1,TLSv1.2");
         try{
             KeyStore keyStore = KeyStore.getInstance("JKS");
             keyStore.load(new FileInputStream(JHS.HTTPS_CERTIFICATE),JHS.HTTPS_CERTIFICATE_PASSWORD.toCharArray());
@@ -81,7 +82,7 @@ public class JavaHttpServer {
             TrustManager[] tm = trustManagerFactory.getTrustManagers();
              
             // Initialize SSLContext
-            SSLContext sslContext = SSLContext.getInstance("TLSv1");
+            SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
             sslContext.init(km,  tm, null);
              
             return sslContext;

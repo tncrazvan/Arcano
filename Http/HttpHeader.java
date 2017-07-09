@@ -12,6 +12,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import javahttpserver.JHS;
 
 /**
  *
@@ -26,6 +27,7 @@ public class HttpHeader {
             header.put("Status", "HTTP/1.1 200 OK");
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
             header.put("Date",dtf.format(LocalDateTime.now()));
+            header.put("Cache-Control","max-age="+JHS.CACHE_MAX_AGE);
         }
     }
     public HttpHeader(){

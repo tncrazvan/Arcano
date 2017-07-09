@@ -40,21 +40,27 @@ public class Get implements HttpInterface{
     }
     
     public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
-        if(post.has("name")){
-            String name = post.get("name").getAsString();
-            if(e.cookieIsset(name)){
-                e.setContentType("application/json");
-                String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
-                e.send(jsonCookie);
+
+        if(e.getClientHeader().get("Method").equals("POST")){
+            if(post.has("name")){
+                String name = post.get("name").getAsString();
+                if(e.cookieIsset(name)){
+                    e.setContentType("application/json");
+                    String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
+                    e.send(jsonCookie);
+                }else{
+                    e.setContentType("text/plain");
+                    e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
+                    e.send();
+                }
             }else{
                 e.setContentType("text/plain");
                 e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
                 e.send();
             }
         }else{
-            e.setContentType("text/plain");
-            e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
-            e.send();
+            String jsonCookie = JHS.JSON_PARSER.toJson(new javahttpserver.Http.Cookie("Error", "-1"));
+            e.send(jsonCookie);
         }
     }
 }

@@ -7,6 +7,7 @@ package javahttpserver.Controller.Http;
 
 import com.google.gson.JsonObject;
 import java.util.ArrayList;
+import javahttpserver.Http.Cookie;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.Http.HttpInterface;
 import javahttpserver.JHS;
@@ -21,19 +22,7 @@ public class Set implements HttpInterface{
     public void main(HttpEvent e, ArrayList<String> args,JsonObject post) {
         
     }
-    class Cookie{
-        String 
-                type,
-                value;
-
-        public Cookie(String type,String value) {
-            this.type=type;
-            this.value=value;
-        }
-        
-    }
     public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
-        
         if(e.getClientHeader().get("Method").equals("POST")){
             if(post.has("name") 
                 && post.has("value") 
@@ -56,7 +45,6 @@ public class Set implements HttpInterface{
                 String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Error", "-1"));
                 e.send(jsonCookie);
             }
-            
         }
     }
 }

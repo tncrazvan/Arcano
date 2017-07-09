@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import javahttpserver.Http.Cookie;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.Http.HttpInterface;
 import javahttpserver.JHS;
@@ -37,15 +38,20 @@ public class Isset implements HttpInterface{
     }
     
     public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
-        if(post.has("name")){
-            String name = post.get("name").getAsString();
-            if(e.cookieIsset(name)){
-                e.send(0);
+        if(e.getClientHeader().get("Method").equals("POST")){
+           if(post.has("name")){
+                String name = post.get("name").getAsString();
+                if(e.cookieIsset(name)){
+                    e.send(0);
+                }else{
+                    e.send(-2);
+                }
             }else{
-                e.send(-2);
-            }
+                e.send(-1);
+            } 
         }else{
-            e.send(-1);
+            String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Error", "-1"));
+            e.send(jsonCookie);
         }
     }
 }

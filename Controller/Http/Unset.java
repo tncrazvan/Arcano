@@ -7,6 +7,7 @@ package javahttpserver.Controller.Http;
 
 import com.google.gson.JsonObject;
 import java.util.ArrayList;
+import javahttpserver.Http.Cookie;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.Http.HttpInterface;
 import javahttpserver.JHS;
@@ -23,18 +24,23 @@ public class Unset implements HttpInterface{
     }
     
     public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
-        if(post.has("name") && post.has("domain") && post.has("path")){
-            System.out.println("here");
-            String name = post.get("name").getAsString();
-            if(e.cookieIsset(name)){
-                e.unsetCookie(name, post.get("path").getAsString(), post.get("domain").getAsString());
-                e.send(0);
+        if(e.getClientHeader().get("Method").equals("POST")){
+            if(post.has("name") && post.has("domain") && post.has("path")){
+
+                String name = post.get("name").getAsString();
+                if(e.cookieIsset(name)){
+                    e.unsetCookie(name, post.get("path").getAsString(), post.get("domain").getAsString());
+                    e.send(0);
+                }else{
+                    e.send(0);
+                }
             }else{
-                e.send(0);
+                e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
+                e.flushHeaders();
             }
         }else{
-            e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
-            e.flushHeaders();
+            String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Error", "-1"));
+            e.send(jsonCookie);
         }
     }
     

@@ -35,17 +35,16 @@ public abstract class HttpRequestReader extends Thread{
     private String output = "";
     private Map<String,String> form = new HashMap<>();
     private JsonObject post = new JsonObject();
-    public HttpRequestReader(Socket client) throws IOException, NoSuchAlgorithmException {
-        if(JHS.PORT == 443){
+    public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
+        /*if(JHS.PORT == 443){
             secureClient = (SSLSocket) client;
             secureClient.setEnabledCipherSuites(secureClient.getSupportedCipherSuites());
 
-            // Start handshake
+            
             secureClient.startHandshake();
-
-            // Get session after the connection is established
             SSLSession sslSession = secureClient.getSession();
-        }
+
+        }*/
         
         
         
