@@ -87,7 +87,7 @@ public abstract class HttpEventManager {
             }else{
                 header.set("Content-Type", "text/html");
                 header.set("Status", "HTTP/1.1 404 Not Found");
-                System.out.println("sending file:"+JHS.PUBLIC_WWW+location);
+                //System.out.println("sending file:"+JHS.PUBLIC_WWW+location);
                 sendFileContents(JHS.RESOURCE_NOT_FOUND_FILE);
                 client.close();
             }
@@ -122,7 +122,7 @@ public abstract class HttpEventManager {
     }
     
     public void unsetCookie(String key, String path, String domain){
-        header.setCookie(key,"deleted",path,domain,"Thu, 01 Jan 1970 00:00:00 GMT");
+        header.setCookie(key,"deleted",path,domain,"0");
     }
     
     public void unsetCookie(String key, String path){

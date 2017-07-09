@@ -36,15 +36,19 @@ public class Set implements HttpInterface{
                     path = post.get("path").getAsString(),
                     domain = post.get("domain").getAsString(),
                     expire = post.get("expire").getAsString();
-
                 e.setCookie(name, value, path, domain, expire);
 
                 String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", value));
                 e.send(jsonCookie);
+                
+                //System.out.println(e.getHeader().toString());
             }else{
                 String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Error", "-1"));
                 e.send(jsonCookie);
             }
+        }else{
+            String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Error", "-2"));
+            e.send(jsonCookie);
         }
     }
 }

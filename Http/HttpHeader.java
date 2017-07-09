@@ -5,13 +5,16 @@
  */
 package javahttpserver.Http;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import javahttpserver.JHS;
 
 /**
@@ -21,13 +24,13 @@ import javahttpserver.JHS;
 public class HttpHeader {
     private Map<String, String> header = new HashMap();
     private Map<String, String[]> cookies = new HashMap();
-    
+    private SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM, yyyy HH:mm:ss z",Locale.US);
     public HttpHeader(boolean createSuccessHeader) {
         if(createSuccessHeader){
             header.put("Status", "HTTP/1.1 200 OK");
             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
             header.put("Date",dtf.format(LocalDateTime.now()));
-            header.put("Cache-Control","max-age="+JHS.CACHE_MAX_AGE);
+            header.put("Cache-Control","no-store");
         }
     }
     public HttpHeader(){
@@ -44,12 +47,15 @@ public class HttpHeader {
     }
     
     public String cookieToString(String key){
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
         String[] c = cookies.get(key);
+        Date time = new Date(Integer.parseInt(c[3])*1000L);
+        //Thu, 01 Jan 1970 00:00:00 GMT
         return c[4]+": "
                 +key+"="+c[0]
                 +(c[1]==null?"":"; path="+c[1])
                 +(c[2]==null?"":"; domain="+c[2])
-                +(c[3]==null?"":"; expires="+c[3])
+                +(c[3]==null?"":"; expires="+sdf.format(time))
                 +"\r\n";
     }
     
