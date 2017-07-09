@@ -234,11 +234,11 @@ public abstract class WebSocketManager{
         }
         digestMessage = new String(JHS.trim(digest),"UTF-8").trim(); 
         if(digestIndex == digest.length){
-            try {
+            /*try {
                 fw.write("digestIndex("+digestIndex+"),digest.length("+digest.length+"),fin("+fin+"),opcode("+opCode+"):"+digestMessage+"\n\n");
             } catch (IOException ex) {
                 Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            }*/
             /*System.out.println("HERE 1 ____________");
             System.out.println("digestIndex("+digestIndex+"),digest.length("+digest.length+"),fin("+fin+"),opcode("+opCode+"):");
             System.out.println(digestMessage);
