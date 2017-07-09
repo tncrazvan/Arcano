@@ -11,10 +11,9 @@ import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javahttpserver.JHS;
 import javahttpserver.WebSocket.WebSocketEvent;
+import javax.net.ssl.SSLSocket;
 
 /**
  *

@@ -5,12 +5,19 @@
  */
 package javahttpserver;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import javahttpserver.Http.HttpEventListener;
-import javax.net.ServerSocketFactory;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
 /**
  *
@@ -28,11 +35,60 @@ public class JavaHttpServer {
             }else{
                 JHS.PUBLIC_WWW = args[0];
             }
-            if(args.length > 1) JHS.PORT = Integer.parseInt(args[1]);
+            if(args.length > 1) {
+                JHS.PORT = Integer.parseInt(args[1]);
+            }
         }
-        ServerSocket ss = new ServerSocket(JHS.PORT);
-        while(true){
-            new HttpEventListener(ss.accept()).start();
+        if(JHS.PORT == 443){
+            JHS.HTTPS_CERTIFICATE = args[2];
+            JHS.HTTPS_CERTIFICATE_PASSWORD = args[3];
+            
+            SSLContext sslContext = createSSLContext();
+            // Create server socket factory
+            SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
+
+            // Create server socket
+            SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(JHS.PORT);
+            while(true){
+                new HttpEventListener(sslServerSocket.accept()).start();
+            }
+        }else{
+            ServerSocket ss = new ServerSocket(JHS.PORT);
+            while(true){
+                new HttpEventListener(ss.accept()).start();
+            }
         }
+        
+        
+        
+        
+        
+    }
+    
+    private static SSLContext createSSLContext(){
+        try{
+            KeyStore keyStore = KeyStore.getInstance("JKS");
+            keyStore.load(new FileInputStream(JHS.HTTPS_CERTIFICATE),JHS.HTTPS_CERTIFICATE_PASSWORD.toCharArray());
+             
+            // Create key manager
+            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+            keyManagerFactory.init(keyStore, JHS.HTTPS_CERTIFICATE_PASSWORD.toCharArray());
+            KeyManager[] km = keyManagerFactory.getKeyManagers();
+             
+            // Create trust manager
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+            trustManagerFactory.init(keyStore);
+            TrustManager[] tm = trustManagerFactory.getTrustManagers();
+             
+            // Initialize SSLContext
+            SSLContext sslContext = SSLContext.getInstance("TLSv1");
+            sslContext.init(km,  tm, null);
+             
+            return sslContext;
+        } catch (Exception ex){
+            ex.printStackTrace();
+        }
+         
+        return null;
     }
 }

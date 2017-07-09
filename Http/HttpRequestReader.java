@@ -9,10 +9,10 @@ import com.google.gson.JsonObject;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -20,6 +20,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javahttpserver.JHS;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
 
 /**
  *
@@ -27,25 +29,35 @@ import javahttpserver.JHS;
  */
 public abstract class HttpRequestReader extends Thread{
     protected Socket client=null;
+    protected SSLSocket secureClient=null;
     protected BufferedReader reader=null;
     protected BufferedWriter writer=null;
     private String output = "";
     private Map<String,String> form = new HashMap<>();
     private JsonObject post = new JsonObject();
-    public HttpRequestReader(Socket client) {
-        try {
-            this.client=client;
-            reader = new BufferedReader(
-                    new InputStreamReader(
-                            client
-                                    .getInputStream()));
-            writer = new BufferedWriter(
-                    new OutputStreamWriter(
-                            client
-                                    .getOutputStream()));
-        } catch (IOException ex) {
-            Logger.getLogger(HttpRequestReader.class.getName()).log(Level.SEVERE, null, ex);
+    public HttpRequestReader(Socket client) throws IOException, NoSuchAlgorithmException {
+        if(JHS.PORT == 443){
+            secureClient = (SSLSocket) client;
+            secureClient.setEnabledCipherSuites(secureClient.getSupportedCipherSuites());
+
+            // Start handshake
+            secureClient.startHandshake();
+
+            // Get session after the connection is established
+            SSLSession sslSession = secureClient.getSession();
         }
+        
+        
+        
+        this.client=client;
+        reader = new BufferedReader(
+                new InputStreamReader(
+                        client
+                                .getInputStream()));
+        writer = new BufferedWriter(
+                new OutputStreamWriter(
+                        client
+                                .getOutputStream()));
     }
     
     @Override
