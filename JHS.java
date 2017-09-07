@@ -47,7 +47,9 @@ public class JHS {
     public static boolean running = false;
     
 
-    
+    public static long time(){
+        return System.currentTimeMillis() / 1000L;
+    }
     
     public static void rmdir(File folder){
         File[] files = folder.listFiles();
