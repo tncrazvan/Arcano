@@ -13,6 +13,6 @@ import java.util.ArrayList;
  */
 public interface WebSocketInterface {
     public void onOpen(WebSocketEvent e, ArrayList<String> args);
-    public void onMessage(WebSocketEvent e, String msg, ArrayList<String> args);
+    public void onMessage(WebSocketEvent e, byte[] data, ArrayList<String> args);
     public void onClose(WebSocketEvent e, ArrayList<String> args);
 }

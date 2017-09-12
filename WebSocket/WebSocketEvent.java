@@ -63,7 +63,7 @@ public class WebSocketEvent extends WebSocketManager{
                     }
                     
                     onOpenMethod = x.getClass().getMethod("onOpen",this.getClass(),args.getClass());
-                    onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),String.class,args.getClass());
+                    onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
                     onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
                 } catch (ClassNotFoundException ex) {
                     //Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
@@ -79,7 +79,7 @@ public class WebSocketEvent extends WebSocketManager{
                         }
 
                         onOpenMethod = x.getClass().getMethod("onOpen",this.getClass(),args.getClass());
-                        onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),String.class,args.getClass());
+                        onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
                         onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
                     } catch (ClassNotFoundException ex1) {
                         Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex1);
@@ -97,7 +97,7 @@ public class WebSocketEvent extends WebSocketManager{
                     }
 
                     onOpenMethod = x.getClass().getMethod("onOpen",this.getClass(),args.getClass());
-                    onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),String.class,args.getClass());
+                    onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
                     onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
                 } catch (ClassNotFoundException ex) {
                     Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
@@ -115,7 +115,7 @@ public class WebSocketEvent extends WebSocketManager{
                 }
 
                 onOpenMethod = x.getClass().getMethod("onOpen",this.getClass(),args.getClass());
-                onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),String.class,args.getClass());
+                onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
                 onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
@@ -130,11 +130,7 @@ public class WebSocketEvent extends WebSocketManager{
         try {
             JHS.EVENT_WS.remove(singleton);
             onCloseMethod.invoke(x,this.singleton,args);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -144,24 +140,16 @@ public class WebSocketEvent extends WebSocketManager{
         try {
             JHS.EVENT_WS.add(singleton);
             onOpenMethod.invoke(x,this.singleton,args);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     @Override
-    protected void onMessage(Socket client, String msg) {
+    protected void onMessage(Socket client, byte[] data) {
         try {
-            onMessageMethod.invoke(x,this.singleton,msg,args);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
+            onMessageMethod.invoke(x,this.singleton,data,args);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
         }
 

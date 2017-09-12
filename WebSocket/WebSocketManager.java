@@ -48,7 +48,6 @@ public abstract class WebSocketManager{
     private byte[] digest = new byte[8];
     private boolean startNew = true;
     private int digestIndex = 0;
-    private String digestMessage = "";
     private File f = new File("test.txt");
     private FileWriter fw = new FileWriter(f);
     
@@ -117,7 +116,7 @@ public abstract class WebSocketManager{
                 while(connected){
                     bytes = read.read(data);
                     if(unmask(data, bytes)){
-                        onMessage(client, digestMessage);
+                        onMessage(client, digest);
                         startNew = true;
                     }
                 }
@@ -232,17 +231,7 @@ public abstract class WebSocketManager{
             digestIndex++;
             i++;
         }
-        digestMessage = new String(JHS.trim(digest),"UTF-8").trim(); 
         if(digestIndex == digest.length){
-            /*try {
-                fw.write("digestIndex("+digestIndex+"),digest.length("+digest.length+"),fin("+fin+"),opcode("+opCode+"):"+digestMessage+"\n\n");
-            } catch (IOException ex) {
-                Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
-            }*/
-            /*System.out.println("HERE 1 ____________");
-            System.out.println("digestIndex("+digestIndex+"),digest.length("+digest.length+"),fin("+fin+"),opcode("+opCode+"):");
-            System.out.println(digestMessage);
-            System.out.println("======================================================");*/
             return true;
         }
         return false;
@@ -363,6 +352,6 @@ public abstract class WebSocketManager{
     }
     
     protected abstract void onOpen(Socket client);
-    protected abstract void onMessage(Socket client, String msg);
+    protected abstract void onMessage(Socket client, byte[] data);
     protected abstract void onClose(Socket client);
 }

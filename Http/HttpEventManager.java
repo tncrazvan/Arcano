@@ -151,15 +151,15 @@ public abstract class HttpEventManager {
     }
     
     public void setUserObject(String name, Object o) throws IOException{
-        send("<script>window."+name+"="+JHS.JSON_PARSER.toJson(o)+";</script>");
+        send("<script>window."+name+"="+JHS.JSON_PARSER.toJson(o)+";</script>\n");
     }
     
     public void setUserObject(String name, JsonObject o){
-        send("<script>window."+name+"="+o.toString()+";</script>");
+        send("<script>window."+name+"="+o.toString()+";</script>\n");
     }
     
     public void setUserArray(String name, JsonArray a){
-        send("<script>window."+name+"="+a.toString()+";</script>");
+        send("<script>window."+name+"="+a.toString()+";</script>\n");
     }
     
     public boolean cookieIsset(String key){
