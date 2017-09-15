@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +21,6 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javahttpserver.JHS;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 /**
@@ -33,8 +33,8 @@ public abstract class HttpRequestReader extends Thread{
     protected BufferedReader reader=null;
     protected BufferedWriter writer=null;
     private String output = "";
-    private Map<String,String> form = new HashMap<>();
-    private JsonObject post = new JsonObject();
+    private final Map<String,String> form = new HashMap<>();
+    private final JsonObject post = new JsonObject();
     public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
         /*if(JHS.PORT == 443){
             secureClient = (SSLSocket) client;
@@ -86,7 +86,6 @@ public abstract class HttpRequestReader extends Thread{
 
                     while(canRead){
                         line = reader.readLine();
-                        //System.out.println(line);
                         if(currentObjectName == null && line.matches("^\\-+.*$")){
                             currentObjectName = line;
                             if(line.substring(line.length()-2,line.length()).equals("--")){

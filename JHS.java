@@ -5,16 +5,19 @@
  */
 package javahttpserver;
 import com.google.gson.Gson;
+import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Base64;
+//import java.util.Base64;
 import java.util.Date;
 import java.security.MessageDigest;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javahttpserver.Http.HttpEvent;
@@ -44,7 +47,11 @@ public class JHS {
     public static final Date DATE = new Date();
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
     public static final Gson JSON_PARSER = new Gson();
+    public static final JsonParser JSONPARSER = new JsonParser();
     public static boolean running = false;
+    public static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
+    public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
+    public static String DEFAULT_CHARSET = "UTF-8";
     
 
     public static long time(){
@@ -77,19 +84,50 @@ public class JHS {
     }
     
     public static String atob(String value){
-        return new String(Base64.getMimeDecoder().decode(value));
+        try {
+            return new String(JHS.BASE64_DECODER.decode(value.getBytes(DEFAULT_CHARSET)),DEFAULT_CHARSET);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
     
     public static byte[] atobByte(String value){
-        return Base64.getMimeDecoder().decode(value);
+        try {
+            return JHS.BASE64_DECODER.decode(value.getBytes(DEFAULT_CHARSET));
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
     
+    public static byte[] atobByte(byte[] value){
+        return BASE64_DECODER.decode(value);
+    }
+    
+    
+   
+    
     public static String btoa(String value){
-        return new String(Base64.getMimeEncoder().encode(value.getBytes()));
+        try {
+            return new String(BASE64_ENCODER.encode(value.getBytes(DEFAULT_CHARSET)),DEFAULT_CHARSET);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
     
     public static byte[] btoaByte(String value){
-        return Base64.getMimeEncoder().encode(value.getBytes());
+        try {
+            return BASE64_ENCODER.encode(value.getBytes(DEFAULT_CHARSET));
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+    
+    public static byte[] btoaByte(byte[] value){
+        return BASE64_ENCODER.encode(value);
     }
     
     public static String getSha1String(String str){
@@ -99,10 +137,7 @@ public class JHS {
             crypt.update(str.getBytes("UTF-8"));
             
             return new BigInteger(1, crypt.digest()).toString(16);
-        } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        } catch (NoSuchAlgorithmException ex) {
+        } catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
             Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
@@ -120,7 +155,7 @@ public class JHS {
          data = data.replaceAll("%(?![0-9a-fA-F]{2})", "%25");
          data = data.replaceAll("\\+", "%2B");
          data = URLDecoder.decode(data, "utf-8");
-      } catch (Exception e) {
+      } catch (UnsupportedEncodingException e) {
          e.printStackTrace();
       }
       return data;
