@@ -81,13 +81,17 @@ public abstract class HttpEventManager {
                 onControllerRequest(location);
             }
         }else{
-            if((header.get("Content-Type").equals("") || location.substring(1,2).equals("@")) && !location.equals(JHS.INDEX_FILE)){
+            if((header.get("Content-Type").equals("") 
+                    || location.substring(1,2).equals("@")) 
+                    && !location.equals(JHS.INDEX_FILE)){
+                header.set("Content-Type", "text/plain");
+                onControllerRequest(location);
+            }else if(!header.get("Content-Type").equals("")){
                 header.set("Content-Type", "text/plain");
                 onControllerRequest(location);
             }else{
                 header.set("Content-Type", "text/html");
                 header.set("Status", "HTTP/1.1 404 Not Found");
-                //System.out.println("sending file:"+JHS.PUBLIC_WWW+location);
                 sendFileContents(JHS.RESOURCE_NOT_FOUND_FILE);
                 client.close();
             }
@@ -245,6 +249,7 @@ public abstract class HttpEventManager {
                     firstMessage = false;
                     os.write((header.toString()+"\r\n").getBytes());
                 }
+                
                 int byteRead = 0;
                 int counter = 0;
                 while ((byteRead = fis.read(buffer)) != -1 && counter < f.length()) {
