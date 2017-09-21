@@ -59,6 +59,10 @@ public abstract class HttpEventManager {
         return alive;
     }
     
+    public boolean fieldIsset(String key){
+        return field.containsKey(key);
+    }
+    
     public String getField(String key){
         return field.get(key);
     }
