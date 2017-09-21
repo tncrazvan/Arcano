@@ -207,6 +207,7 @@ public class JHS {
             case "webp":return "image/webp";
 
             case "avi":return "video/x-msvideo";
+            case "mp4":return "video/mp4";
             case "mpeg":return "video/mpeg";
             case "ogv":return "video/ogg";
             case "webm":return "video/webm";
