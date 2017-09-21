@@ -72,7 +72,7 @@ public abstract class HttpEventManager {
         String[] parts = clientHeader.get("Resource").split("\\?");
         String[] tmp,object;
         if(parts.length > 1){
-            tmp = parts[1].split("\\&");
+            tmp = java.net.URLDecoder.decode(parts[1], "UTF-8").split("\\&");
             for (String part : tmp) {
                 object = part.split("=", 2);
                 if(object.length > 1){
