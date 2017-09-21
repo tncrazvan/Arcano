@@ -32,6 +32,7 @@ public abstract class HttpEventManager {
     private boolean alreadyExecuted = false;
     private Map<String,String> userLanguages = new HashMap<String,String>();
     protected final Socket client;
+    protected Map<String,String> field = new HashMap<>();
     public HttpEventManager(BufferedWriter writer, HttpHeader clientHeader,Socket client) {
         this.writer=writer;
         this.clientHeader=clientHeader;
@@ -58,13 +59,30 @@ public abstract class HttpEventManager {
         return alive;
     }
     
+    public String getField(String key){
+        return field.get(key);
+    }
+    
     public boolean execute() throws IOException{
         findUserLanguages();
         /*if(alreadyExecuted)
             return false;
         
         alreadyExecuted = true;*/
-        String location=clientHeader.get("Resource");
+        String[] parts = clientHeader.get("Resource").split("\\?");
+        String[] tmp,object;
+        if(parts.length > 1){
+            tmp = parts[1].split("\\&");
+            for (String part : tmp) {
+                object = part.split("=", 2);
+                if(object.length > 1){
+                    field.put(object[0].trim(), object[1]);
+                }else{
+                    field.put(object[0].trim(), "");
+                }
+            }
+        }
+        String location = parts[0];
         header = new HttpHeader();
         
         
