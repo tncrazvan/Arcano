@@ -13,8 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javahttpserver.JHS;
 import javahttpserver.WebSocket.WebSocketEvent;
-import javax.net.ssl.SSLSocket;
-
 /**
  *
  * @author Razvan

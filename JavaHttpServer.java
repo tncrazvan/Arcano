@@ -7,6 +7,7 @@ package javahttpserver;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
@@ -48,12 +49,14 @@ public class JavaHttpServer {
             SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
 
             // Create server socket
-            SSLServerSocket sslServerSocket = (SSLServerSocket) sslServerSocketFactory.createServerSocket(JHS.PORT);
+            SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
+            ssl.bind(new InetSocketAddress(JHS.DOMAIN_NAME, JHS.PORT));
             while(true){
-                new HttpEventListener(sslServerSocket.accept()).start();
+                new HttpEventListener(ssl.accept()).start();
             }
         }else{
-            ServerSocket ss = new ServerSocket(JHS.PORT);
+            ServerSocket ss = new ServerSocket();
+            ss.bind(new InetSocketAddress(JHS.DOMAIN_NAME, JHS.PORT));
             while(true){
                 new HttpEventListener(ss.accept()).start();
             }
