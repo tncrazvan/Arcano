@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.WebSocket.WebSocketEvent;
 
@@ -52,8 +54,14 @@ public class JHS {
     public static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
     public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
     public static String DEFAULT_CHARSET = "UTF-8";
+    private static Pattern patternLeft = Pattern.compile("<\\s*script.*>");
+    private static Pattern patternRight = Pattern.compile("<\\s*\\s*script.*>");
     
-
+    public static String escapeJavaScript(String js){
+        return patternRight.matcher(patternLeft.matcher(js).replaceAll("&lt;script&gt;")).replaceAll("&lt;/script&gt;");
+    }
+    
+    
     public static long time(){
         return System.currentTimeMillis() / 1000L;
     }
