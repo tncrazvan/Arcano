@@ -54,11 +54,11 @@ public class JHS {
     public static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
     public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
     public static String DEFAULT_CHARSET = "UTF-8";
-    private static Pattern patternLeft = Pattern.compile("<\\s*script.*>");
-    private static Pattern patternRight = Pattern.compile("<\\s*\\s*script.*>");
+    private static Pattern patternLeft = Pattern.compile("<\\s*.*\\s*script\\s*.*\\s*\\>");
+    private static Pattern patternRight = Pattern.compile("<\\s*.*\\s*\\/\\s*.*\\s*script\\s*.*\\s*>");
     
     public static String escapeJavaScript(String js){
-        return patternRight.matcher(patternLeft.matcher(js).replaceAll("&lt;script&gt;")).replaceAll("&lt;/script&gt;");
+        return patternLeft.matcher(patternRight.matcher(js).replaceAll("&lt;/script&gt;")).replaceAll("&lt;script&gt;");
     }
     
     
