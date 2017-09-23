@@ -30,6 +30,7 @@ public class JHS {
     public static String HTTPS_CERTIFICATE = "";
     public static String HTTPS_CERTIFICATE_PASSWORD = "";
     public static String DOMAIN_NAME = "127.0.0.1";
+    public static String BIND_ADDRESS = "127.0.0.1";
     public static String PUBLIC_WWW = "./src/public";
     public static String INDEX_FILE = "/index.html";
     public static int CACHE_MAX_AGE = 60*60*24*365; //1 year

@@ -21,6 +21,7 @@ public class HttpEventListener extends HttpRequestReader{
     private final String sessionId;
     public HttpEventListener(Socket client) throws IOException, NoSuchAlgorithmException{
         super(client);
+        System.out.println("hello world");
         sessionId = JHS.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());
     }
     

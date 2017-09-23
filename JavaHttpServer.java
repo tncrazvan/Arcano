@@ -30,6 +30,7 @@ public class JavaHttpServer {
      */
     public static void main(String[] args){}
     public static void listen(String[] args) throws IOException, NoSuchAlgorithmException {
+        
         if(args.length > 0){
             if(args[0].substring(args[0].length()-1, args[0].length()).equals("/")){
                 JHS.PUBLIC_WWW = args[0].substring(0,args[0].length()-1);
@@ -40,6 +41,8 @@ public class JavaHttpServer {
                 JHS.PORT = Integer.parseInt(args[1]);
             }
         }
+        
+        
         if(JHS.PORT == 443){
             JHS.HTTPS_CERTIFICATE = args[2];
             JHS.HTTPS_CERTIFICATE_PASSWORD = args[3];
@@ -50,21 +53,17 @@ public class JavaHttpServer {
 
             // Create server socket
             SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
-            ssl.bind(new InetSocketAddress(JHS.DOMAIN_NAME, JHS.PORT));
+            ssl.bind(new InetSocketAddress(JHS.BIND_ADDRESS, JHS.PORT));
             while(true){
                 new HttpEventListener(ssl.accept()).start();
             }
         }else{
             ServerSocket ss = new ServerSocket();
-            ss.bind(new InetSocketAddress(JHS.DOMAIN_NAME, JHS.PORT));
+            ss.bind(new InetSocketAddress(JHS.BIND_ADDRESS, JHS.PORT));
             while(true){
                 new HttpEventListener(ss.accept()).start();
             }
         }
-        
-        
-        
-        
         
     }
     
