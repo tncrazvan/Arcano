@@ -42,6 +42,14 @@ public class JavaHttpServer {
             }
         }
         
+        Settings.parse();
+        JHS.DOMAIN_NAME = Settings.getString("DOMAIN_NAME");
+        JHS.BIND_ADDRESS = Settings.getString("BIND_ADDRESS");
+        JHS.HTTP_CONTROLLER_PACKAGE_NAME = Settings.getString("HTTP_CONTROLLER_PACKAGE_NAME");
+        JHS.WS_CONTROLLER_PACKAGE_NAME = Settings.getString("WS_CONTROLLER_PACKAGE_NAME");
+        
+        JHS.HTTPS_CERTIFICATE = Settings.getString("HTTPS_CERTIFICATE");
+        JHS.HTTPS_CERTIFICATE_PASSWORD = Settings.getString("HTTPS_CERTIFICATE_PASSWORD");
         
         if(JHS.PORT == 443){
             JHS.HTTPS_CERTIFICATE = args[2];
