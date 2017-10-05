@@ -52,12 +52,11 @@ public class JHS {
     public static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
     public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
     public static String DEFAULT_CHARSET = "UTF-8";
-    private static String 
-            patternLeftStart = ("<\\s*(?=script)"),
-            patternLeftEnd = ("<\\s*\\/\\s*(?=script)"),
-            patternRightEnd = ("(?<=&lt;\\/script)>"),
-            patternRightStart1 = ("(?<=\\&lt\\;script)\\s*>"),
-            patternRightStart2 = ("(?<=\\&lt\\;script).*\\s*>");
+    private static final String patternLeftStart = "<\\s*(?=script)";
+    private static final String patternLeftEnd = "<\\s*\\/\\s*(?=script)";
+    private static final String patternRightEnd = "(?<=&lt;\\/script)>";
+    private static final String patternRightStart1 = "(?<=\\&lt\\;script)\\s*>";
+    private static String patternRightStart2 = "(?<=\\&lt\\;script).*\\s*>";
     
     public static String escapeJavaScript(String js){
         return  js.replaceAll(patternLeftStart, "&lt;")
