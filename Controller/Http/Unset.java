@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import javahttpserver.Http.Cookie;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.Http.HttpInterface;
-import javahttpserver.JHS;
+import javahttpserver.ELK;
 
 /**
  *
@@ -39,7 +39,7 @@ public class Unset implements HttpInterface{
                 e.flushHeaders();
             }
         }else{
-            String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Error", "-1"));
+            String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Error", "-1"));
             e.send(jsonCookie);
         }
     }

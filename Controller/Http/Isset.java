@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import javahttpserver.Http.Cookie;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.Http.HttpInterface;
-import javahttpserver.JHS;
+import javahttpserver.ELK;
 
 /**
  *
@@ -26,7 +26,7 @@ public class Isset implements HttpInterface{
     }
     public void file(HttpEvent e, ArrayList<String> args,JsonObject post) throws FileNotFoundException, IOException{
         if(args.size() >= 0){
-            File f = new File(JHS.PUBLIC_WWW+"/"+args.get(0));
+            File f = new File(ELK.PUBLIC_WWW+"/"+args.get(0));
             if(f.exists()){
                 e.send(0);
             }else{
@@ -50,7 +50,7 @@ public class Isset implements HttpInterface{
                 e.send(-1);
             } 
         }else{
-            String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Error", "-1"));
+            String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Error", "-1"));
             e.send(jsonCookie);
         }
     }

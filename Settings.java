@@ -18,7 +18,7 @@ import java.nio.file.Paths;
 public class Settings {
     private static JsonObject info;
     public static void parse() throws IOException{
-        info = JHS.JSONPARSER.parse(new String(Files.readAllBytes(Paths.get(JHS.PUBLIC_WWW+"/../settings.json")))).getAsJsonObject();
+        info = ELK.JSONPARSER.parse(new String(Files.readAllBytes(Paths.get(ELK.PUBLIC_WWW+"/../settings.json")))).getAsJsonObject();
     }
     public static JsonElement get(String membername){
         if(!info.has(membername)) return null;

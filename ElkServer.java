@@ -24,7 +24,7 @@ import javax.net.ssl.TrustManagerFactory;
  *
  * @author Razvan
  */
-public class JavaHttpServer {
+public class ElkServer {
     /**
      * @param args the command line arguments
      */
@@ -33,27 +33,27 @@ public class JavaHttpServer {
         
         if(args.length > 0){
             if(args[0].substring(args[0].length()-1, args[0].length()).equals("/")){
-                JHS.PUBLIC_WWW = args[0].substring(0,args[0].length()-1);
+                ELK.PUBLIC_WWW = args[0].substring(0,args[0].length()-1);
             }else{
-                JHS.PUBLIC_WWW = args[0];
+                ELK.PUBLIC_WWW = args[0];
             }
             if(args.length > 1) {
-                JHS.PORT = Integer.parseInt(args[1]);
+                ELK.PORT = Integer.parseInt(args[1]);
             }
         }
         
         Settings.parse();
-        JHS.DOMAIN_NAME = Settings.getString("DOMAIN_NAME");
-        JHS.BIND_ADDRESS = Settings.getString("BIND_ADDRESS");
-        JHS.HTTP_CONTROLLER_PACKAGE_NAME = Settings.getString("HTTP_CONTROLLER_PACKAGE_NAME");
-        JHS.WS_CONTROLLER_PACKAGE_NAME = Settings.getString("WS_CONTROLLER_PACKAGE_NAME");
+        ELK.DOMAIN_NAME = Settings.getString("DOMAIN_NAME");
+        ELK.BIND_ADDRESS = Settings.getString("BIND_ADDRESS");
+        ELK.HTTP_CONTROLLER_PACKAGE_NAME = Settings.getString("HTTP_CONTROLLER_PACKAGE_NAME");
+        ELK.WS_CONTROLLER_PACKAGE_NAME = Settings.getString("WS_CONTROLLER_PACKAGE_NAME");
         
-        JHS.HTTPS_CERTIFICATE = Settings.getString("HTTPS_CERTIFICATE");
-        JHS.HTTPS_CERTIFICATE_PASSWORD = Settings.getString("HTTPS_CERTIFICATE_PASSWORD");
+        ELK.HTTPS_CERTIFICATE = Settings.getString("HTTPS_CERTIFICATE");
+        ELK.HTTPS_CERTIFICATE_PASSWORD = Settings.getString("HTTPS_CERTIFICATE_PASSWORD");
         
-        if(JHS.PORT == 443){
-            JHS.HTTPS_CERTIFICATE = args[2];
-            JHS.HTTPS_CERTIFICATE_PASSWORD = args[3];
+        if(ELK.PORT == 443){
+            ELK.HTTPS_CERTIFICATE = args[2];
+            ELK.HTTPS_CERTIFICATE_PASSWORD = args[3];
             
             SSLContext sslContext = createSSLContext();
             // Create server socket factory
@@ -61,13 +61,13 @@ public class JavaHttpServer {
 
             // Create server socket
             SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
-            ssl.bind(new InetSocketAddress(JHS.BIND_ADDRESS, JHS.PORT));
+            ssl.bind(new InetSocketAddress(ELK.BIND_ADDRESS, ELK.PORT));
             while(true){
                 new HttpEventListener(ssl.accept()).start();
             }
         }else{
             ServerSocket ss = new ServerSocket();
-            ss.bind(new InetSocketAddress(JHS.BIND_ADDRESS, JHS.PORT));
+            ss.bind(new InetSocketAddress(ELK.BIND_ADDRESS, ELK.PORT));
             while(true){
                 new HttpEventListener(ss.accept()).start();
             }
@@ -79,11 +79,11 @@ public class JavaHttpServer {
         System.setProperty("https.protocols", "TLSv1.1,TLSv1.2");
         try{
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream(JHS.HTTPS_CERTIFICATE),JHS.HTTPS_CERTIFICATE_PASSWORD.toCharArray());
+            keyStore.load(new FileInputStream(ELK.HTTPS_CERTIFICATE),ELK.HTTPS_CERTIFICATE_PASSWORD.toCharArray());
              
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-            keyManagerFactory.init(keyStore, JHS.HTTPS_CERTIFICATE_PASSWORD.toCharArray());
+            keyManagerFactory.init(keyStore, ELK.HTTPS_CERTIFICATE_PASSWORD.toCharArray());
             KeyManager[] km = keyManagerFactory.getKeyManagers();
              
             // Create trust manager

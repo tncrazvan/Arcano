@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javahttpserver.JHS;
+import javahttpserver.ELK;
 
 /**
  *
@@ -92,9 +92,9 @@ public abstract class HttpEventManager {
         
         
         
-        File f = new File(java.net.URLDecoder.decode(JHS.PUBLIC_WWW+location, "UTF-8"));
-        header.set("Content-Type", JHS.processContentType(location));
-        if(f.exists() && !location.equals(JHS.INDEX_FILE)){
+        File f = new File(java.net.URLDecoder.decode(ELK.PUBLIC_WWW+location, "UTF-8"));
+        header.set("Content-Type", ELK.processContentType(location));
+        if(f.exists() && !location.equals(ELK.INDEX_FILE)){
             if(!f.isDirectory()){
                 sendFileContents(f);
                 client.close();
@@ -105,7 +105,7 @@ public abstract class HttpEventManager {
         }else{
             if((header.get("Content-Type").equals("") 
                     || location.substring(1,2).equals("@")) 
-                    && !location.equals(JHS.INDEX_FILE)){
+                    && !location.equals(ELK.INDEX_FILE)){
                 header.set("Content-Type", "text/plain");
                 onControllerRequest(location);
             }else if(!header.get("Content-Type").equals("")){
@@ -114,7 +114,7 @@ public abstract class HttpEventManager {
             }else{
                 header.set("Content-Type", "text/html");
                 header.set("Status", "HTTP/1.1 404 Not Found");
-                sendFileContents(JHS.RESOURCE_NOT_FOUND_FILE);
+                sendFileContents(ELK.RESOURCE_NOT_FOUND_FILE);
                 client.close();
             }
         }
@@ -152,11 +152,11 @@ public abstract class HttpEventManager {
     }
     
     public void unsetCookie(String key, String path){
-        unsetCookie(key, path, JHS.DOMAIN_NAME+":"+JHS.PORT);
+        unsetCookie(key, path, ELK.DOMAIN_NAME+":"+ELK.PORT);
     }
     
     public void unsetCookie(String key){
-        unsetCookie(key, "/", JHS.DOMAIN_NAME+":"+JHS.PORT);
+        unsetCookie(key, "/", ELK.DOMAIN_NAME+":"+ELK.PORT);
     }
     
     public void setCookie(String name,String value, String path, String domain, String expire){
@@ -177,7 +177,7 @@ public abstract class HttpEventManager {
     }
     
     public void setUserObject(String name, Object o) throws IOException{
-        send("<script>window."+name+"="+JHS.JSON_PARSER.toJson(o)+";</script>\n");
+        send("<script>window."+name+"="+ELK.JSON_PARSER.toJson(o)+";</script>\n");
     }
     
     public void setUserObject(String name, JsonObject o){
@@ -248,7 +248,7 @@ public abstract class HttpEventManager {
     }
     
     public void sendFileContents(String filename) throws IOException{
-        sendFileContents(new File(JHS.PUBLIC_WWW+filename));
+        sendFileContents(new File(ELK.PUBLIC_WWW+filename));
     }
     
     public void disableDefaultHeaders(){

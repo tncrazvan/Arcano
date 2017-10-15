@@ -14,7 +14,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javahttpserver.JHS;
+import javahttpserver.ELK;
 
 /**
  *
@@ -37,11 +37,11 @@ public class HttpEvent extends HttpEventManager{
         final Method m;
         
         
-        String[] uri = JHS.decodeUrl(location).split("/");
+        String[] uri = ELK.decodeUrl(location).split("/");
         if(uri.length>1){
             //System.out.println("Class defined");
             String[] classpath = uri[1].split("\\.");
-            String classname =JHS.HTTP_CONTROLLER_PACKAGE_NAME;
+            String classname =ELK.HTTP_CONTROLLER_PACKAGE_NAME;
             String tmp = "";
             for(int i =0;i<classpath.length;i++){
                 tmp = classpath[i].substring(0, 1);
@@ -55,7 +55,7 @@ public class HttpEvent extends HttpEventManager{
             try {
                 if(!tmp.equals("@")){
                     setContentType("text/html");
-                    sendFileContents(JHS.INDEX_FILE);
+                    sendFileContents(ELK.INDEX_FILE);
                     client.close();
                 }else{
                     c = Class.forName(classname);
@@ -96,7 +96,7 @@ public class HttpEvent extends HttpEventManager{
 
                     
                 try {
-                    final Class<?> cNotFound = Class.forName(JHS.HTTP_CONTROLLER_PACKAGE_NAME+"."+JHS.HTTP_CONTROLLER_NOT_FOUND);
+                    final Class<?> cNotFound = Class.forName(ELK.HTTP_CONTROLLER_PACKAGE_NAME+"."+ELK.HTTP_CONTROLLER_NOT_FOUND);
                     final Object xNotFound = cNotFound.newInstance();
                     final Method mNotFound = xNotFound.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),post.getClass());
                     mNotFound.invoke(xNotFound,singleton,args,post);
@@ -126,7 +126,7 @@ public class HttpEvent extends HttpEventManager{
         }else{
             try {
                 setContentType("text/html");
-                sendFileContents(JHS.INDEX_FILE);
+                sendFileContents(ELK.INDEX_FILE);
             } catch (IOException ex) {
                 Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
             }

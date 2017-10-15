@@ -20,7 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javahttpserver.JHS;
+import javahttpserver.ELK;
 import javax.net.ssl.SSLSocket;
 
 /**
@@ -107,7 +107,7 @@ public abstract class HttpRequestReader extends Thread{
                                     currentLabel = matcher.group();
                                 }
                             }else if(currentLabel != null && !line.equals("")){
-                                currentValue = JHS.atob(line);
+                                currentValue = ELK.atob(line);
                             }
                         }
 

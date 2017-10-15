@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javahttpserver.Http.HttpHeader;
-import javahttpserver.JHS;
+import javahttpserver.ELK;
 import javax.xml.bind.DatatypeConverter;
 
 /**
@@ -100,7 +100,7 @@ public abstract class WebSocketManager{
     public void execute(){
         new Thread(()->{
             try {
-                String acceptKey = DatatypeConverter.printBase64Binary(JHS.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + JHS.WS_ACCEPT_KEY));
+                String acceptKey = DatatypeConverter.printBase64Binary(ELK.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + ELK.WS_ACCEPT_KEY));
                 HttpHeader header = new HttpHeader();
                 header.set("Status", "HTTP/1.1 101 Switching Protocols");
                 header.set("Connection","Upgrade");
@@ -109,7 +109,7 @@ public abstract class WebSocketManager{
                 outputStream.write((header.toString()+"\r\n").getBytes());
                 outputStream.flush();
                 onOpen(client);
-                byte[] data = new byte[JHS.WS_MTU];
+                byte[] data = new byte[ELK.WS_MTU];
                 //char[] data = new char[128];
                 InputStream read = client.getInputStream();
                 int bytes = 0;
@@ -341,7 +341,7 @@ public abstract class WebSocketManager{
     }
     
     public void broadcast(String msg){
-        Iterator i = JHS.EVENT_WS.iterator();
+        Iterator i = ELK.EVENT_WS.iterator();
         
         while(i.hasNext()){
             WebSocketEvent e = (WebSocketEvent) i.next();

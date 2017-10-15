@@ -11,7 +11,7 @@ import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javahttpserver.JHS;
+import javahttpserver.ELK;
 import javahttpserver.WebSocket.WebSocketEvent;
 /**
  *
@@ -21,7 +21,7 @@ public class HttpEventListener extends HttpRequestReader{
     private final String sessionId;
     public HttpEventListener(Socket client) throws IOException, NoSuchAlgorithmException{
         super(client);
-        sessionId = JHS.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());
+        sessionId = ELK.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());
     }
     
     @Override

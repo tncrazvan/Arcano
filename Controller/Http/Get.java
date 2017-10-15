@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import javahttpserver.Http.HttpEvent;
 import javahttpserver.Http.HttpInterface;
-import javahttpserver.JHS;
+import javahttpserver.ELK;
 
 /**
  *
@@ -23,7 +23,7 @@ public class Get implements HttpInterface{
         e.send("No resource specified");
     }
     public void file(HttpEvent e, ArrayList<String> args,JsonObject post) throws FileNotFoundException, IOException{
-        e.setContentType(JHS.processContentType(args.get(0)));
+        e.setContentType(ELK.processContentType(args.get(0)));
         e.sendFileContents("/"+(args.get(0).equals("")?args.get(1):args.get(0)));
     }
     
@@ -46,7 +46,7 @@ public class Get implements HttpInterface{
                 String name = post.get("name").getAsString();
                 if(e.cookieIsset(name)){
                     e.setContentType("application/json");
-                    String jsonCookie = JHS.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
+                    String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
                     e.send(jsonCookie);
                 }else{
                     e.setContentType("text/plain");
@@ -59,7 +59,7 @@ public class Get implements HttpInterface{
                 e.send();
             }
         }else{
-            String jsonCookie = JHS.JSON_PARSER.toJson(new javahttpserver.Http.Cookie("Error", "-1"));
+            String jsonCookie = ELK.JSON_PARSER.toJson(new javahttpserver.Http.Cookie("Error", "-1"));
             e.send(jsonCookie);
         }
     }

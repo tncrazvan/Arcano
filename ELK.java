@@ -26,7 +26,7 @@ import javahttpserver.WebSocket.WebSocketEvent;
  *
  * @author Razvan
  */
-public class JHS {
+public class ELK {
     public static String HTTPS_CERTIFICATE = "";
     public static String HTTPS_CERTIFICATE_PASSWORD = "";
     public static String DOMAIN_NAME = "127.0.0.1";
@@ -99,18 +99,18 @@ public class JHS {
     
     public static String atob(String value){
         try {
-            return new String(JHS.BASE64_DECODER.decode(value.getBytes(DEFAULT_CHARSET)),DEFAULT_CHARSET);
+            return new String(ELK.BASE64_DECODER.decode(value.getBytes(DEFAULT_CHARSET)),DEFAULT_CHARSET);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
     
     public static byte[] atobByte(String value){
         try {
-            return JHS.BASE64_DECODER.decode(value.getBytes(DEFAULT_CHARSET));
+            return ELK.BASE64_DECODER.decode(value.getBytes(DEFAULT_CHARSET));
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
@@ -126,7 +126,7 @@ public class JHS {
         try {
             return new String(BASE64_ENCODER.encode(value.getBytes(DEFAULT_CHARSET)),DEFAULT_CHARSET);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
@@ -135,7 +135,7 @@ public class JHS {
         try {
             return BASE64_ENCODER.encode(value.getBytes(DEFAULT_CHARSET));
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
@@ -152,7 +152,7 @@ public class JHS {
             
             return new BigInteger(1, crypt.digest()).toString(16);
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
-            Logger.getLogger(JHS.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
