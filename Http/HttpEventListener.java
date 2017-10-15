@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package javahttpserver.Http;
+package elkserver.Http;
 
 import com.google.gson.JsonObject;
 import java.io.IOException;
@@ -11,8 +11,8 @@ import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javahttpserver.ELK;
-import javahttpserver.WebSocket.WebSocketEvent;
+import elkserver.ELK;
+import elkserver.WebSocket.WebSocketEvent;
 /**
  *
  * @author Razvan

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package javahttpserver;
+package elkserver;
 import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import java.io.File;
@@ -19,8 +19,8 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javahttpserver.Http.HttpEvent;
-import javahttpserver.WebSocket.WebSocketEvent;
+import elkserver.Http.HttpEvent;
+import elkserver.WebSocket.WebSocketEvent;
 
 /**
  *
@@ -35,8 +35,8 @@ public class ELK {
     public static String INDEX_FILE = "/index.html";
     public static int CACHE_MAX_AGE = 60*60*24*365; //1 year
     public static String RESOURCE_NOT_FOUND_FILE = "/404.html";
-    public static String HTTP_CONTROLLER_PACKAGE_NAME = "javahttpserver.Controller.Http";
-    public static String WS_CONTROLLER_PACKAGE_NAME = "javahttpserver.Controller.WebSocket";
+    public static String HTTP_CONTROLLER_PACKAGE_NAME = "elkserver.Controller.Http";
+    public static String WS_CONTROLLER_PACKAGE_NAME = "elkserver.Controller.WebSocket";
     public static String HTTP_CONTROLLER_NOT_FOUND = "ControllerNotFound";
     public static String WS_CONTROLLER_NOT_FOUND = "ControllerNotFound";
     public static final ArrayList<WebSocketEvent> EVENT_WS = new ArrayList<>();  

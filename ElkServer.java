@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package javahttpserver;
+package elkserver;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,7 +11,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
-import javahttpserver.Http.HttpEventListener;
+import elkserver.Http.HttpEventListener;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;

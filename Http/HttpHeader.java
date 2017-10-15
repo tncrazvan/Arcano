@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package javahttpserver.Http;
+package elkserver.Http;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -15,7 +15,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import javahttpserver.ELK;
+import elkserver.ELK;
 
 /**
  *

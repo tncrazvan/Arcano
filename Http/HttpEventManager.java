@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package javahttpserver.Http;
+package elkserver.Http;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -18,19 +18,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javahttpserver.ELK;
+import elkserver.ELK;
 
 /**
  *
  * @author Razvan
  */
 public abstract class HttpEventManager {
-    private BufferedWriter writer;
-    private HttpHeader clientHeader,header;
+    private final BufferedWriter writer;
+    private final HttpHeader clientHeader;
+    private HttpHeader header;
     private boolean defaultHeaders=true;
     private boolean alive=true;
-    private boolean alreadyExecuted = false;
-    private Map<String,String> userLanguages = new HashMap<String,String>();
+    private final boolean alreadyExecuted = false;
+    private final Map<String,String> userLanguages = new HashMap<String,String>();
     protected final Socket client;
     protected Map<String,String> field = new HashMap<>();
     public HttpEventManager(BufferedWriter writer, HttpHeader clientHeader,Socket client) {

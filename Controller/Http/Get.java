@@ -3,15 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package javahttpserver.Controller.Http;
+package elkserver.Controller.Http;
 
 import com.google.gson.JsonObject;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import javahttpserver.Http.HttpEvent;
-import javahttpserver.Http.HttpInterface;
-import javahttpserver.ELK;
+import elkserver.Http.HttpEvent;
+import elkserver.Http.HttpInterface;
+import elkserver.ELK;
 
 /**
  *
@@ -59,7 +59,7 @@ public class Get implements HttpInterface{
                 e.send();
             }
         }else{
-            String jsonCookie = ELK.JSON_PARSER.toJson(new javahttpserver.Http.Cookie("Error", "-1"));
+            String jsonCookie = ELK.JSON_PARSER.toJson(new elkserver.Http.Cookie("Error", "-1"));
             e.send(jsonCookie);
         }
     }

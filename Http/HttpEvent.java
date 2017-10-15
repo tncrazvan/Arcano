@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package javahttpserver.Http;
+package elkserver.Http;
 
 import com.google.gson.JsonObject;
 import java.io.BufferedWriter;
@@ -14,7 +14,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javahttpserver.ELK;
+import elkserver.ELK;
 
 /**
  *

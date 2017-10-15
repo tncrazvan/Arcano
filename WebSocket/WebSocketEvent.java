@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package javahttpserver.WebSocket;
+package elkserver.WebSocket;
 
 import java.io.BufferedReader;
 import java.io.FileOutputStream;
@@ -14,8 +14,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javahttpserver.Http.HttpHeader;
-import javahttpserver.ELK;
+import elkserver.Http.HttpHeader;
+import elkserver.ELK;
 
 
 /**

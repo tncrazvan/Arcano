@@ -3,14 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package javahttpserver.Controller.Http;
+package elkserver.Controller.Http;
 
 import com.google.gson.JsonObject;
 import java.util.ArrayList;
-import javahttpserver.Http.Cookie;
-import javahttpserver.Http.HttpEvent;
-import javahttpserver.Http.HttpInterface;
-import javahttpserver.ELK;
+import elkserver.Http.Cookie;
+import elkserver.Http.HttpEvent;
+import elkserver.Http.HttpInterface;
+import elkserver.ELK;
 
 /**
  *
