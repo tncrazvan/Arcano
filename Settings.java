@@ -10,13 +10,15 @@ import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Razvan
  */
 public class Settings {
-    private static JsonObject info;
+    private static JsonObject info = null;
     public static void parse() throws IOException{
         info = ELK.JSONPARSER.parse(new String(Files.readAllBytes(Paths.get(ELK.PUBLIC_WWW+"/../settings.json")))).getAsJsonObject();
     }
@@ -25,7 +27,7 @@ public class Settings {
         return info.get(membername);
     }
     public static String getString(String membername){
-        if(get(membername) == null) return "";
+        if(get(membername) == null) return null;
         return get(membername).getAsString();
     }
     public static int getInt(String membername){

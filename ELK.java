@@ -5,6 +5,7 @@
  */
 package elkserver;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -56,7 +57,9 @@ public class ELK {
     private static final String patternLeftEnd = "<\\s*\\/\\s*(?=script)";
     private static final String patternRightEnd = "(?<=&lt;\\/script)>";
     private static final String patternRightStart1 = "(?<=\\&lt\\;script)\\s*>";
-    private static String patternRightStart2 = "(?<=\\&lt\\;script).*\\s*>";
+    private static final String patternRightStart2 = "(?<=\\&lt\\;script).*\\s*>";
+    public static String CHARSET = "UTF-8";
+    public static JsonObject MAIN_SETTINGS;
     
     public static String escapeJavaScript(String js){
         return  js.replaceAll(patternLeftStart, "&lt;")

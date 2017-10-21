@@ -202,7 +202,7 @@ public abstract class HttpEventManager {
             if(firstMessage && defaultHeaders){
                 firstMessage = false;
                 try {
-                    writer.write(header.toString()+"\r\n");
+                    writer.write(new String((header.toString()+"\r\n").getBytes(ELK.CHARSET)));
                     writer.flush();
                     alive = true;
                 } catch (IOException ex) {
@@ -216,7 +216,7 @@ public abstract class HttpEventManager {
                 }
             }
             try {
-                writer.write(data.toString());
+                writer.write(new String(data.toString().getBytes(ELK.CHARSET)));
                 writer.flush();
                 alive = true;
             } catch (IOException ex) {

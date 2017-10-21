@@ -41,16 +41,14 @@ public class ElkServer {
                 ELK.PORT = Integer.parseInt(args[1]);
             }
         }
-        
         Settings.parse();
+        ELK.CHARSET = Settings.getString("CHARSET");
         ELK.DOMAIN_NAME = Settings.getString("DOMAIN_NAME");
         ELK.BIND_ADDRESS = Settings.getString("BIND_ADDRESS");
         ELK.HTTP_CONTROLLER_PACKAGE_NAME = Settings.getString("HTTP_CONTROLLER_PACKAGE_NAME");
         ELK.WS_CONTROLLER_PACKAGE_NAME = Settings.getString("WS_CONTROLLER_PACKAGE_NAME");
-        
         ELK.HTTPS_CERTIFICATE = Settings.getString("HTTPS_CERTIFICATE");
         ELK.HTTPS_CERTIFICATE_PASSWORD = Settings.getString("HTTPS_CERTIFICATE_PASSWORD");
-        
         if(ELK.PORT == 443){
             ELK.HTTPS_CERTIFICATE = args[2];
             ELK.HTTPS_CERTIFICATE_PASSWORD = args[3];
