@@ -279,19 +279,19 @@ public abstract class HttpEventManager {
                     counter += byteRead;
                     os.write(buffer, 0, byteRead);
                 }
+                os.close();
             }
         } catch (FileNotFoundException ex) {
             Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             ex.printStackTrace();
-        } finally {
+        }finally{
             try {
                 fis.close();
             } catch (IOException ex) {
-                ex.printStackTrace();
+                Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        
     }
     
 }
