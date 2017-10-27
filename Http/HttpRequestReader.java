@@ -70,7 +70,7 @@ public abstract class HttpRequestReader extends Thread{
                 }
                 output +=line+"\r\n";
             }
-            
+            System.out.println(output);
             HttpHeader clientHeader = HttpHeader.fromString(output);
             if(clientHeader.get("Method").equals("POST")){
                 try {

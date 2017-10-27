@@ -270,6 +270,7 @@ public abstract class HttpEventManager {
             if(os != null){
                 if(firstMessage && defaultHeaders){
                     firstMessage = false;
+                    header.set("Content-Length", ""+f.length());
                     os.write((header.toString()+"\r\n").getBytes());
                 }
                 

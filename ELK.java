@@ -45,6 +45,7 @@ public class ELK {
     public static String WS_ACCEPT_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static int PORT = 80;
     public static int WS_MTU = 65536;
+    public static int HTTP_MTU = 65536;
     public static final Date DATE = new Date();
     private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
     public static final Gson JSON_PARSER = new Gson();
