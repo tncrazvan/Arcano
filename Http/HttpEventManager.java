@@ -153,11 +153,11 @@ public abstract class HttpEventManager {
     }
     
     public void unsetCookie(String key, String path){
-        unsetCookie(key, path, ELK.DOMAIN_NAME+":"+ELK.PORT);
+        unsetCookie(key, path, clientHeader.get("Host")+":"+ELK.PORT);
     }
     
     public void unsetCookie(String key){
-        unsetCookie(key, "/", ELK.DOMAIN_NAME+":"+ELK.PORT);
+        unsetCookie(key, "/", clientHeader.get("Host")+":"+ELK.PORT);
     }
     
     public void setCookie(String name,String value, String path, String domain, String expire){

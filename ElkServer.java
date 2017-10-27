@@ -43,7 +43,6 @@ public class ElkServer {
         }
         Settings.parse();
         ELK.CHARSET = Settings.getString("CHARSET");
-        ELK.DOMAIN_NAME = Settings.getString("DOMAIN_NAME");
         ELK.BIND_ADDRESS = Settings.getString("BIND_ADDRESS");
         ELK.HTTP_CONTROLLER_PACKAGE_NAME = Settings.getString("HTTP_CONTROLLER_PACKAGE_NAME");
         ELK.WS_CONTROLLER_PACKAGE_NAME = Settings.getString("WS_CONTROLLER_PACKAGE_NAME");
