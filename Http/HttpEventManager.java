@@ -31,10 +31,11 @@ public abstract class HttpEventManager {
     private boolean defaultHeaders=true;
     private boolean alive=true;
     private final boolean alreadyExecuted = false;
-    private final Map<String,String> userLanguages = new HashMap<String,String>();
+    private final Map<String,String> userLanguages;
     protected final Socket client;
     protected Map<String,String> field = new HashMap<>();
     public HttpEventManager(BufferedWriter writer, HttpHeader clientHeader,Socket client) {
+        this.userLanguages = new HashMap<>();
         this.writer=writer;
         this.clientHeader=clientHeader;
         this.client=client;
@@ -98,7 +99,6 @@ public abstract class HttpEventManager {
         if(f.exists() && !location.equals(ELK.INDEX_FILE)){
             if(!f.isDirectory()){
                 sendFileContents(f);
-                client.close();
             }else{
                 header.set("Content-Type", "text/plain");
                 onControllerRequest(location);
@@ -113,12 +113,12 @@ public abstract class HttpEventManager {
                 header.set("Content-Type", "text/plain");
                 onControllerRequest(location);
             }else{
-                header.set("Content-Type", "text/html");
-                header.set("Status", "HTTP/1.1 404 Not Found");
-                sendFileContents(ELK.RESOURCE_NOT_FOUND_FILE);
+                header.set("Content-Type", "text/plain");
+                onControllerRequest("/@"+ELK.HTTP_CONTROLLER_NOT_FOUND);
                 client.close();
             }
         }
+        client.close();
         return true;
     }
     

@@ -53,6 +53,7 @@ public class HttpEvent extends HttpEventManager{
             }
             
             try {
+                Class.forName(classname);
                 if(!tmp.equals("@")){
                     setContentType("text/html");
                     sendFileContents(ELK.INDEX_FILE);

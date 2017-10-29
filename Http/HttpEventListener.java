@@ -48,11 +48,7 @@ public class HttpEventListener extends HttpRequestReader{
                         } catch (IOException ex) {
                             Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
                         }
-                    } catch (InstantiationException ex) {
-                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (IllegalAccessException ex) {
-                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (NoSuchMethodException ex) {
+                    } catch (InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
                         Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }

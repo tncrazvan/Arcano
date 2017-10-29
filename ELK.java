@@ -34,7 +34,6 @@ public class ELK {
     public static String PUBLIC_WWW = "./src/public";
     public static String INDEX_FILE = "/index.html";
     public static int CACHE_MAX_AGE = 60*60*24*365; //1 year
-    public static String RESOURCE_NOT_FOUND_FILE = "/404.html";
     public static String HTTP_CONTROLLER_PACKAGE_NAME = "elkserver.Controller.Http";
     public static String WS_CONTROLLER_PACKAGE_NAME = "elkserver.Controller.WebSocket";
     public static String HTTP_CONTROLLER_NOT_FOUND = "ControllerNotFound";
