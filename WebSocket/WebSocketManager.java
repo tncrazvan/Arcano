@@ -48,8 +48,6 @@ public abstract class WebSocketManager{
     private byte[] digest = new byte[8];
     private boolean startNew = true;
     private int digestIndex = 0;
-    private File f = new File("test.txt");
-    private FileWriter fw = new FileWriter(f);
     
     private long prev_hit;
     public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader,String requestId) throws IOException {
@@ -59,8 +57,6 @@ public abstract class WebSocketManager{
         this.requesteId=requestId;
         this.outputStream = client.getOutputStream();
         isMoz = clientHeader.get("Connection").equals("keep-alive, Upgrade");
-        if(f.exists()) f.delete();
-        f.createNewFile();
     }
     
     public HttpHeader getClientHeader(){
