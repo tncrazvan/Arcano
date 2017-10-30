@@ -8,6 +8,7 @@ package elkserver.Http;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -167,15 +168,19 @@ public class HttpHeader {
                 if(item[0].equals("Cookie")){
                     String[] c = item[1].split(";");
                     for(int j=0;j<c.length;j++){
-                        //The "?" character indicates that the regex is ungreedy
                         String[] cookieInfo = c[j].split("=(?!\\s|\\s|$)");
-                        String [] b = new String[5];
-                        b[0] = cookieInfo[1];
-                        b[1] = null;
-                        b[2] = null;
-                        b[3] = null;
-                        b[4] = "Cookie";
-                        header.cookies.put(cookieInfo[0], b);
+                        if(cookieInfo.length > 1){
+                            
+                            String [] b = new String[5];
+                            b[0] = cookieInfo[1];
+                            b[1] = null;
+                            b[2] = null;
+                            b[3] = null;
+                            b[4] = "Cookie";
+                            header.cookies.put(cookieInfo[0], b);
+                        }
+                        
+                        
                     }
                 }else{
                     header.set(item[0],item[1]);
