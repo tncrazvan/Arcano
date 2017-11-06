@@ -24,12 +24,13 @@ import javax.net.ssl.TrustManagerFactory;
  *
  * @author Razvan
  */
-public class ElkServer {
+public abstract class ElkServer {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args){}
-    public static void listen(String[] args) throws IOException, NoSuchAlgorithmException {
+    public abstract void init();
+    
+    public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
         
         if(args.length > 0){
             if(args[0].substring(args[0].length()-1, args[0].length()).equals("/")){
@@ -59,12 +60,14 @@ public class ElkServer {
             // Create server socket
             SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
             ssl.bind(new InetSocketAddress(ELK.BIND_ADDRESS, ELK.PORT));
+            init();
             while(true){
                 new HttpEventListener(ssl.accept()).start();
             }
         }else{
             ServerSocket ss = new ServerSocket();
             ss.bind(new InetSocketAddress(ELK.BIND_ADDRESS, ELK.PORT));
+            init();
             while(true){
                 new HttpEventListener(ss.accept()).start();
             }
@@ -72,7 +75,7 @@ public class ElkServer {
         
     }
     
-    private static SSLContext createSSLContext(){
+    private SSLContext createSSLContext(){
         System.setProperty("https.protocols", "TLSv1.1,TLSv1.2");
         try{
             KeyStore keyStore = KeyStore.getInstance("JKS");
