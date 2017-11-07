@@ -65,8 +65,7 @@ public abstract class ElkServer {
                 new HttpEventListener(ssl.accept()).start();
             }
         }else{
-            ServerSocket ss = new ServerSocket();
-            ss.bind(new InetSocketAddress(ELK.BIND_ADDRESS, ELK.PORT));
+            ServerSocket ss = new ServerSocket(ELK.PORT);
             init();
             while(true){
                 new HttpEventListener(ss.accept()).start();
