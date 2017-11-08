@@ -77,6 +77,7 @@ public abstract class HttpEventManager {
         alreadyExecuted = true;*/
         String[] parts = clientHeader.get("Resource").split("\\?");
         String[] tmp,object;
+        
         if(parts.length > 1){
             tmp = java.net.URLDecoder.decode(parts[1], "UTF-8").split("\\&");
             for (String part : tmp) {
@@ -90,6 +91,7 @@ public abstract class HttpEventManager {
         }
         String location = parts[0];
         header = new HttpHeader();
+        
         
         
         
@@ -127,13 +129,18 @@ public abstract class HttpEventManager {
     abstract void onControllerRequest(String location);
     
     private void findUserLanguages(){
-        String[] tmp = new String[2];
-        String[] languages = clientHeader.get("Accept-Language").split(",");
-        userLanguages.put("DEFAULT-LANGUAGE", languages[0]);
-        for(int i=1;i<languages.length;i++){
-            tmp=languages[i].split(";");
-            userLanguages.put(tmp[0], tmp[1]);
+        if(clientHeader.get("Accept-Language") == null){
+            userLanguages.put("unknown", "unknown");
+        }else{
+            String[] tmp = new String[2];
+            String[] languages = clientHeader.get("Accept-Language").split(",");
+            userLanguages.put("DEFAULT-LANGUAGE", languages[0]);
+            for(int i=1;i<languages.length;i++){
+                tmp=languages[i].split(";");
+                userLanguages.put(tmp[0], tmp[1]);
+            }
         }
+        
     }
     
     public Map<String,String> getUserLanguages(){

@@ -46,7 +46,6 @@ public abstract class HttpRequestReader extends Thread{
         }*/
         
         
-        
         this.client=client;
         reader = new BufferedReader(
                 new InputStreamReader(
