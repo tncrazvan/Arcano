@@ -43,26 +43,41 @@ public abstract class ElkServer {
             }
         }
         Settings.parse();
-        ELK.CHARSET = Settings.getString("CHARSET");
-        ELK.BIND_ADDRESS = Settings.getString("BIND_ADDRESS");
-        ELK.HTTP_CONTROLLER_PACKAGE_NAME = Settings.getString("HTTP_CONTROLLER_PACKAGE_NAME");
-        ELK.WS_CONTROLLER_PACKAGE_NAME = Settings.getString("WS_CONTROLLER_PACKAGE_NAME");
-        ELK.HTTPS_CERTIFICATE = Settings.getString("HTTPS_CERTIFICATE");
-        ELK.HTTPS_CERTIFICATE_PASSWORD = Settings.getString("HTTPS_CERTIFICATE_PASSWORD");
+        if(Settings.isset("CHARSET"))
+            ELK.CHARSET = Settings.getString("CHARSET");
+        if(Settings.isset("BIND_ADDRESS"))
+            ELK.BIND_ADDRESS = Settings.getString("BIND_ADDRESS");
+        if(Settings.isset("HTTP_CONTROLLER_PACKAGE_NAME"))
+            ELK.HTTP_CONTROLLER_PACKAGE_NAME = Settings.getString("HTTP_CONTROLLER_PACKAGE_NAME");
+        if(Settings.isset("WS_CONTROLLER_PACKAGE_NAME"))
+            ELK.WS_CONTROLLER_PACKAGE_NAME = Settings.getString("WS_CONTROLLER_PACKAGE_NAME");
+        if(Settings.isset("SSL_CERTIFICATE"))
+            ELK.SSL_CERTIFICATE = Settings.getString("HTTPS_CERTIFICATE");
+        if(Settings.isset("SSL_CERTIFICATE_PASSWORD"))
+            ELK.SSL_CERTIFICATE_PASSWORD = Settings.getString("HTTPS_CERTIFICATE_PASSWORD");
         if(ELK.PORT == 443){
-            ELK.HTTPS_CERTIFICATE = args[2];
-            ELK.HTTPS_CERTIFICATE_PASSWORD = args[3];
-            
-            SSLContext sslContext = createSSLContext();
-            // Create server socket factory
-            SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
+            if(!Settings.isset("SSL_CERTIFICATE") || !Settings.isset("SSL_CERTIFICATE_PASSWORD")){
+                if(!Settings.isset("SSL_CERTIFICATE")){
+                    System.err.println("SSL certificate missing");
+                }
+                if(!Settings.isset("SSL_CERTIFICATE_PASSWORD")){
+                    System.err.println("SSL certificate password missing");
+                }
+            }else{
+                ELK.SSL_CERTIFICATE = args[2];
+                ELK.SSL_CERTIFICATE_PASSWORD = args[3];
 
-            // Create server socket
-            SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
-            ssl.bind(new InetSocketAddress(ELK.BIND_ADDRESS, ELK.PORT));
-            init();
-            while(true){
-                new HttpEventListener(ssl.accept()).start();
+                SSLContext sslContext = createSSLContext();
+                // Create server socket factory
+                SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
+
+                // Create server socket
+                SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
+                ssl.bind(new InetSocketAddress(ELK.BIND_ADDRESS, ELK.PORT));
+                init();
+                while(true){
+                    new HttpEventListener(ssl.accept()).start();
+                }
             }
         }else{
             ServerSocket ss = new ServerSocket();
@@ -79,11 +94,11 @@ public abstract class ElkServer {
         System.setProperty("https.protocols", "TLSv1.1,TLSv1.2");
         try{
             KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream(ELK.HTTPS_CERTIFICATE),ELK.HTTPS_CERTIFICATE_PASSWORD.toCharArray());
+            keyStore.load(new FileInputStream(ELK.SSL_CERTIFICATE),ELK.SSL_CERTIFICATE_PASSWORD.toCharArray());
              
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-            keyManagerFactory.init(keyStore, ELK.HTTPS_CERTIFICATE_PASSWORD.toCharArray());
+            keyManagerFactory.init(keyStore, ELK.SSL_CERTIFICATE_PASSWORD.toCharArray());
             KeyManager[] km = keyManagerFactory.getKeyManagers();
              
             // Create trust manager

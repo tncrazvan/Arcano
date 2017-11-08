@@ -28,8 +28,8 @@ import elkserver.WebSocket.WebSocketEvent;
  * @author Razvan
  */
 public class ELK {
-    public static String HTTPS_CERTIFICATE = "";
-    public static String HTTPS_CERTIFICATE_PASSWORD = "";
+    public static String SSL_CERTIFICATE = "";
+    public static String SSL_CERTIFICATE_PASSWORD = "";
     public static String BIND_ADDRESS = "127.0.0.1";
     public static String PUBLIC_WWW = "./src/public";
     public static String INDEX_FILE = "/index.html";

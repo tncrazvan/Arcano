@@ -31,4 +31,7 @@ public class Settings {
     public static int getInt(String membername){
         return get(membername).getAsInt();
     }
+    public static boolean isset(String key){
+        return info.has(key);
+    }
 }
