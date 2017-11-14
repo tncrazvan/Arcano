@@ -19,9 +19,11 @@ import elkserver.ELK;
  */
 public class Get implements HttpInterface{
     @Override
-    public void main(HttpEvent e, ArrayList<String> args,JsonObject post){
-        e.send("No resource specified");
-    }
+    public void main(HttpEvent e, ArrayList<String> args,JsonObject post){}
+    
+    @Override
+    public void onClose() {}
+    
     public void file(HttpEvent e, ArrayList<String> args,JsonObject post) throws FileNotFoundException, IOException{
         e.setContentType(ELK.processContentType(args.get(0)));
         e.sendFileContents("/"+(args.get(0).equals("")?args.get(1):args.get(0)));

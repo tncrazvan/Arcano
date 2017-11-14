@@ -19,9 +19,11 @@ import elkserver.ELK;
 public class Set implements HttpInterface{
 
     @Override
-    public void main(HttpEvent e, ArrayList<String> args,JsonObject post) {
-        
-    }
+    public void main(HttpEvent e, ArrayList<String> args,JsonObject post) {}
+    
+    @Override
+    public void onClose() {}
+    
     public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
         if(e.getClientHeader().get("Method").equals("POST")){
             if(post.has("name") 

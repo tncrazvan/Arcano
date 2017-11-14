@@ -14,4 +14,5 @@ import java.util.ArrayList;
  */
 public interface HttpInterface {
     public void main(HttpEvent e, ArrayList<String> args,JsonObject post);
+    public void onClose();
 }

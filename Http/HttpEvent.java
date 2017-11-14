@@ -35,6 +35,7 @@ public class HttpEvent extends HttpEventManager{
         final Class<?> c;
         final Object x;
         final Method m;
+        final Method onCloseMethod;
         
         
         String[] uri = ELK.decodeUrl(location).split("/");
@@ -77,8 +78,10 @@ public class HttpEvent extends HttpEventManager{
                         //System.out.println("Method not defined");
                         m = x.getClass().getMethod("main",this.getClass(),args.getClass(),post.getClass());
                     }
+                    onCloseMethod = x.getClass().getMethod("onClose");
                     try {
                         m.invoke(x,singleton,args,post);
+                        onCloseMethod.invoke(x);
                         client.close();
                     } catch (IllegalAccessException | 
                             IllegalArgumentException | 
@@ -86,21 +89,24 @@ public class HttpEvent extends HttpEventManager{
                             IOException ex) {
                         Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
                         try {
+                            onCloseMethod.invoke(x);
                             client.close();
-                        } catch (IOException ex2) {
+                        } catch (IOException | InvocationTargetException ex2) {
                             Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex2);
                         }
                     }
                 }
             } catch (ClassNotFoundException ex) {
                 //Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
-
+                
                     
                 try {
                     final Class<?> cNotFound = Class.forName(ELK.HTTP_CONTROLLER_PACKAGE_NAME+"."+ELK.HTTP_CONTROLLER_NOT_FOUND);
                     final Object xNotFound = cNotFound.newInstance();
                     final Method mNotFound = xNotFound.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),post.getClass());
+                    final Method cNotFoundOnCloseMethod = cNotFound.getClass().getMethod("onClose");
                     mNotFound.invoke(xNotFound,singleton,args,post);
+                    cNotFoundOnCloseMethod.invoke(xNotFound);
                     client.close();
                 } catch (ClassNotFoundException | IOException | IllegalAccessException | 
                         IllegalArgumentException | InvocationTargetException | NoSuchMethodException | 

@@ -19,9 +19,10 @@ import elkserver.ELK;
 public class Unset implements HttpInterface{
 
     @Override
-    public void main(HttpEvent e, ArrayList<String> args,JsonObject post) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+    public void main(HttpEvent e, ArrayList<String> args,JsonObject post) {}
+    
+    @Override
+    public void onClose() {}
     
     public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
         if(e.getClientHeader().get("Method").equals("POST")){

@@ -21,9 +21,11 @@ import elkserver.ELK;
  */
 public class Isset implements HttpInterface{
     @Override
-    public void main(HttpEvent e, ArrayList<String> args,JsonObject post){
-        e.send("No resource specified");
-    }
+    public void main(HttpEvent e, ArrayList<String> args,JsonObject post){}
+    
+    @Override
+    public void onClose() {}
+    
     public void file(HttpEvent e, ArrayList<String> args,JsonObject post) throws FileNotFoundException, IOException{
         if(args.size() >= 0){
             File f = new File(ELK.PUBLIC_WWW+"/"+args.get(0));
