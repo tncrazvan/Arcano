@@ -57,6 +57,10 @@ public abstract class HttpEventManager {
         return clientHeader;
     }
     
+    public String getMethod(){
+        return clientHeader.get("Method");
+    }
+    
     public boolean isAlive(){
         return alive;
     }
