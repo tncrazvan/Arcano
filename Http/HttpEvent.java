@@ -31,11 +31,11 @@ public class HttpEvent extends HttpEventManager{
     
     @Override
     void onControllerRequest(String location) {
-        final ArrayList<String> args = new ArrayList<>();
-        final Class<?> c;
-        final Object x;
-        final Method m;
-        final Method onCloseMethod;
+        ArrayList<String> args = new ArrayList<>();
+        Class<?> c;
+        Object x;
+        Method m;
+        Method onCloseMethod;
         
         
         String[] uri = ELK.decodeUrl(location).split("/");
@@ -76,9 +76,9 @@ public class HttpEvent extends HttpEventManager{
                         }
                     }else{
                         //System.out.println("Method not defined");
-                        m = x.getClass().getMethod("main",this.getClass(),args.getClass(),post.getClass());
+                        m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),post.getClass());
                     }
-                    onCloseMethod = x.getClass().getMethod("onClose");
+                    onCloseMethod = x.getClass().getDeclaredMethod("onClose");
                     try {
                         m.invoke(x,singleton,args,post);
                         onCloseMethod.invoke(x);
@@ -101,12 +101,12 @@ public class HttpEvent extends HttpEventManager{
                 
                     
                 try {
-                    final Class<?> cNotFound = Class.forName(ELK.HTTP_CONTROLLER_PACKAGE_NAME+"."+ELK.HTTP_CONTROLLER_NOT_FOUND);
-                    final Object xNotFound = cNotFound.newInstance();
-                    final Method mNotFound = xNotFound.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),post.getClass());
-                    final Method cNotFoundOnCloseMethod = cNotFound.getClass().getMethod("onClose");
-                    mNotFound.invoke(xNotFound,singleton,args,post);
-                    cNotFoundOnCloseMethod.invoke(xNotFound);
+                    c = Class.forName(ELK.HTTP_CONTROLLER_PACKAGE_NAME+"."+ELK.HTTP_CONTROLLER_NOT_FOUND);
+                    x = c.newInstance();
+                    m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),post.getClass());
+                    onCloseMethod = x.getClass().getDeclaredMethod("onClose");
+                    m.invoke(x,singleton,args,post);
+                    onCloseMethod.invoke(x);
                     client.close();
                 } catch (ClassNotFoundException | IOException | IllegalAccessException | 
                         IllegalArgumentException | InvocationTargetException | NoSuchMethodException | 
