@@ -47,6 +47,11 @@ public abstract class HttpEventManager {
     public void setHeaderField(String fieldName,String fieldContent){
         header.set(fieldName, fieldContent);
     }
+    
+    public void set404NotFound(){
+        setHeaderField("Status", "HTTP/1.1 404 Not Found");
+    }
+    
     public String getHeaderField(String fieldName){
         return header.get(fieldName);
     }
