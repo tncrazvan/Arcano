@@ -122,7 +122,7 @@ public abstract class HttpEventManager {
     
     
     public void setStatus(String status){
-        setHeaderField("Status", status);
+        setHeaderField("Status", "HTTP/1.1 "+status);
     }
     
     public String getHeaderField(String fieldName){
