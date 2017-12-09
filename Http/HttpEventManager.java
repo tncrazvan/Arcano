@@ -98,7 +98,7 @@ public abstract class HttpEventManager {
         
         File f = new File(java.net.URLDecoder.decode(ELK.PUBLIC_WWW+location, "UTF-8"));
         header.set("Content-Type", ELK.processContentType(location));
-        if(f.exists() && !location.equals(ELK.INDEX_FILE)){
+        if(f.exists() /*&& !location.equals(ELK.INDEX_FILE)*/){
             if(!f.isDirectory()){
                 sendFileContents(f);
             }else{
@@ -108,7 +108,7 @@ public abstract class HttpEventManager {
         }else{
             if((header.get("Content-Type").equals("") 
                     || location.substring(1,2).equals("@")) 
-                    && !location.equals(ELK.INDEX_FILE)){
+                    /*&& !location.equals(ELK.INDEX_FILE)*/){
                 header.set("Content-Type", "text/plain");
                 onControllerRequest(location);
             }else if(!header.get("Content-Type").equals("")){
