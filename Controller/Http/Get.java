@@ -43,7 +43,7 @@ public class Get implements HttpInterface{
     
     public void cookie(HttpEvent e, ArrayList<String> get_data,JsonObject post_data){
 
-        if(e.getClientHeader().get("Method").equals("POST")){
+        if(e.getMethod().equals("POST")){
             if(post_data.has("name")){
                 String name = post_data.get("name").getAsString();
                 if(e.cookieIsset(name)){

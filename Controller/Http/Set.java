@@ -25,7 +25,7 @@ public class Set implements HttpInterface{
     public void onClose() {}
     
     public void cookie(HttpEvent e, ArrayList<String> get_data,JsonObject post_data){
-        if(e.getClientHeader().get("Method").equals("POST")){
+        if(e.getMethod().equals("POST")){
             if(post_data.has("name") 
                 && post_data.has("value") 
                 && post_data.has("path") 
