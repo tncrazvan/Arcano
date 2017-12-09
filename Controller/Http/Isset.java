@@ -21,14 +21,14 @@ import elkserver.ELK;
  */
 public class Isset implements HttpInterface{
     @Override
-    public void main(HttpEvent e, ArrayList<String> args,JsonObject post){}
+    public void main(HttpEvent e, ArrayList<String> get_data,JsonObject post_data){}
     
     @Override
     public void onClose() {}
     
-    public void file(HttpEvent e, ArrayList<String> args,JsonObject post) throws FileNotFoundException, IOException{
-        if(args.size() >= 0){
-            File f = new File(ELK.PUBLIC_WWW+"/"+args.get(0));
+    public void file(HttpEvent e, ArrayList<String> get_data,JsonObject post_data) throws FileNotFoundException, IOException{
+        if(get_data.size() >= 0){
+            File f = new File(ELK.PUBLIC_WWW+"/"+get_data.get(0));
             if(f.exists()){
                 e.send(0);
             }else{
@@ -39,10 +39,10 @@ public class Isset implements HttpInterface{
         }
     }
     
-    public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
+    public void cookie(HttpEvent e, ArrayList<String> get_data,JsonObject post_data){
         if(e.getClientHeader().get("Method").equals("POST")){
-           if(post.has("name")){
-                String name = post.get("name").getAsString();
+           if(post_data.has("name")){
+                String name = post_data.get("name").getAsString();
                 if(e.cookieIsset(name)){
                     e.send(0);
                 }else{

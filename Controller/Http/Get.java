@@ -19,14 +19,14 @@ import elkserver.ELK;
  */
 public class Get implements HttpInterface{
     @Override
-    public void main(HttpEvent e, ArrayList<String> args,JsonObject post){}
+    public void main(HttpEvent e, ArrayList<String> get_data,JsonObject post_data){}
     
     @Override
     public void onClose() {}
     
-    public void file(HttpEvent e, ArrayList<String> args,JsonObject post) throws FileNotFoundException, IOException{
-        e.setContentType(ELK.processContentType(args.get(0)));
-        e.sendFileContents("/"+(args.get(0).equals("")?args.get(1):args.get(0)));
+    public void file(HttpEvent e, ArrayList<String> get_data,JsonObject post_data) throws FileNotFoundException, IOException{
+        e.setContentType(ELK.processContentType(get_data.get(0)));
+        e.sendFileContents("/"+(get_data.get(0).equals("")?get_data.get(1):get_data.get(0)));
     }
     
     class Cookie{
@@ -41,11 +41,11 @@ public class Get implements HttpInterface{
         
     }
     
-    public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
+    public void cookie(HttpEvent e, ArrayList<String> get_data,JsonObject post_data){
 
         if(e.getClientHeader().get("Method").equals("POST")){
-            if(post.has("name")){
-                String name = post.get("name").getAsString();
+            if(post_data.has("name")){
+                String name = post_data.get("name").getAsString();
                 if(e.cookieIsset(name)){
                     e.setContentType("application/json");
                     String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));

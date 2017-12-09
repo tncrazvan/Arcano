@@ -19,25 +19,25 @@ import elkserver.ELK;
 public class Set implements HttpInterface{
 
     @Override
-    public void main(HttpEvent e, ArrayList<String> args,JsonObject post) {}
+    public void main(HttpEvent e, ArrayList<String> get_data,JsonObject post_data) {}
     
     @Override
     public void onClose() {}
     
-    public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
+    public void cookie(HttpEvent e, ArrayList<String> get_data,JsonObject post_data){
         if(e.getClientHeader().get("Method").equals("POST")){
-            if(post.has("name") 
-                && post.has("value") 
-                && post.has("path") 
-                && post.has("domain") 
-                && post.has("expire")){
+            if(post_data.has("name") 
+                && post_data.has("value") 
+                && post_data.has("path") 
+                && post_data.has("domain") 
+                && post_data.has("expire")){
                 e.setContentType("application/json");
                 String 
-                    name = post.get("name").getAsString(),
-                    value = post.get("value").getAsString(),
-                    path = post.get("path").getAsString(),
-                    domain = post.get("domain").getAsString(),
-                    expire = post.get("expire").getAsString();
+                    name = post_data.get("name").getAsString(),
+                    value = post_data.get("value").getAsString(),
+                    path = post_data.get("path").getAsString(),
+                    domain = post_data.get("domain").getAsString(),
+                    expire = post_data.get("expire").getAsString();
                 e.setCookie(name, value, path, domain, expire);
 
                 String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Cookie", value));

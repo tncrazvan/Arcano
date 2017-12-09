@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * @author Razvan
  */
 public interface WebSocketInterface {
-    public void onOpen(WebSocketEvent e, ArrayList<String> args);
-    public void onMessage(WebSocketEvent e, byte[] data, ArrayList<String> args);
-    public void onClose(WebSocketEvent e, ArrayList<String> args);
+    public void onOpen(WebSocketEvent e, ArrayList<String> get_data);
+    public void onMessage(WebSocketEvent e, byte[] data, ArrayList<String> get_data);
+    public void onClose(WebSocketEvent e, ArrayList<String> get_data);
 }

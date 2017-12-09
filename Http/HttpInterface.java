@@ -13,6 +13,6 @@ import java.util.ArrayList;
  * @author Razvan
  */
 public interface HttpInterface {
-    public void main(HttpEvent e, ArrayList<String> args,JsonObject post);
+    public void main(HttpEvent e, ArrayList<String> get_data,JsonObject post_data);
     public void onClose();
 }

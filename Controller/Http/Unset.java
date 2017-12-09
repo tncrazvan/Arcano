@@ -19,24 +19,24 @@ import elkserver.ELK;
 public class Unset implements HttpInterface{
 
     @Override
-    public void main(HttpEvent e, ArrayList<String> args,JsonObject post) {}
+    public void main(HttpEvent e, ArrayList<String> get_data,JsonObject post_data) {}
     
     @Override
     public void onClose() {}
     
-    public void cookie(HttpEvent e, ArrayList<String> args,JsonObject post){
-        if(e.getClientHeader().get("Method").equals("POST")){
-            if(post.has("name") && post.has("domain") && post.has("path")){
+    public void cookie(HttpEvent e, ArrayList<String> get_data,JsonObject post_data){
+        if(e.getMethod().equals("POST")){
+            if(post_data.has("name") && post_data.has("domain") && post_data.has("path")){
 
-                String name = post.get("name").getAsString();
+                String name = post_data.get("name").getAsString();
                 if(e.cookieIsset(name)){
-                    e.unsetCookie(name, post.get("path").getAsString(), post.get("domain").getAsString());
+                    e.unsetCookie(name, post_data.get("path").getAsString(), post_data.get("domain").getAsString());
                     e.send(0);
                 }else{
                     e.send(0);
                 }
             }else{
-                e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
+                e.setStatus(HttpEvent.STATUS_NOT_FOUND);
                 e.flushHeaders();
             }
         }else{
