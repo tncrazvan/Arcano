@@ -6,8 +6,6 @@
 package elkserver.WebSocket;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -37,17 +35,18 @@ public abstract class WebSocketManager{
     protected final OutputStream outputStream;
     private Map<String,String> userLanguages = new HashMap<String,String>();
     protected byte[] oldMask;
-    protected int oldOpCode;
-    protected int oldLength;
     protected byte[] mask;
-    protected int opCode;
-    protected int length;
-    protected int payloadOffset = 0;
-    private boolean connected = true;
-    private boolean isMoz = false;
+    protected int 
+            oldOpCode,
+            oldLength,
+            opCode,
+            length,
+            payloadOffset = 0,
+            digestIndex = 0;
+    private boolean 
+            connected = true;
     private byte[] digest = new byte[8];
     private boolean startNew = true;
-    private int digestIndex = 0;
     
     private long prev_hit;
     public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader,String requestId) throws IOException {
@@ -56,7 +55,6 @@ public abstract class WebSocketManager{
         this.reader=reader;
         this.requesteId=requestId;
         this.outputStream = client.getOutputStream();
-        isMoz = clientHeader.get("Connection").equals("keep-alive, Upgrade");
     }
     
     public HttpHeader getClientHeader(){
@@ -297,7 +295,56 @@ public abstract class WebSocketManager{
     }
     
     public void send(byte[] data){
-        send(new String(data));
+        int offset = 0, length = 60000;
+        if(data.length > length){
+            while(offset < data.length){
+                encodeAndSendBytes(Arrays.copyOfRange(data, offset, offset+length));
+
+                if(offset+length > data.length){
+                    encodeAndSendBytes(Arrays.copyOfRange(data, offset, data.length));
+                    offset = data.length;
+                }else{
+                    offset += length;
+                }
+            }
+        }else{
+            encodeAndSendBytes(data);
+        }
+        
+    }
+    
+    private void encodeAndSendBytes(byte[] messageBytes){
+        try {
+            outputStream.flush();
+        } catch (IOException ex) {
+            Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            //We need to set only FIN and Opcode.
+            outputStream.write(0x82);
+
+            //Prepare the payload length.
+            if(messageBytes.length <= 125) {
+                outputStream.write(messageBytes.length);
+            }else { //We assume it is 16 but length. Not more than that.
+                outputStream.write(0x7E);
+                int b1 =( messageBytes.length >> 8) &0xff;
+                int b2 = messageBytes.length &0xff;
+                outputStream.write(b1);
+                outputStream.write(b2);
+            }
+
+            //Write the data.
+            outputStream.write(messageBytes);
+            try {
+                outputStream.flush();
+            } catch (IOException ex) {
+                Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (IOException ex) {
+            close();
+        }
+        
     }
     
     public void send(int data){
@@ -305,9 +352,7 @@ public abstract class WebSocketManager{
     }
     
     public void send(String message) {
-            
         try {
-            Thread.sleep(0, 1);
             byte messageBytes[] = message.getBytes();
 
             //We need to set only FIN and Opcode.
@@ -330,8 +375,6 @@ public abstract class WebSocketManager{
             outputStream.write(messageBytes);
         } catch (IOException ex) {
             close();
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
         }
 
     }
@@ -343,6 +386,16 @@ public abstract class WebSocketManager{
             WebSocketEvent e = (WebSocketEvent) i.next();
             if(e!=this){
                 e.send(msg);
+            }
+        }
+    }
+    public void broadcast(byte[] data){
+        Iterator i = ELK.EVENT_WS.iterator();
+        
+        while(i.hasNext()){
+            WebSocketEvent e = (WebSocketEvent) i.next();
+            if(e!=this){
+                e.send(data);
             }
         }
     }
