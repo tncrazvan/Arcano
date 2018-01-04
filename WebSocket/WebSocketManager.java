@@ -15,12 +15,13 @@ import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.Http.HttpHeader;
 import elkserver.ELK;
+import java.util.ArrayList;
+import java.util.Iterator;
 import javax.xml.bind.DatatypeConverter;
 
 /**
@@ -28,6 +29,7 @@ import javax.xml.bind.DatatypeConverter;
  * @author Razvan
  */
 public abstract class WebSocketManager{
+    private static ArrayList<WebSocketEvent> subscriptions = new ArrayList<>();
     protected final Socket client;
     protected final HttpHeader clientHeader;
     protected final BufferedReader reader;
@@ -379,8 +381,10 @@ public abstract class WebSocketManager{
 
     }
     
-    public void broadcast(String msg){
-        Iterator i = ELK.EVENT_WS.iterator();
+    public void broadcast(String msg,Object o){
+        
+        Iterator i = ELK.WS_EVENTS.get(o.getClass().getCanonicalName()).iterator();
+        
         
         while(i.hasNext()){
             WebSocketEvent e = (WebSocketEvent) i.next();
@@ -389,8 +393,8 @@ public abstract class WebSocketManager{
             }
         }
     }
-    public void broadcast(byte[] data){
-        Iterator i = ELK.EVENT_WS.iterator();
+    public void broadcast(byte[] data,Object o){
+        Iterator i = ELK.WS_EVENTS.get(o.getClass().getCanonicalName()).iterator();
         
         while(i.hasNext()){
             WebSocketEvent e = (WebSocketEvent) i.next();

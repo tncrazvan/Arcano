@@ -22,6 +22,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.Http.HttpEvent;
 import elkserver.WebSocket.WebSocketEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -38,7 +40,8 @@ public class ELK {
     public static String WS_CONTROLLER_PACKAGE_NAME = "elkserver.Controller.WebSocket";
     public static String HTTP_CONTROLLER_NOT_FOUND = "ControllerNotFound";
     public static String WS_CONTROLLER_NOT_FOUND = "ControllerNotFound";
-    public static final ArrayList<WebSocketEvent> EVENT_WS = new ArrayList<>();  
+    //public static final ArrayList<WebSocketEvent> EVENT_WS = new ArrayList<>();
+    public static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();
     public static final ArrayList<HttpEvent> EVENT_HTTP = new ArrayList<>();
     public static String WS_ACCEPT_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static int PORT = 80;

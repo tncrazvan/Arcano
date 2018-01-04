@@ -128,7 +128,7 @@ public class WebSocketEvent extends WebSocketManager{
     protected void onClose(Socket client) {
         
         try {
-            ELK.EVENT_WS.remove(singleton);
+            ELK.WS_EVENTS.get(c.getCanonicalName()).remove(singleton);
             onCloseMethod.invoke(x,this.singleton,args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
@@ -138,7 +138,14 @@ public class WebSocketEvent extends WebSocketManager{
     @Override
     protected void onOpen(Socket client) {        
         try {
-            ELK.EVENT_WS.add(singleton);
+            
+            if(ELK.WS_EVENTS.get(c.getCanonicalName()) == null){
+                ArrayList<WebSocketEvent> tmp = new ArrayList<>();
+                tmp.add(singleton);
+                ELK.WS_EVENTS.put(c.getCanonicalName(), tmp);
+            }else{
+                ELK.WS_EVENTS.get(c.getCanonicalName()).add(singleton);
+            }
             onOpenMethod.invoke(x,this.singleton,args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
