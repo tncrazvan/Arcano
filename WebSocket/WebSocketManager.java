@@ -164,7 +164,7 @@ public abstract class WebSocketManager{
         /*System.out.println("payload length:"+bytes);
         System.out.println("FIN:"+fin);
         System.out.println("OPCODE:"+opCode);*/
-        if(bytes == 6 && fin && opCode == 8){
+        if((bytes == 6 && fin && opCode == 8) || opCode == 8){
             close();
             return false;
         }
