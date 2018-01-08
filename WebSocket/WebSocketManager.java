@@ -63,6 +63,10 @@ public abstract class WebSocketManager{
         return clientHeader;
     }
     
+    public Socket getClient(){
+        return client;
+    }
+    
     private void findUserLanguages(){
         String[] tmp = new String[2];
         String[] languages = clientHeader.get("Accept-Language").split(",");

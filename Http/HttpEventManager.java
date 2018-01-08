@@ -45,6 +45,7 @@ public abstract class HttpEventManager {
     public Socket getClient(){
         return client;
     }
+    
     public void setHeaderField(String fieldName,String fieldContent){
         header.set(fieldName, fieldContent);
     }
