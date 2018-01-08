@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.ELK;
+import java.io.DataOutputStream;
 
 /**
  *
@@ -23,8 +24,8 @@ import elkserver.ELK;
 public class HttpEvent extends HttpEventManager{
     private final HttpEvent singleton;
     private final JsonObject post;
-    public HttpEvent(BufferedWriter writer, HttpHeader clientHeader, Socket client,JsonObject post) {
-        super(writer,clientHeader,client);
+    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client,JsonObject post) {
+        super(output,clientHeader,client);
         singleton = this;
         this.post = post;
     }

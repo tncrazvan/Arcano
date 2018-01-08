@@ -7,7 +7,6 @@ package elkserver.Http;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,13 +18,15 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.ELK;
+import java.io.DataOutputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  *
  * @author Razvan
  */
 public abstract class HttpEventManager {
-    private final BufferedWriter writer;
+    private final DataOutputStream output;
     private final HttpHeader clientHeader;
     private HttpHeader header;
     private boolean defaultHeaders=true;
@@ -34,11 +35,11 @@ public abstract class HttpEventManager {
     private final Map<String,String> userLanguages;
     protected final Socket client;
     protected Map<String,String> field = new HashMap<>();
-    public HttpEventManager(BufferedWriter writer, HttpHeader clientHeader,Socket client) {
+    public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client) {
         this.userLanguages = new HashMap<>();
-        this.writer=writer;
         this.clientHeader=clientHeader;
         this.client=client;
+        this.output = output;
     }
     
     public Socket getClient(){
@@ -286,13 +287,13 @@ public abstract class HttpEventManager {
     
     private boolean firstMessage = true;
     
-    public void send(String data) {
+    public void send(byte[] data) {
         if(alive){
             if(firstMessage && defaultHeaders){
                 firstMessage = false;
                 try {
-                    writer.write(new String((header.toString()+"\r\n").getBytes(ELK.CHARSET)));
-                    writer.flush();
+                    output.write((header.toString()+"\r\n").getBytes(ELK.CHARSET));
+                    output.flush();
                     alive = true;
                 } catch (IOException ex) {
                     ex.printStackTrace();
@@ -305,8 +306,8 @@ public abstract class HttpEventManager {
                 }
             }
             try {
-                writer.write(new String(data.toString().getBytes(ELK.CHARSET)));
-                writer.flush();
+                output.write(data.toString().getBytes(ELK.CHARSET));
+                output.flush();
                 alive = true;
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -324,14 +325,18 @@ public abstract class HttpEventManager {
         send();
     }
     
-    public void send(byte[] data){
-        send(new String(data));
+    public void send(String data){
+        try {
+            send(data.getBytes(ELK.CHARSET));
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     public void send(){
         send("");
     }
     public void send(int data){
-        send(""+data);
+        send(data);
     }
     public void setContentType(String type){
         header.set("Content-Type", type);

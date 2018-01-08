@@ -43,7 +43,7 @@ public class HttpEventListener extends HttpRequestReader{
                 }
             }else{
                 try {
-                    new HttpEvent(writer,clientHeader,client,post).execute();
+                    new HttpEvent(output,clientHeader,client,post).execute();
                 } catch (IOException ex) {
                     try {
                         client.close();

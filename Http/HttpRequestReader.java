@@ -20,6 +20,8 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import elkserver.ELK;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import javax.net.ssl.SSLSocket;
 
 /**
@@ -31,7 +33,9 @@ public abstract class HttpRequestReader extends Thread{
     protected SSLSocket secureClient=null;
     protected BufferedReader reader=null;
     protected BufferedWriter writer=null;
-    private String output = "";
+    protected final DataOutputStream output;
+    protected final DataInputStream input;
+    private String outputString = "";
     private final Map<String,String> form = new HashMap<>();
     private final JsonObject post = new JsonObject();
     public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
@@ -55,21 +59,25 @@ public abstract class HttpRequestReader extends Thread{
                 new OutputStreamWriter(
                         client
                                 .getOutputStream()));
+        output = new DataOutputStream(client.getOutputStream());
+        input = new DataInputStream(client.getInputStream());
+        
     }
     
     @Override
     public void run(){
         try {
-            String line = "";
+            int chunkSize = 2048, offset = 0;
+            byte[] tmp = new byte[chunkSize];
             boolean canRead = true;
-            while (canRead) { //check null reference
-                line = reader.readLine();
-                if(line == null || line.length() == 0){
-                    canRead = false;
-                }
-                output +=line+"\r\n";
+            while (canRead) {
+                canRead = (input.read(tmp, offset, chunkSize)== -1);
+                outputString += new String(tmp);
+                offset += chunkSize;
             }
-            HttpHeader clientHeader = HttpHeader.fromString(output);
+            
+            HttpHeader clientHeader = HttpHeader.fromString(outputString);
+            String line = "";
             if(clientHeader.get("Method").equals("POST")){
                 try {
                     line = "";
