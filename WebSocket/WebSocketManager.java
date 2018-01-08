@@ -297,16 +297,16 @@ public abstract class WebSocketManager{
     }
     
     public void send(byte[] data){
-        int offset = 0, length = 60000;
-        if(data.length > length){
+        int offset = 0, tmpLength = 60000;
+        if(data.length > tmpLength){
             while(offset < data.length){
-                encodeAndSendBytes(Arrays.copyOfRange(data, offset, offset+length));
+                encodeAndSendBytes(Arrays.copyOfRange(data, offset, offset+tmpLength));
 
-                if(offset+length > data.length){
+                if(offset+tmpLength > data.length){
                     encodeAndSendBytes(Arrays.copyOfRange(data, offset, data.length));
                     offset = data.length;
                 }else{
-                    offset += length;
+                    offset += tmpLength;
                 }
             }
         }else{
