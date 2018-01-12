@@ -122,6 +122,7 @@ public abstract class WebSocketManager{
                 }
             } catch (IOException ex) {
                 close();
+                System.out.println("Close 1");
             } catch (NoSuchAlgorithmException ex) {
                 Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -161,6 +162,7 @@ public abstract class WebSocketManager{
         //System.out.println("---------- NEW -----------");
         if(bytes == -1){
             close();
+            System.out.println("Close 2");
             return false;
         }
         
@@ -170,8 +172,10 @@ public abstract class WebSocketManager{
         /*System.out.println("payload length:"+bytes);
         System.out.println("FIN:"+fin);
         System.out.println("OPCODE:"+opCode);*/
-        if((bytes == 6 && fin && opCode == 8) || opCode == 8){
+        if((bytes == 8 && fin && opCode == 8) || (bytes != 8 && !fin && opCode == 8)){
             close();
+            System.out.println("Close 3");
+            System.out.println(bytes+","+fin+","+opCode);
             return false;
         }
         
@@ -349,6 +353,7 @@ public abstract class WebSocketManager{
             }
         } catch (IOException ex) {
             close();
+            System.out.println("Close 4");
         }
         
     }
@@ -381,6 +386,7 @@ public abstract class WebSocketManager{
             outputStream.write(messageBytes);
         } catch (IOException ex) {
             close();
+            System.out.println("Close 5");
         }
 
     }
