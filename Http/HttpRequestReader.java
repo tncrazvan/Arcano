@@ -129,7 +129,7 @@ public abstract class HttpRequestReader extends Thread{
                 output.close();
                 input.close();
                 client.close();
-                System.err.println("Server closed closed by force. Client failed to specify request method. [CLOSED]");
+                System.err.println("Server closed connection by force. Client failed to specify request method. [CLOSED]");
             }
             
             
