@@ -325,4 +325,12 @@ public class ELK {
         System.arraycopy(source, srcBegin, destination, dstBegin, srcEnd - srcBegin);
     }
     
+    public static boolean byteArrayIsEmpty(final byte[] array) {
+        int sum = 0;
+        for (byte b : array) {
+            sum |= b;
+        }
+        return (sum == 0);
+    }
+    
 }

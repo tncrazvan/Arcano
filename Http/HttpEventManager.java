@@ -190,13 +190,10 @@ public abstract class HttpEventManager {
                 onControllerRequest(location);
             }
         }else{
-            if((header.get("Content-Type").equals("") 
-                    || location.substring(1,2).equals("@")) 
-                    /*&& !location.equals(ELK.INDEX_FILE)*/){
-                header.set("Content-Type", "text/plain");
-                onControllerRequest(location);
-            }else if(!header.get("Content-Type").equals("")){
-                header.set("Content-Type", "text/plain");
+            if(location.substring(1,2).equals("@")){
+                if(header.get("Content-Type").equals("")){
+                    header.set("Content-Type", "text/plain");
+                }
                 onControllerRequest(location);
             }else{
                 header.set("Content-Type", "text/plain");

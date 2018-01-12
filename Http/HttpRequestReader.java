@@ -70,14 +70,17 @@ public abstract class HttpRequestReader extends Thread{
             int chunkSize = 2048, offset = 0;
             byte[] tmp = new byte[chunkSize];
             boolean canRead = true;
+            
             while (canRead) {
                 canRead = (input.read(tmp, offset, chunkSize)== -1);
+                if(canRead) canRead = !ELK.byteArrayIsEmpty(tmp);
                 outputString += new String(tmp);
                 offset += chunkSize;
             }
             
             HttpHeader clientHeader = HttpHeader.fromString(outputString);
-            String line = "";
+            String line;
+            if(clientHeader != null)
             if(clientHeader.get("Method").equals("POST")){
                 try {
                     line = "";
@@ -123,7 +126,7 @@ public abstract class HttpRequestReader extends Thread{
             }
             
             this.onRequest(clientHeader,post);
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             try {
                 client.close();
             } catch (IOException ex1) {
