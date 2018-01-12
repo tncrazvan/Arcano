@@ -67,63 +67,71 @@ public abstract class HttpRequestReader extends Thread{
     @Override
     public void run(){
         try {
-            int chunkSize = 2048, offset = 0;
+            int chunkSize = 2048, offset = 0, emptyArraysReceived = 0;
             byte[] tmp = new byte[chunkSize];
-            boolean canRead = true;
+            boolean canRead = true, arrayIsEmpty = false;
             
-            while (canRead) {
+            while (canRead && !arrayIsEmpty) {
                 canRead = (input.read(tmp, offset, chunkSize)== -1);
-                if(canRead) canRead = !ELK.byteArrayIsEmpty(tmp);
+                arrayIsEmpty = ELK.byteArrayIsEmpty(tmp);
                 outputString += new String(tmp);
                 offset += chunkSize;
             }
             
             HttpHeader clientHeader = HttpHeader.fromString(outputString);
             String line;
-            if(clientHeader != null)
-            if(clientHeader.get("Method").equals("POST")){
-                try {
-                    line = "";
-                    String currentObjectName = null;
-                    canRead = true;
-                    String currentLabel = null,
-                            currentValue = "";
-                    Pattern pattern1 = Pattern.compile("^Content-Disposition");
-                    Pattern pattern2 = Pattern.compile("(?<=name\\=\\\").*?(?=\\\")");
-                    Matcher matcher;
+            
+            if(clientHeader.get("Method") != null){
+                if(clientHeader.get("Method").equals("POST")){
+                    try {
+                        line = "";
+                        String currentObjectName = null;
+                        canRead = true;
+                        String currentLabel = null,
+                                currentValue = "";
+                        Pattern pattern1 = Pattern.compile("^Content-Disposition");
+                        Pattern pattern2 = Pattern.compile("(?<=name\\=\\\").*?(?=\\\")");
+                        Matcher matcher;
 
-                    while(canRead){
-                        line = reader.readLine();
-                        if(currentObjectName == null && line.matches("^\\-+.*$")){
-                            currentObjectName = line;
-                            if(line.substring(line.length()-2,line.length()).equals("--")){
-                                canRead = false;
-                            }
-                        }else if(currentObjectName != null && line.equals(currentObjectName)){
-                            post.addProperty(currentLabel, currentValue);
-                            currentLabel = null;
-                            currentValue = "";
-                        }else if(currentObjectName != null && line.equals(currentObjectName+"--")){
-                            canRead = false;
-                            post.addProperty(currentLabel, currentValue);
-                        }else if(currentObjectName != null){
-
-                            matcher = pattern1.matcher(line);
-                            if(matcher.find()){
-                                matcher = pattern2.matcher(line);
-                                if(matcher.find() && currentLabel == null){
-                                    currentLabel = matcher.group();
+                        while(canRead){
+                            line = reader.readLine();
+                            if(currentObjectName == null && line.matches("^\\-+.*$")){
+                                currentObjectName = line;
+                                if(line.substring(line.length()-2,line.length()).equals("--")){
+                                    canRead = false;
                                 }
-                            }else if(currentLabel != null && !line.equals("")){
-                                currentValue = ELK.atob(line);
-                            }
-                        }
+                            }else if(currentObjectName != null && line.equals(currentObjectName)){
+                                post.addProperty(currentLabel, currentValue);
+                                currentLabel = null;
+                                currentValue = "";
+                            }else if(currentObjectName != null && line.equals(currentObjectName+"--")){
+                                canRead = false;
+                                post.addProperty(currentLabel, currentValue);
+                            }else if(currentObjectName != null){
 
+                                matcher = pattern1.matcher(line);
+                                if(matcher.find()){
+                                    matcher = pattern2.matcher(line);
+                                    if(matcher.find() && currentLabel == null){
+                                        currentLabel = matcher.group();
+                                    }
+                                }else if(currentLabel != null && !line.equals("")){
+                                    currentValue = ELK.atob(line);
+                                }
+                            }
+
+                        }
+                    } catch (IOException ex) {
+                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                } catch (IOException ex) {
-                    Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
                 }
+            }else{
+                output.close();
+                input.close();
+                client.close();
+                System.err.println("Server closed closed by force. Client failed to specify request method. [CLOSED]");
             }
+            
             
             this.onRequest(clientHeader,post);
         } catch (IOException ex) {
