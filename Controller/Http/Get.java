@@ -53,12 +53,12 @@ public class Get implements HttpInterface{
                 }else{
                     e.setContentType("text/plain");
                     e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
-                    e.send();
+                    e.flush();
                 }
             }else{
                 e.setContentType("text/plain");
                 e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
-                e.send();
+                e.flush();
             }
         }else{
             String jsonCookie = ELK.JSON_PARSER.toJson(new elkserver.Http.Cookie("Error", "-1"));

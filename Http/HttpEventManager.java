@@ -307,7 +307,7 @@ public abstract class HttpEventManager {
                 }
             }
             try {
-                output.write(data.toString().getBytes(ELK.CHARSET));
+                output.write(data);
                 output.flush();
                 alive = true;
             } catch (IOException ex) {
@@ -323,7 +323,10 @@ public abstract class HttpEventManager {
     }
     
     public void flushHeaders(){
-        send();
+        flush();
+    }
+    public void flush(){
+        send(0x0);
     }
     
     public void send(String data){
@@ -333,11 +336,9 @@ public abstract class HttpEventManager {
             Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    public void send(){
-        send("");
-    }
+    
     public void send(int data){
-        send(data);
+        send(""+data);
     }
     public void setContentType(String type){
         header.set("Content-Type", type);
