@@ -68,13 +68,11 @@ public class ELK {
     public static int WS_MTU = 65536;
     public static int HTTP_MTU = 65536;
     public static final Date DATE = new Date();
-    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
     public static final Gson JSON_PARSER = new Gson();
     public static final JsonParser JSONPARSER = new JsonParser();
     public static boolean running = false;
     public static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
     public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
-    public static String DEFAULT_CHARSET = "UTF-8";
     private static final String patternLeftStart = "<\\s*(?=script)";
     private static final String patternLeftEnd = "<\\s*\\/\\s*(?=script)";
     private static final String patternRightEnd = "(?<=&lt;\\/script)>";
@@ -124,7 +122,7 @@ public class ELK {
     
     public static String atob(String value){
         try {
-            return new String(ELK.BASE64_DECODER.decode(value.getBytes(DEFAULT_CHARSET)),DEFAULT_CHARSET);
+            return new String(ELK.BASE64_DECODER.decode(value.getBytes(CHARSET)),CHARSET);
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -133,7 +131,7 @@ public class ELK {
     
     public static byte[] atobByte(String value){
         try {
-            return ELK.BASE64_DECODER.decode(value.getBytes(DEFAULT_CHARSET));
+            return ELK.BASE64_DECODER.decode(value.getBytes(CHARSET));
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -149,7 +147,7 @@ public class ELK {
     
     public static String btoa(String value){
         try {
-            return new String(BASE64_ENCODER.encode(value.getBytes(DEFAULT_CHARSET)),DEFAULT_CHARSET);
+            return new String(BASE64_ENCODER.encode(value.getBytes(CHARSET)),CHARSET);
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -158,7 +156,7 @@ public class ELK {
     
     public static byte[] btoaByte(String value){
         try {
-            return BASE64_ENCODER.encode(value.getBytes(DEFAULT_CHARSET));
+            return BASE64_ENCODER.encode(value.getBytes(CHARSET));
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
         }
