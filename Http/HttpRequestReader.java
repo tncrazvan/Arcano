@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import elkserver.ELK;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 /**
@@ -39,7 +40,7 @@ public abstract class HttpRequestReader extends Thread{
     private final Map<String,String> form = new HashMap<>();
     private final JsonObject post = new JsonObject();
     public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
-        /*if(JHS.PORT == 443){
+        if(ELK.PORT == 443){
             secureClient = (SSLSocket) client;
             secureClient.setEnabledCipherSuites(secureClient.getSupportedCipherSuites());
 
@@ -47,7 +48,7 @@ public abstract class HttpRequestReader extends Thread{
             secureClient.startHandshake();
             SSLSession sslSession = secureClient.getSession();
 
-        }*/
+        }
         
         
         this.client=client;
