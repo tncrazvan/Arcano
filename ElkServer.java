@@ -8,19 +8,19 @@
  *    incoming WebSocket connections.
  * 3) Direct access to every socket bound to every client application.
  * 4) Direct access to the headers of the incomming and outgoing Http messages.
- * Copyright (C) 2016  Tanase Razvan Catalin
+ * Copyright (C) 2016-2018  Tanase Razvan Catalin
  * 
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  * 
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package elkserver;
@@ -51,6 +51,31 @@ public abstract class ElkServer {
     public abstract void init();
     
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
+        
+        System.out.println(
+"  ElkServer is a Java library that makes it easier\n" +
+"  to program and manage a Java servlet by providing different tools\n" +
+"  such as:\n" +
+"  1) An MVC (Model-View-Controller) alike design pattern to manage \n" +
+"     client requests without using any URL rewriting rules.\n" +
+"  2) A WebSocket Manager, allowing the server to accept and manage \n" +
+"     incoming WebSocket connections.\n" +
+"  3) Direct access to every socket bound to every client application.\n" +
+"  4) Direct access to the headers of the incomming and outgoing Http messages.\n" +
+"  Copyright (C) 2016-2018  Tanase Razvan Catalin\n" +
+"  \n" +
+"  This program is free software: you can redistribute it and/or modify\n" +
+"  it under the terms of the GNU Affero General Public License as\n" +
+"  published by the Free Software Foundation, either version 3 of the\n" +
+"  License, or (at your option) any later version.\n" +
+"  \n" +
+"  This program is distributed in the hope that it will be useful,\n" +
+"  but WITHOUT ANY WARRANTY; without even the implied warranty of\n" +
+"  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n" +
+"  GNU Affero General Public License for more details.\n" +
+"  \n" +
+"  You should have received a copy of the GNU Affero General Public License\n" +
+"  along with this program.  If not, see <https://www.gnu.org/licenses/>.\n\n");
         
         if(args.length > 0){
             if(args[0].substring(args[0].length()-1, args[0].length()).equals("/")){
