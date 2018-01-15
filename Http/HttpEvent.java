@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.ELK;
 import java.io.DataOutputStream;
+import java.lang.reflect.Constructor;
 
 /**
  *
@@ -53,6 +54,7 @@ public class HttpEvent extends HttpEventManager{
     void onControllerRequest(String location) {
         ArrayList<String> args = new ArrayList<>();
         Class<?> c;
+        Constructor<?> constructor;
         Object x;
         Method m;
         Method onCloseMethod;
@@ -81,7 +83,10 @@ public class HttpEvent extends HttpEventManager{
                     client.close();
                 }else{
                     c = Class.forName(classname);
-                    x = c.newInstance();
+                    constructor = c.getConstructor(HttpEvent.class);
+                    
+                    x = constructor.newInstance(singleton);
+                    
                     if(uri.length>2){
                         //System.out.println("Method defined");
                         if(uri.length > 3){
@@ -122,7 +127,9 @@ public class HttpEvent extends HttpEventManager{
                     
                 try {
                     c = Class.forName(ELK.HTTP_CONTROLLER_PACKAGE_NAME+"."+ELK.HTTP_CONTROLLER_NOT_FOUND);
-                    x = c.newInstance();
+                    constructor = c.getConstructor(HttpEvent.class);
+                    
+                    x = constructor.newInstance(singleton);
                     m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),post.getClass());
                     onCloseMethod = x.getClass().getDeclaredMethod("onClose");
                     m.invoke(x,singleton,args,post);
@@ -149,6 +156,8 @@ public class HttpEvent extends HttpEventManager{
                 } catch (IOException ex2) {
                     Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex2);
                 }
+            } catch (InvocationTargetException ex) {
+                Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
             }
         }else{
             try {

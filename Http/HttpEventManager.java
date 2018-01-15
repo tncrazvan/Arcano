@@ -51,10 +51,9 @@ public abstract class HttpEventManager {
     private HttpHeader header;
     private boolean defaultHeaders=true;
     private boolean alive=true;
-    private final boolean alreadyExecuted = false;
     private final Map<String,String> userLanguages;
     protected final Socket client;
-    protected Map<String,String> field = new HashMap<>();
+    protected Map<String,String> queryString = new HashMap<>();
     public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client) {
         this.userLanguages = new HashMap<>();
         this.clientHeader=clientHeader;
@@ -165,12 +164,12 @@ public abstract class HttpEventManager {
         return alive;
     }
     
-    public boolean fieldIsset(String key){
-        return field.containsKey(key);
+    public boolean issetUrlQuery(String key){
+        return queryString.containsKey(key);
     }
     
-    public String getField(String key){
-        return field.get(key);
+    public String getUrlQuery(String key){
+        return queryString.get(key);
     }
     
     public boolean execute() throws IOException{
@@ -187,9 +186,9 @@ public abstract class HttpEventManager {
             for (String part : tmp) {
                 object = part.split("=", 2);
                 if(object.length > 1){
-                    field.put(object[0].trim(), object[1]);
+                    queryString.put(object[0].trim(), object[1]);
                 }else{
-                    field.put(object[0].trim(), "");
+                    queryString.put(object[0].trim(), "");
                 }
             }
         }
@@ -305,23 +304,27 @@ public abstract class HttpEventManager {
     
     private boolean firstMessage = true;
     
+    public void sendHeaders(){
+        firstMessage = false;
+        try {
+            output.write((header.toString()+"\r\n").getBytes(ELK.CHARSET));
+            output.flush();
+            alive = true;
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            alive=false;
+            try {
+                client.close();
+            } catch (IOException ex1) {
+                Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex1);
+            }
+        }
+    }
+    
     public void send(byte[] data) {
         if(alive){
             if(firstMessage && defaultHeaders){
-                firstMessage = false;
-                try {
-                    output.write((header.toString()+"\r\n").getBytes(ELK.CHARSET));
-                    output.flush();
-                    alive = true;
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                    alive=false;
-                    try {
-                        client.close();
-                    } catch (IOException ex1) {
-                        Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex1);
-                    }
-                }
+                sendHeaders();
             }
             try {
                 output.write(data);
@@ -343,7 +346,7 @@ public abstract class HttpEventManager {
         flush();
     }
     public void flush(){
-        send(0x0);
+        sendHeaders();
     }
     
     public void send(String data){
