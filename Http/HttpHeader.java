@@ -28,6 +28,7 @@ package elkserver.Http;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -68,7 +69,7 @@ public class HttpHeader {
     public String cookieToString(String key){
         sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
         String[] c = cookies.get(key);
-        Date time = new Date(Integer.parseInt(c[3])*1000L);
+        Date time = (c[3]==null?null:new Date(Integer.parseInt(c[3])*1000L));
         //Thu, 01 Jan 1970 00:00:00 GMT
         return c[4]+": "
                 +key+"="+c[0]
@@ -182,19 +183,21 @@ public class HttpHeader {
         for(int i=0;i<tmp.length;i++){
             if(tmp[i].equals("")) continue;
             
+            System.out.println("========================");
+            System.out.println("c:"+tmp[i]);
             String[] item = tmp[i].split(":(?=\\s)");
             if(item.length>1){
                 if(item[0].equals("Cookie")){
                     String[] c = item[1].split(";");
                     for(int j=0;j<c.length;j++){
                         String[] cookieInfo = c[j].split("=(?!\\s|\\s|$)");
+                        
                         if(cookieInfo.length > 1){
-                            
                             String [] b = new String[5];
                             b[0] = cookieInfo[1];
-                            b[1] = null;
-                            b[2] = null;
-                            b[3] = null;
+                            b[1] = cookieInfo.length>2?cookieInfo[2]:null;
+                            b[2] = cookieInfo.length>3?cookieInfo[3]:null;
+                            b[3] = cookieInfo.length>3?cookieInfo[3]:null;
                             b[4] = "Cookie";
                             header.cookies.put(cookieInfo[0], b);
                         }
