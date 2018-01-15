@@ -183,8 +183,6 @@ public class HttpHeader {
         for(int i=0;i<tmp.length;i++){
             if(tmp[i].equals("")) continue;
             
-            System.out.println("========================");
-            System.out.println("c:"+tmp[i]);
             String[] item = tmp[i].split(":(?=\\s)");
             if(item.length>1){
                 if(item[0].equals("Cookie")){
