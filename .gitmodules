@@ -1,0 +1,3 @@
+[submodule "docs/js/Elk"]
+	path = docs/js/Elk
+	url = http://github.com/tncrazvan/ElkPublic
