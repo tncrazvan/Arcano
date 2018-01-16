@@ -103,7 +103,7 @@ public abstract class HttpRequestReader extends Thread{
                 }catch(EOFException ex){
                     keepReading = false;
                     EOFException = true;
-                    ex.printStackTrace();
+                    //ex.printStackTrace();
                 }
             }
             HttpHeader clientHeader = HttpHeader.fromString(outputString);
