@@ -45,14 +45,7 @@ import javax.net.ssl.TrustManagerFactory;
  * @author Razvan
  */
 public abstract class ElkServer {
-    /**
-     * @param args the command line arguments
-     */
-    public abstract void init();
-    
-    public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
-        
-        System.out.println(
+    private static final String message = 
 "  ElkServer is a Java library that makes it easier\n" +
 "  to program and manage a Java servlet by providing different tools\n" +
 "  such as:\n" +
@@ -75,8 +68,26 @@ public abstract class ElkServer {
 "  GNU Affero General Public License for more details.\n" +
 "  \n" +
 "  You should have received a copy of the GNU Affero General Public License\n" +
-"  along with this program.  If not, see <https://www.gnu.org/licenses/>.\n\n");
+"  along with this program.  If not, see <https://www.gnu.org/licenses/>.\n\n";
+    /**
+     * @param args the command line arguments
+     */
+    public static void main (String[] args) throws IOException, NoSuchAlgorithmException{
+        class ConsoleServlet extends ElkServer{
+            @Override
+            public void init() {
+                System.out.println(message);
+            }
+        }
         
+        ConsoleServlet sc = new ConsoleServlet();
+        sc.listen(args);
+        
+    }
+    
+    public abstract void init();
+    
+    public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
         if(args.length > 0){
             if(args[0].substring(args[0].length()-1, args[0].length()).equals("/")){
                 ELK.PUBLIC_WWW = args[0].substring(0,args[0].length()-1);
