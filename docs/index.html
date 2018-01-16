@@ -5,7 +5,7 @@
     <title>ElkServer Docs</title>
   </head>
   <body>
-    <div id="big_wrapper"></div>
+    <div id="big_wrapper" class="row justify-content-md-center"></div>
 
     <script type="text/javascript" charset="UTF-8" src="js/Elk/include.js"></script>
     <script type="text/javascript" charset="UTF-8">
@@ -15,7 +15,9 @@
         modules: "modules/"
       });
       loader.css([
-        "style"
+        "bootstrap",
+        "style",
+        "highlights/atom-one-light"
       ]);
 
       loader.js([
@@ -23,6 +25,9 @@
         "Elk/Cookie",
         "Elk/Main",
         "Elk/Index",
+        "jquery",
+        "bootstrap",
+        "highlight.pack",
         "App"
       ]).then(function(){
           window.modules = create("div");

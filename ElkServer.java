@@ -81,7 +81,10 @@ public abstract class ElkServer {
         }
         
         ConsoleServlet sc = new ConsoleServlet();
-        sc.listen(args);
+        sc.listen(new String[]{
+            "C:\\Users\\razvan\\Documents\\NetBeansProjects\\ElkServer\\src\\elkserver\\docs",
+            "80"
+        });
         
     }
     
