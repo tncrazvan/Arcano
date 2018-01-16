@@ -1,0 +1,11 @@
+{
+  "CHARSET": "UTF-8",
+  "BIND_ADDRESS": "::",
+  "HTTP_CONTROLLER_PACKAGE_NAME":"elkserver.Controller.Http",
+  "WS_CONTROLLER_PACKAGE_NAME":"elkserver.Controller.WebSocket",
+  "DATABASE_PORT":"3306",
+  "DATABASE_USERNAME":"root",
+  "DATABASE_PASSWORD":"root",
+  "DATABASE_NAME":"sharedcanvas",
+  "DATABASE_HOSTNAME":"localhost"
+}

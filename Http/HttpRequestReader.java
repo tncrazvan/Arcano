@@ -87,7 +87,7 @@ public abstract class HttpRequestReader extends Thread{
     public void run(){
         try {
             byte[] chain = new byte[]{0,0,0,0};
-            boolean keepReading = true;
+            boolean keepReading = true, EOFException = false;
             int counter = 0;
             while (keepReading) {
                 try{
@@ -102,6 +102,7 @@ public abstract class HttpRequestReader extends Thread{
                     
                 }catch(EOFException ex){
                     keepReading = false;
+                    EOFException = true;
                     ex.printStackTrace();
                 }
             }
@@ -109,7 +110,7 @@ public abstract class HttpRequestReader extends Thread{
             
             outputString = "";
             
-            if(clientHeader.get("Method").equals("POST")){
+            if(clientHeader.get("Method").equals("POST") && !EOFException){
                 
                 try {
                     int chunkSize = 2048, offset = 0;
@@ -118,6 +119,7 @@ public abstract class HttpRequestReader extends Thread{
 
                     keepReading = true;
                     while (keepReading && !arrayIsEmpty) {
+                        System.out.println("still reading...");
                         keepReading = (input.read(tmp, offset, chunkSize)== -1);
                         arrayIsEmpty = ELK.byteArrayIsEmpty(tmp);
                         outputString += new String(tmp);
