@@ -25,7 +25,6 @@
  */
 package elkserver.Controller.Http;
 
-import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -34,6 +33,7 @@ import elkserver.Http.Cookie;
 import elkserver.Http.HttpEvent;
 import elkserver.Http.HttpInterface;
 import elkserver.ELK;
+import java.util.HashMap;
 
 /**
  *
@@ -41,12 +41,12 @@ import elkserver.ELK;
  */
 public class Isset implements HttpInterface{
     @Override
-    public void main(HttpEvent e, ArrayList<String> get_data,JsonObject post_data){}
+    public void main(HttpEvent e, ArrayList<String> get_data,HashMap<String,String> post_data){}
     
     @Override
     public void onClose() {}
     
-    public void file(HttpEvent e, ArrayList<String> get_data,JsonObject post_data) throws FileNotFoundException, IOException{
+    public void file(HttpEvent e, ArrayList<String> get_data,HashMap<String,String> post_data) throws FileNotFoundException, IOException{
         if(get_data.size() >= 0){
             File f = new File(ELK.PUBLIC_WWW+"/"+get_data.get(0));
             if(f.exists()){
@@ -59,10 +59,10 @@ public class Isset implements HttpInterface{
         }
     }
     
-    public void cookie(HttpEvent e, ArrayList<String> get_data,JsonObject post_data){
+    public void cookie(HttpEvent e, ArrayList<String> get_data,HashMap<String,String> post_data){
         if(e.getClientHeader().get("Method").equals("POST")){
-           if(post_data.has("name")){
-                String name = post_data.get("name").getAsString();
+           if(post_data.containsKey("name")){
+                String name = post_data.get("name");
                 if(e.cookieIsset(name)){
                     e.send(0);
                 }else{

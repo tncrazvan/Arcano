@@ -25,7 +25,6 @@
  */
 package elkserver.Http;
 
-import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,7 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.ELK;
 import java.io.DataOutputStream;
-import java.lang.reflect.Constructor;
+import java.util.Map;
 
 /**
  *
@@ -43,8 +42,8 @@ import java.lang.reflect.Constructor;
  */
 public class HttpEvent extends HttpEventManager{
     private final HttpEvent singleton;
-    private final JsonObject post;
-    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client,JsonObject post) {
+    private final Map<String,String> post;
+    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client,Map<String,String> post) {
         super(output,clientHeader,client);
         singleton = this;
         this.post = post;
@@ -54,7 +53,6 @@ public class HttpEvent extends HttpEventManager{
     void onControllerRequest(String location) {
         ArrayList<String> args = new ArrayList<>();
         Class<?> c;
-        Constructor<?> constructor;
         Object x;
         Method m;
         Method onCloseMethod;
@@ -83,9 +81,8 @@ public class HttpEvent extends HttpEventManager{
                     client.close();
                 }else{
                     c = Class.forName(classname);
-                    constructor = c.getConstructor(HttpEvent.class);
                     
-                    x = constructor.newInstance(singleton);
+                    x = c.newInstance();
                     
                     if(uri.length>2){
                         //System.out.println("Method defined");
@@ -127,9 +124,8 @@ public class HttpEvent extends HttpEventManager{
                     
                 try {
                     c = Class.forName(ELK.HTTP_CONTROLLER_PACKAGE_NAME+"."+ELK.HTTP_CONTROLLER_NOT_FOUND);
-                    constructor = c.getConstructor(HttpEvent.class);
                     
-                    x = constructor.newInstance(singleton);
+                    x = c.newInstance();
                     m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),post.getClass());
                     onCloseMethod = x.getClass().getDeclaredMethod("onClose");
                     m.invoke(x,singleton,args,post);
@@ -137,13 +133,15 @@ public class HttpEvent extends HttpEventManager{
                     client.close();
                 } catch (ClassNotFoundException | IOException | IllegalAccessException | 
                         IllegalArgumentException | InvocationTargetException | NoSuchMethodException | 
-                        SecurityException | InstantiationException ex1) {
+                        SecurityException ex1) {
                     Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
                     try {
                         client.close();
                     } catch (IOException ex2) {
                         Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex2);
                     }
+                } catch (InstantiationException ex1) {
+                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
                 }
             } catch (InstantiationException | 
                     IllegalAccessException | 
@@ -156,8 +154,6 @@ public class HttpEvent extends HttpEventManager{
                 } catch (IOException ex2) {
                     Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex2);
                 }
-            } catch (InvocationTargetException ex) {
-                Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
             }
         }else{
             try {

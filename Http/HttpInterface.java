@@ -25,14 +25,14 @@
  */
 package elkserver.Http;
 
-import com.google.gson.JsonObject;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  *
  * @author Razvan
  */
 public interface HttpInterface {
-    public void main(HttpEvent e, ArrayList<String> get_data,JsonObject post_data);
+    public void main(HttpEvent e, ArrayList<String> get_data,HashMap<String,String> post_data);
     public void onClose();
 }

@@ -25,7 +25,6 @@
  */
 package elkserver.Http;
 
-import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
@@ -33,6 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.ELK;
 import elkserver.WebSocket.WebSocketEvent;
+import java.util.Map;
 /**
  *
  * @author Razvan
@@ -45,7 +45,7 @@ public class HttpEventListener extends HttpRequestReader{
     }
     
     @Override
-    public void onRequest(HttpHeader clientHeader,JsonObject post) {
+    public void onRequest(HttpHeader clientHeader,Map<String,String> post) {
         if(clientHeader != null && clientHeader.get("Connection")!=null){
             if(clientHeader.get("Connection").equals("Upgrade") || clientHeader.get("Connection").equals("keep-alive, Upgrade")){
                 if(clientHeader.get("Upgrade").equals("websocket")){

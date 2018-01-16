@@ -25,7 +25,6 @@
  */
 package elkserver.Http;
 
-import com.google.gson.JsonObject;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -42,7 +41,7 @@ import java.util.regex.Pattern;
 import elkserver.ELK;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import javax.net.ssl.SSLSession;
+import java.io.EOFException;
 import javax.net.ssl.SSLSocket;
 
 /**
@@ -57,10 +56,9 @@ public abstract class HttpRequestReader extends Thread{
     protected final DataOutputStream output;
     protected final DataInputStream input;
     private String outputString = "";
-    private final Map<String,String> form = new HashMap<>();
-    private final JsonObject post = new JsonObject();
+    private final Map<String,String> post = new HashMap<>();
     public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
-        if(ELK.PORT == 443){
+        /*if(JHS.PORT == 443){
             secureClient = (SSLSocket) client;
             secureClient.setEnabledCipherSuites(secureClient.getSupportedCipherSuites());
 
@@ -68,7 +66,7 @@ public abstract class HttpRequestReader extends Thread{
             secureClient.startHandshake();
             SSLSession sslSession = secureClient.getSession();
 
-        }
+        }*/
         
         
         this.client=client;
@@ -88,74 +86,72 @@ public abstract class HttpRequestReader extends Thread{
     @Override
     public void run(){
         try {
-            int chunkSize = 2048, offset = 0, emptyArraysReceived = 0;
-            byte[] tmp = new byte[chunkSize];
-            boolean canRead = true, arrayIsEmpty = false;
-            
-            while (canRead && !arrayIsEmpty) {
-                canRead = (input.read(tmp, offset, chunkSize)== -1);
-                arrayIsEmpty = ELK.byteArrayIsEmpty(tmp);
-                outputString += new String(tmp);
-                offset += chunkSize;
-            }
-            
-            HttpHeader clientHeader = HttpHeader.fromString(outputString);
-            String line;
-            
-            if(clientHeader.get("Method") != null){
-                if(clientHeader.get("Method").equals("POST")){
-                    try {
-                        line = "";
-                        String currentObjectName = null;
-                        canRead = true;
-                        String currentLabel = null,
-                                currentValue = "";
-                        Pattern pattern1 = Pattern.compile("^Content-Disposition");
-                        Pattern pattern2 = Pattern.compile("(?<=name\\=\\\").*?(?=\\\")");
-                        Matcher matcher;
-
-                        while(canRead){
-                            line = reader.readLine();
-                            if(currentObjectName == null && line.matches("^\\-+.*$")){
-                                currentObjectName = line;
-                                if(line.substring(line.length()-2,line.length()).equals("--")){
-                                    canRead = false;
-                                }
-                            }else if(currentObjectName != null && line.equals(currentObjectName)){
-                                post.addProperty(currentLabel, currentValue);
-                                currentLabel = null;
-                                currentValue = "";
-                            }else if(currentObjectName != null && line.equals(currentObjectName+"--")){
-                                canRead = false;
-                                post.addProperty(currentLabel, currentValue);
-                            }else if(currentObjectName != null){
-
-                                matcher = pattern1.matcher(line);
-                                if(matcher.find()){
-                                    matcher = pattern2.matcher(line);
-                                    if(matcher.find() && currentLabel == null){
-                                        currentLabel = matcher.group();
-                                    }
-                                }else if(currentLabel != null && !line.equals("")){
-                                    currentValue = ELK.atob(line);
-                                }
-                            }
-
-                        }
-                    } catch (IOException ex) {
-                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
+            byte[] chain = new byte[]{0,0,0,0};
+            boolean keepReading = true;
+            int counter = 0;
+            while (keepReading) {
+                try{
+                    chain[3] = chain[2];
+                    chain[2] = chain[1];
+                    chain[1] = chain[0];
+                    chain[0] = input.readByte();
+                    outputString += (char)chain[0];
+                    if((char)chain[3] == '\r' && (char)chain[2] == '\n' && (char)chain[1] == '\r' && (char)chain[0] == '\n'){
+                        keepReading = false;
                     }
+                    
+                }catch(EOFException ex){
+                    keepReading = false;
+                    ex.printStackTrace();
                 }
-            }else{
-                output.close();
-                input.close();
-                client.close();
-                System.err.println("Server closed connection by force. Client failed to specify request method. [CLOSED]");
             }
+            HttpHeader clientHeader = HttpHeader.fromString(outputString);
             
+            outputString = "";
+            
+            if(clientHeader.get("Method").equals("POST")){
+                
+                try {
+                    int chunkSize = 2048, offset = 0;
+                    byte[] tmp = new byte[chunkSize];
+                    boolean arrayIsEmpty = false;
+
+                    keepReading = true;
+                    while (keepReading && !arrayIsEmpty) {
+                        keepReading = (input.read(tmp, offset, chunkSize)== -1);
+                        arrayIsEmpty = ELK.byteArrayIsEmpty(tmp);
+                        outputString += new String(tmp);
+                        offset += chunkSize;
+                    }
+                    
+                    String[] lines = outputString.split("\r\n");
+                    String currentLabel = null,
+                            currentValue = "";
+                    Pattern pattern1 = Pattern.compile("^Content-Disposition");
+                    Pattern pattern2 = Pattern.compile("(?<=name\\=\\\").*?(?=\\\")");
+                    Matcher matcher;
+                    boolean next = false, skippedBlank = false;
+                    for(int i = 0; i<lines.length; i++){
+                        matcher = pattern1.matcher(lines[i]);
+                        if(matcher.find()){
+                            matcher = pattern2.matcher(lines[i]);
+                            if(matcher.find() && currentLabel == null){
+                                currentLabel = matcher.group();
+                                i +=2;
+                                currentValue = ELK.atob(lines[i]);
+                                post.put(currentLabel, currentValue);
+                                currentLabel = null;
+                            }
+                        }
+                    }
+                    
+                } catch (IOException ex) {
+                    Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
             
             this.onRequest(clientHeader,post);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             try {
                 client.close();
             } catch (IOException ex1) {
@@ -165,6 +161,6 @@ public abstract class HttpRequestReader extends Thread{
     }
     
     
-    public abstract void onRequest(HttpHeader clientHeader, JsonObject post);
+    public abstract void onRequest(HttpHeader clientHeader, Map<String, String> post);
     
 }

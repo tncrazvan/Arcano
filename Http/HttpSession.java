@@ -13,7 +13,7 @@ import java.util.Map;
  *
  * @author razvan
  */
-public abstract class HttpSession implements HttpInterface{
+public class HttpSession{
     private static final Map<String,Object> SESSION_STORAGE = new HashMap<>();
     private final String id;
     public HttpSession(HttpEvent e) {

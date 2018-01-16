@@ -61,6 +61,17 @@ public abstract class HttpEventManager {
         this.output = output;
     }
     
+    /**
+     * Note that this method WILL NOT invoke interaface method onClose
+     */
+    public void close(){
+        try {
+            client.close();
+        } catch (IOException ex) {
+            Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public Socket getClient(){
         return client;
     }
