@@ -411,14 +411,17 @@ public abstract class HttpEventManager {
             }
         } catch (FileNotFoundException ex) {
             Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("11111111111111111111");
         } catch (IOException ex) {
             //ex.printStackTrace();
-            System.out.println("Client "+client.getInetAddress().toString()+" disconnected before receiving the whole file ("+f.getName()+")");
+            //System.out.println("Client "+client.getInetAddress().toString()+" disconnected before receiving the whole file ("+f.getName()+")");
+            System.out.println("222222222222222222222222");
         }finally{
             try {
                 fis.close();
             } catch (IOException ex) {
-                Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+                //Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println("333333333333333333333333333");
             }
         }
     }
