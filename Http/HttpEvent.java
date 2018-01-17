@@ -25,6 +25,7 @@
  */
 package elkserver.Http;
 
+import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -42,8 +43,8 @@ import java.util.Map;
  */
 public class HttpEvent extends HttpEventManager{
     private final HttpEvent singleton;
-    private final Map<String,String> post;
-    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client,Map<String,String> post) {
+    private final JsonObject post;
+    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, JsonObject post) {
         super(output,clientHeader,client);
         singleton = this;
         this.post = post;

@@ -25,6 +25,7 @@
  */
 package elkserver.Http;
 
+import com.google.gson.JsonObject;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -32,8 +33,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -56,7 +55,7 @@ public abstract class HttpRequestReader extends Thread{
     protected final DataOutputStream output;
     protected final DataInputStream input;
     private String outputString = "";
-    private final Map<String,String> post = new HashMap<>();
+    private final JsonObject post = new JsonObject();
     public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
         /*if(JHS.PORT == 443){
             secureClient = (SSLSocket) client;
@@ -141,7 +140,7 @@ public abstract class HttpRequestReader extends Thread{
                                 currentLabel = matcher.group();
                                 i +=2;
                                 currentValue = ELK.atob(lines[i]);
-                                post.put(currentLabel, currentValue);
+                                post.addProperty(currentLabel, currentValue);
                                 currentLabel = null;
                             }
                         }
@@ -163,6 +162,6 @@ public abstract class HttpRequestReader extends Thread{
     }
     
     
-    public abstract void onRequest(HttpHeader clientHeader, Map<String, String> post);
+    public abstract void onRequest(HttpHeader clientHeader, JsonObject post);
     
 }
