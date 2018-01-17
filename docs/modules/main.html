@@ -3,16 +3,22 @@
 </div>
 <script type="text/javascript">
   (function(){
-    new GetHttpPromise("res/articles/elk_1.0.0.html").then(function(result){
-      console.log(result);
-      main.appendChild(create("div.card.mb-3",
-        create("div.card-body",result)
-      ));
-      $('pre code').each(function(i, block) {
-        hljs.highlightBlock(block);
+    new GetHttpPromise("res/articles/articles.json").then(function(result){
+      let articles = JSON.parse(result);
+      foreach(articles.list,function(article){
+        new GetHttpPromise("res/articles/elk_1.0.0.html").then(function(result){
+          main.appendChild(
+            create("div.card.mb-3",
+              create("div.card-body",result)
+            )
+          );
+          $('pre code').each(function(i, block) {
+            hljs.highlightBlock(block);
+          });
+          big_wrapper.appendChild(main);
+          var date = new Date();
+        });
       });
-      big_wrapper.appendChild(main);
-      var date = new Date();
     });
   })();
 </script>
