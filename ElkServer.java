@@ -71,6 +71,8 @@ public abstract class ElkServer {
 "  along with this program.  If not, see <https://www.gnu.org/licenses/>.\n\n";
     /**
      * @param args the command line arguments
+     * @throws java.io.IOException
+     * @throws java.security.NoSuchAlgorithmException
      */
     public static void main (String[] args) throws IOException, NoSuchAlgorithmException{
         class ConsoleServlet extends ElkServer{

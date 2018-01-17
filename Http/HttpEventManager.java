@@ -412,7 +412,8 @@ public abstract class HttpEventManager {
         } catch (FileNotFoundException ex) {
             Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
-            ex.printStackTrace();
+            //ex.printStackTrace();
+            System.out.println("Client "+client.getInetAddress().toString()+" disconnected before receiving the whole file ("+f.getName()+")");
         }finally{
             try {
                 fis.close();
