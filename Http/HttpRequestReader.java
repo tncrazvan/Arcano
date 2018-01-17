@@ -118,7 +118,6 @@ public abstract class HttpRequestReader extends Thread{
 
                     keepReading = true;
                     while (keepReading && !arrayIsEmpty) {
-                        System.out.println("still reading...");
                         keepReading = (input.read(tmp, offset, chunkSize)== -1);
                         arrayIsEmpty = ELK.byteArrayIsEmpty(tmp);
                         outputString += new String(tmp);
