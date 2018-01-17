@@ -25,10 +25,10 @@
  */
 package elkserver.Controller.Http;
 
+import com.google.gson.JsonObject;
 import elkserver.Http.HttpEvent;
 import elkserver.Http.HttpInterface;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  *
@@ -36,7 +36,7 @@ import java.util.HashMap;
  */
 public class ControllerNotFound implements HttpInterface{
     @Override
-    public void main(HttpEvent e, ArrayList<String> get_data, HashMap<String,String> post_data) {
+    public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) {
         e.setStatus(elkserver.Http.HttpEvent.STATUS_NOT_FOUND);
         e.send("Page not found");
     }

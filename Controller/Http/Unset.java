@@ -25,13 +25,12 @@
  */
 package elkserver.Controller.Http;
 
+import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import elkserver.Http.Cookie;
 import elkserver.Http.HttpEvent;
 import elkserver.Http.HttpInterface;
 import elkserver.ELK;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *
@@ -40,17 +39,17 @@ import java.util.Map;
 public class Unset implements HttpInterface{
 
     @Override
-    public void main(HttpEvent e, ArrayList<String> get_data,HashMap<String,String> post_data) {}
+    public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) {}
     
     @Override
     public void onClose() {}
     
-    public void cookie(HttpEvent e, ArrayList<String> get_data,Map<String,String> post_data){
+    public void cookie(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){
         if(e.getMethod().equals("POST")){
-            if(post_data.containsKey("name") && post_data.containsKey("domain") && post_data.containsKey("path")){
-                String name = post_data.get("name");
+            if(post_data.has("name") && post_data.has("domain") && post_data.has("path")){
+                String name = post_data.get("name").getAsString();
                 if(e.cookieIsset(name)){
-                    e.unsetCookie(name, post_data.get("path"), post_data.get("domain"));
+                    e.unsetCookie(name, post_data.get("path").getAsString(), post_data.get("domain").getAsString());
                     e.send(0);
                 }else{
                     e.send(0);

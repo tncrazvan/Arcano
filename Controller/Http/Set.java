@@ -25,12 +25,12 @@
  */
 package elkserver.Controller.Http;
 
+import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import elkserver.Http.Cookie;
 import elkserver.Http.HttpEvent;
 import elkserver.Http.HttpInterface;
 import elkserver.ELK;
-import java.util.HashMap;
 
 /**
  *
@@ -39,25 +39,25 @@ import java.util.HashMap;
 public class Set implements HttpInterface{
 
     @Override
-    public void main(HttpEvent e, ArrayList<String> get_data,HashMap<String,String> post_data) {}
+    public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) {}
     
     @Override
     public void onClose() {}
     
-    public void cookie(HttpEvent e, ArrayList<String> get_data,HashMap<String,String> post_data){
+    public void cookie(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){
         if(e.getMethod().equals("POST")){
-            if(post_data.containsKey("name") 
-                && post_data.containsKey("value") 
-                && post_data.containsKey("path") 
-                && post_data.containsKey("domain") 
-                && post_data.containsKey("expire")){
+            if(post_data.has("name") 
+                && post_data.has("value") 
+                && post_data.has("path") 
+                && post_data.has("domain") 
+                && post_data.has("expire")){
                 e.setContentType("application/json");
                 String 
-                    name = post_data.get("name"),
-                    value = post_data.get("value"),
-                    path = post_data.get("path"),
-                    domain = post_data.get("domain"),
-                    expire = post_data.get("expire");
+                    name = post_data.get("name").getAsString(),
+                    value = post_data.get("value").getAsString(),
+                    path = post_data.get("path").getAsString(),
+                    domain = post_data.get("domain").getAsString(),
+                    expire = post_data.get("expire").getAsString();
                 e.setCookie(name, value, path, domain, expire);
 
                 String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Cookie", value));
