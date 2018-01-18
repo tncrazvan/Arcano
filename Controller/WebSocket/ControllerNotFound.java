@@ -25,15 +25,15 @@
  */
 package elkserver.Controller.WebSocket;
 
+import elkserver.WebSocket.WebSocketController;
 import elkserver.WebSocket.WebSocketEvent;
-import elkserver.WebSocket.WebSocketInterface;
 import java.util.ArrayList;
 
 /**
  *
  * @author razvan
  */
-public class ControllerNotFound implements WebSocketInterface{
+public class ControllerNotFound extends WebSocketController{
 
     @Override
     public void onOpen(WebSocketEvent e, ArrayList<String> args) {

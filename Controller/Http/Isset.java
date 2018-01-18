@@ -32,14 +32,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import elkserver.Http.Cookie;
 import elkserver.Http.HttpEvent;
-import elkserver.Http.HttpInterface;
 import elkserver.ELK;
+import elkserver.Http.HttpController;
 
 /**
  *
  * @author Razvan
  */
-public class Isset implements HttpInterface{
+public class Isset extends HttpController{
     @Override
     public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){}
     

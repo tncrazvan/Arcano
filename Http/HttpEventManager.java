@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.ELK;
+import elkserver.EventManager;
 import java.io.DataOutputStream;
 import java.io.UnsupportedEncodingException;
 
@@ -45,18 +46,14 @@ import java.io.UnsupportedEncodingException;
  *
  * @author Razvan
  */
-public abstract class HttpEventManager {
+public abstract class HttpEventManager extends EventManager{
     private final DataOutputStream output;
-    private final HttpHeader clientHeader;
-    private HttpHeader header;
+    //private HttpHeader header;
     private boolean defaultHeaders=true;
     private boolean alive=true;
-    private final Map<String,String> userLanguages;
     protected final Socket client;
-    protected Map<String,String> queryString = new HashMap<>();
     public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client) {
-        this.userLanguages = new HashMap<>();
-        this.clientHeader=clientHeader;
+        super(clientHeader);
         this.client=client;
         this.output = output;
     }
@@ -175,39 +172,17 @@ public abstract class HttpEventManager {
         return alive;
     }
     
-    public boolean issetUrlQuery(String key){
+    /*public boolean issetUrlQuery(String key){
         return queryString.containsKey(key);
     }
     
     public String getUrlQuery(String key){
         return queryString.get(key);
-    }
+    }*/
     
     public boolean execute() throws IOException{
         findUserLanguages();
-        /*if(alreadyExecuted)
-            return false;
-        
-        alreadyExecuted = true;*/
-        String[] parts = clientHeader.get("Resource").split("\\?");
-        String[] tmp,object;
-        
-        if(parts.length > 1){
-            tmp = java.net.URLDecoder.decode(parts[1], "UTF-8").split("\\&");
-            for (String part : tmp) {
-                object = part.split("=", 2);
-                if(object.length > 1){
-                    queryString.put(object[0].trim(), object[1]);
-                }else{
-                    queryString.put(object[0].trim(), "");
-                }
-            }
-        }
-        String location = parts[0];
-        header = new HttpHeader();
-        
-        
-        
+        //header = new HttpHeader();
         
         
         File f = new File(java.net.URLDecoder.decode(ELK.PUBLIC_WWW+location, "UTF-8"));
@@ -239,21 +214,6 @@ public abstract class HttpEventManager {
     
     abstract void onControllerRequest(String location);
     
-    private void findUserLanguages(){
-        if(clientHeader.get("Accept-Language") == null){
-            userLanguages.put("unknown", "unknown");
-        }else{
-            String[] tmp = new String[2];
-            String[] languages = clientHeader.get("Accept-Language").split(",");
-            userLanguages.put("DEFAULT-LANGUAGE", languages[0]);
-            for(int i=1;i<languages.length;i++){
-                tmp=languages[i].split(";");
-                userLanguages.put(tmp[0], tmp[1]);
-            }
-        }
-        
-    }
-    
     public Map<String,String> getUserLanguages(){
         return userLanguages;
     }
@@ -266,35 +226,6 @@ public abstract class HttpEventManager {
         return clientHeader.get("User-Agent");
     }
     
-    public void unsetCookie(String key, String path, String domain){
-        header.setCookie(key,"deleted",path,domain,"0");
-    }
-    
-    public void unsetCookie(String key, String path){
-        unsetCookie(key, path, clientHeader.get("Host")+":"+ELK.PORT);
-    }
-    
-    public void unsetCookie(String key){
-        unsetCookie(key, "/", clientHeader.get("Host")+":"+ELK.PORT);
-    }
-    
-    public void setCookie(String name,String value, String path, String domain, String expire){
-        header.setCookie(name, value, path, domain, expire);
-    }
-    public void setCookie(String name,String value, String path, String domain){
-        header.setCookie(name, value, path, domain);
-    }
-    public void setCookie(String name,String value, String path){
-        header.setCookie(name, value, path);
-    }
-    public void setCookie(String name,String value){
-        header.setCookie(name, value);
-    }
-    
-    public String getCookie(String name){
-        return clientHeader.getCookie(name);
-    }
-    
     public void setUserObject(String name, Object o) throws IOException{
         send("<script>window."+name+"="+ELK.JSON_PARSER.toJson(o)+";</script>\n");
     }
@@ -305,10 +236,6 @@ public abstract class HttpEventManager {
     
     public void setUserArray(String name, JsonArray a){
         send("<script>window."+name+"="+a.toString()+";</script>\n");
-    }
-    
-    public boolean cookieIsset(String key){
-        return clientHeader.cookieIsset(key);
     }
 
     

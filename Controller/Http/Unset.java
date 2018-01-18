@@ -29,14 +29,14 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import elkserver.Http.Cookie;
 import elkserver.Http.HttpEvent;
-import elkserver.Http.HttpInterface;
 import elkserver.ELK;
+import elkserver.Http.HttpController;
 
 /**
  *
  * @author Razvan
  */
-public class Unset implements HttpInterface{
+public class Unset extends HttpController{
 
     @Override
     public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) {}

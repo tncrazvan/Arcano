@@ -23,24 +23,31 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.Controller.Http;
+package elkserver.WebSocket;
 
-import com.google.gson.JsonObject;
-import elkserver.Http.HttpController;
-import elkserver.Http.HttpEvent;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  * @author razvan
  */
-public class ControllerNotFound extends HttpController{
-    @Override
-    public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) {
-        e.setStatus(elkserver.Http.HttpEvent.STATUS_NOT_FOUND);
-        e.send("Page not found");
+public class WebSocketGroupManager {
+    private final Map<String,WebSocketGroup> groups = new HashMap<>();
+    
+    public void addGroup(WebSocketGroup group){
+        groups.put(group.getKey(), group);
     }
-
-    @Override
-    public void onClose() {}
+    
+    public WebSocketGroup removeGroup(WebSocketGroup group){
+        return groups.remove(group.getKey());
+    }
+    
+    public boolean groupExists(String key){
+        return groups.containsKey(key);
+    }
+    
+    public WebSocketGroup getGroup(String key){
+        return groups.get(key);
+    }
 }

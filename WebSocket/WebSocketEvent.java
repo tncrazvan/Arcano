@@ -36,6 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.Http.HttpHeader;
 import elkserver.ELK;
+import elkserver.Http.HttpSession;
 
 
 /**
@@ -43,8 +44,7 @@ import elkserver.ELK;
  * @author Razvan
  */
 public class WebSocketEvent extends WebSocketManager{
-
-    private FileOutputStream fs;
+    
     private Method onCloseMethod = null;
     private Method onOpenMethod = null;
     private Method onMessageMethod = null;
@@ -52,10 +52,12 @@ public class WebSocketEvent extends WebSocketManager{
     private ArrayList<String> args = new ArrayList<>();
     private Class<?> c = null;
     private Object x = null;
+    private final HttpSession session;
+    
     public WebSocketEvent(BufferedReader reader,Socket client,HttpHeader clientHeader,String requestId) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException {
         super(reader,client,clientHeader,requestId);
+        session = new HttpSession(this);
         singleton = this;
-        String location = clientHeader.get("Resource");
         String[] uri = ELK.decodeUrl(location).split("/");
         if(uri.length>1){
             //System.out.println("Class defined");
@@ -180,5 +182,9 @@ public class WebSocketEvent extends WebSocketManager{
             Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+    }
+    
+    public HttpSession getSession(){
+        return session;
     }
 }

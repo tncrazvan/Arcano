@@ -35,7 +35,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.ELK;
 import java.io.DataOutputStream;
-import java.util.Map;
 
 /**
  *

@@ -23,16 +23,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.Http;
+package elkserver.WebSocket;
 
-import com.google.gson.JsonObject;
 import java.util.ArrayList;
 
 /**
  *
- * @author Razvan
+ * @author razvan
  */
-public interface HttpInterface {
-    public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data);
-    public void onClose();
+public abstract class WebSocketController{
+    public static final WebSocketGroupManager GROUP_MANAGER = new WebSocketGroupManager();
+    public abstract void onOpen(WebSocketEvent e, ArrayList<String> get_data);
+    public abstract  void onMessage(WebSocketEvent e, byte[] data, ArrayList<String> get_data);
+    public abstract  void onClose(WebSocketEvent e, ArrayList<String> get_data);
 }

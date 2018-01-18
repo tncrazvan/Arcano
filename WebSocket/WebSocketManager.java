@@ -40,6 +40,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.Http.HttpHeader;
 import elkserver.ELK;
+import elkserver.EventManager;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.xml.bind.DatatypeConverter;
@@ -48,7 +49,7 @@ import javax.xml.bind.DatatypeConverter;
  *
  * @author Razvan
  */
-public abstract class WebSocketManager{
+public abstract class WebSocketManager extends EventManager{
     private static ArrayList<WebSocketEvent> subscriptions = new ArrayList<>();
     protected final Socket client;
     protected final HttpHeader clientHeader;
@@ -71,12 +72,15 @@ public abstract class WebSocketManager{
     private boolean startNew = true;
     
     private long prev_hit;
+    //private final HttpHeader header;
     public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader,String requestId) throws IOException {
+        super(clientHeader);
         this.client=client;
         this.clientHeader=clientHeader;
         this.reader=reader;
         this.requesteId=requestId;
         this.outputStream = client.getOutputStream();
+        //header = new HttpHeader();
     }
     
     public HttpHeader getClientHeader(){
@@ -85,16 +89,6 @@ public abstract class WebSocketManager{
     
     public Socket getClient(){
         return client;
-    }
-    
-    private void findUserLanguages(){
-        String[] tmp = new String[2];
-        String[] languages = clientHeader.get("Accept-Language").split(",");
-        userLanguages.put("DEFAULT-LANGUAGE", languages[0]);
-        for(int i=1;i<languages.length;i++){
-            tmp=languages[i].split(";");
-            userLanguages.put(tmp[0], tmp[1]);
-        }
     }
     
     public Map<String,String> getUserLanguages(){
@@ -109,19 +103,11 @@ public abstract class WebSocketManager{
         return clientHeader.get("User-Agent");
     }
     
-    public String getCookie(String name){
-        return clientHeader.getCookie(name);
-    }
-    
-    public boolean cookieIsset(String key){
-        return clientHeader.cookieIsset(key);
-    }
-
     public void execute(){
         new Thread(()->{
             try {
                 String acceptKey = DatatypeConverter.printBase64Binary(ELK.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + ELK.WS_ACCEPT_KEY));
-                HttpHeader header = new HttpHeader();
+                
                 header.set("Status", "HTTP/1.1 101 Switching Protocols");
                 header.set("Connection","Upgrade");
                 header.set("Upgrade","websocket");
@@ -187,19 +173,15 @@ public abstract class WebSocketManager{
         int i = 0;
         boolean fin =  (int)(payload[0] & 0x77) != 1;
         opCode = (byte)(payload[0] & 0x0F);
-        // 0x88 = 10001000
+        // 0x88 = 10001000 = -120
         // which means opCode = 8 and fin = 1
         // this is the standard way that all browsers use 
         // to indicate and end connection frame
         // I make sure there is no
-        if(payload[0] == 0x88 && bytes == 8){
-            try {
-                //send close connection frame back to client
-                outputStream.write(0x88);
-            } catch (IOException ex) {
-                Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        if(payload[0] == -120){
             close();
+            return false;
+        }else if(bytes <= 8){
             return false;
         }
         
@@ -427,6 +409,21 @@ public abstract class WebSocketManager{
             if(e!=this){
                 e.send(data);
             }
+        }
+    }
+    
+    public void send(byte[] data, WebSocketGroup group){
+        Iterator i = group.getMap().entrySet().iterator();
+        while(i.hasNext()){
+            ((WebSocketEvent)i.next()).send(data);
+        }
+    }
+    
+    public void send(String data, WebSocketGroup group){
+        try {
+            send(data.getBytes(ELK.CHARSET),group);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
