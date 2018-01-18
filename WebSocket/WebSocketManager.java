@@ -187,10 +187,12 @@ public abstract class WebSocketManager{
         int i = 0;
         boolean fin =  (int)(payload[0] & 0x77) != 1;
         opCode = (byte)(payload[0] & 0x0F);
-        /*System.out.println("payload length:"+bytes);
-        System.out.println("FIN:"+fin);
-        System.out.println("OPCODE:"+opCode);*/
-        if((bytes == 8 && fin && opCode == 8) || (bytes != 8 && !fin && opCode == 8)){
+        // 0x88 = 10001000
+        // which means opCode = 8 and fin = 1
+        // this is the standard way that all browsers use 
+        // to indicate and end connection frame
+        // I make sure there is no
+        if(payload[0] == 0x88 && bytes == 8){
             close();
             return false;
         }
@@ -313,6 +315,8 @@ public abstract class WebSocketManager{
     public void close(){
         try {
             connected = false;
+            //send a close frame
+            send(0x88);
             client.close();
             onClose(client);
         } catch (IOException ex) {
@@ -406,20 +410,14 @@ public abstract class WebSocketManager{
     }
     
     public void broadcast(String msg,Object o){
-        
-        Iterator i = ELK.WS_EVENTS.get(o.getClass().getCanonicalName()).iterator();
-        
-        
-        while(i.hasNext()){
-            WebSocketEvent e = (WebSocketEvent) i.next();
-            if(e!=this){
-                e.send(msg);
-            }
+        try {
+            broadcast(msg.getBytes(ELK.CHARSET),o);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     public void broadcast(byte[] data,Object o){
         Iterator i = ELK.WS_EVENTS.get(o.getClass().getCanonicalName()).iterator();
-        
         while(i.hasNext()){
             WebSocketEvent e = (WebSocketEvent) i.next();
             if(e!=this){

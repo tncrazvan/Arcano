@@ -66,8 +66,8 @@ public class ELK {
     public static String WS_CONTROLLER_NOT_FOUND = "ControllerNotFound";
     //public static final ArrayList<WebSocketEvent> EVENT_WS = new ArrayList<>();
     public static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();
-    public static final ArrayList<HttpEvent> EVENT_HTTP = new ArrayList<>();
     public static final int COOKIE_TTL = 60*60;
+    public static final int WS_GROUP_MAX_CLIENTS = 10;
     public static String WS_ACCEPT_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static int PORT = 80;
     public static int WS_MTU = 65536;
