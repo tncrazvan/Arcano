@@ -193,6 +193,12 @@ public abstract class WebSocketManager{
         // to indicate and end connection frame
         // I make sure there is no
         if(payload[0] == 0x88 && bytes == 8){
+            try {
+                //send close connection frame back to client
+                outputStream.write(0x88);
+            } catch (IOException ex) {
+                Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+            }
             close();
             return false;
         }
@@ -315,8 +321,6 @@ public abstract class WebSocketManager{
     public void close(){
         try {
             connected = false;
-            //send a close frame
-            send(0x88);
             client.close();
             onClose(client);
         } catch (IOException ex) {
