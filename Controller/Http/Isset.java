@@ -46,19 +46,6 @@ public class Isset extends HttpController{
     @Override
     public void onClose() {}
     
-    public void file(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) throws FileNotFoundException, IOException{
-        if(get_data.size() >= 0){
-            File f = new File(ELK.PUBLIC_WWW+"/"+get_data.get(0));
-            if(f.exists()){
-                e.send(0);
-            }else{
-                e.send(-2);
-            }
-        }else{
-            e.send(-1);
-        }
-    }
-    
     public void cookie(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){
         if(e.getClientHeader().get("Method").equals("POST")){
            if(post_data.has("name")){

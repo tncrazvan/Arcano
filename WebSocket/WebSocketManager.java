@@ -56,7 +56,7 @@ public abstract class WebSocketManager extends EventManager{
     protected final BufferedReader reader;
     protected final String requesteId;
     protected final OutputStream outputStream;
-    private Map<String,String> userLanguages = new HashMap<String,String>();
+    private Map<String,String> userLanguages = new HashMap<>();
     protected byte[] oldMask;
     protected byte[] mask;
     protected int 
@@ -181,7 +181,7 @@ public abstract class WebSocketManager extends EventManager{
         if(payload[0] == -120){
             close();
             return false;
-        }else if(bytes <= 8){
+        }else if(bytes <= 6){
             return false;
         }
         
@@ -412,11 +412,14 @@ public abstract class WebSocketManager extends EventManager{
         }
     }
     
+    
     public void send(byte[] data, WebSocketGroup group){
-        Iterator i = group.getMap().entrySet().iterator();
-        while(i.hasNext()){
-            ((WebSocketEvent)i.next()).send(data);
-        }
+        group.getMap().keySet().forEach((key) -> {
+            WebSocketEvent client = group.getMap().get(key);
+            if((WebSocketManager)client != this){
+                client.send(data);
+            }
+        });
     }
     
     public void send(String data, WebSocketGroup group){
