@@ -6,14 +6,11 @@
 package elkserver.Controller.WebSocket;
 
 import com.google.gson.JsonObject;
-import elkserver.Http.HttpEvent;
-import elkserver.Http.HttpSession;
 import elkserver.Settings;
 import elkserver.WebSocket.WebSocketController;
 import elkserver.WebSocket.WebSocketEvent;
 import elkserver.WebSocket.WebSocketGroup;
 import java.util.ArrayList;
-import sharedcanvasserver.Controller.WebSocket.Test;
 
 /**
  *
