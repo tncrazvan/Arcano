@@ -26,6 +26,7 @@
 package elkserver.Controller.Http;
 
 import com.google.gson.JsonObject;
+import elkserver.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
 import java.util.ArrayList;
 import elkserver.Http.Cookie;
 import elkserver.Http.HttpEvent;
@@ -34,7 +35,6 @@ import elkserver.Http.HttpController;
 import elkserver.Http.HttpSession;
 import elkserver.Settings;
 import elkserver.WebSocket.WebSocketGroup;
-import sharedcanvasserver.Controller.WebSocket.Test;
 
 /**
  *
@@ -57,7 +57,7 @@ public class Set extends HttpController{
                 if(groups.get("ALLOW").getAsBoolean()){
                     HttpSession session = new HttpSession(e);
                     WebSocketGroup group = new WebSocketGroup(session);
-                    Test.GROUP_MANAGER.addGroup(group);
+                    WebSocketGroupApplicationProgramInterface.GROUP_MANAGER.addGroup(group);
                     e.send(group.getKey());
                 }else{
                     e.setStatus(HttpEvent.STATUS_NOT_FOUND);
