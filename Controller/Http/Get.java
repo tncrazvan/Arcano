@@ -44,6 +44,11 @@ public class Get extends HttpController{
     @Override
     public void onClose() {}
     
+    public void file(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) throws FileNotFoundException, IOException{
+        e.setContentType(ELK.processContentType(get_data.get(0)));
+        e.sendFileContents("/"+(get_data.get(0).equals("")?get_data.get(1):get_data.get(0)));
+    }
+    
     class Cookie{
         String 
                 type,
