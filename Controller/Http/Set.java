@@ -51,8 +51,9 @@ public class Set extends HttpController{
     public void onClose() {}
     
     public void webSocketGroup(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){
+        
         if(Settings.isset("GROUPS")){
-            JsonObject groups = Settings.get("ALLOW_WS_GROUPS").getAsJsonObject();
+            JsonObject groups = Settings.get("GROUPS").getAsJsonObject();
             if(groups.has("ALLOW")){
                 if(groups.get("ALLOW").getAsBoolean()){
                     HttpSession session = new HttpSession(e);
