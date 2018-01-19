@@ -42,8 +42,8 @@ import sharedcanvasserver.Controller.WebSocket.Test;
  */
 public class Set extends HttpController{
     private static final String 
-            WS_GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.",
-            WS_GROUPS_POLICY_NOT_DEFINED = "WebSocket groups policy is not defined by the server therefore by default it is disabled.";
+            GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.",
+            GROUPS_POLICY_NOT_DEFINED = "WebSocket groups policy is not defined by the server therefore by default it is disabled.";
     @Override
     public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) {}
     
@@ -51,7 +51,7 @@ public class Set extends HttpController{
     public void onClose() {}
     
     public void webSocketGroup(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){
-        if(Settings.isset("ALLOW_WS_GROUPS")){
+        if(Settings.isset("GROUPS")){
             JsonObject groups = Settings.get("ALLOW_WS_GROUPS").getAsJsonObject();
             if(groups.has("ALLOW")){
                 if(groups.get("ALLOW").getAsBoolean()){
@@ -61,15 +61,15 @@ public class Set extends HttpController{
                     e.send(group.getKey());
                 }else{
                     e.setStatus(HttpEvent.STATUS_NOT_FOUND);
-                    e.send(WS_GROUPS_NOT_ALLOWED);
+                    e.send(GROUPS_NOT_ALLOWED);
                 }
             }else{
                 e.setStatus(HttpEvent.STATUS_NOT_FOUND);
-                e.send(WS_GROUPS_NOT_ALLOWED);
+                e.send(GROUPS_NOT_ALLOWED);
             }
         }else{
             e.setStatus(HttpEvent.STATUS_NOT_FOUND);
-            e.send(WS_GROUPS_POLICY_NOT_DEFINED);
+            e.send(GROUPS_POLICY_NOT_DEFINED);
         }
         
     }

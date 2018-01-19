@@ -25,9 +25,9 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
     @Override
     public void onOpen(WebSocketEvent e, ArrayList<String> get_data) {
         //if the settings.json file contains "ALLOW_WS_GROUPS"..
-        if(Settings.isset("ALLOW_WS_GROUPS")){
-            JsonObject groups = Settings.get("ALLOW_WS_GROUPS").getAsJsonObject();
-            //if the "ALLOW_WS_GROUPS" contains "ALLOW"
+        if(Settings.isset("GROUPS")){
+            JsonObject groups = Settings.get("GROUPS").getAsJsonObject();
+            //if the "GROUPS" contains "ALLOW"
             if(groups.has("ALLOW")){
                 //if "ALLOW" is true
                 if(groups.get("ALLOW").getAsBoolean()){ //ws groups are allowed
@@ -56,7 +56,7 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
                     e.close();
                 }
             }else{
-                //"ALLOW_WS_GROUPS" does not contain "ALLOW"
+                //"GROUPS" does not contain "ALLOW"
                 e.close();
             }
         }else{
