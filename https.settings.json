@@ -1,0 +1,18 @@
+{
+  "port": 443, //set this to 443 in order to use secure sockets
+  "web_root":"path/to/your/website/", //the path MUST be relative to this file
+  "charset": "UTF-8",
+  "bind_address": "::", //"::" will bind your server on all addresses
+  "controllers":{
+	"http":"elkserver.Controller.Http",
+	"websocket":"elkserver.Controller.WebSocket"
+  },
+  "groups":{
+    "allow":true //settings this to true will enable websocket groups
+  },
+  "tls":{ //server will read this only if port has been defined as 443
+    "certificate":"tls_certificate.jks",
+	"certificate_type":"JKS",
+	"password":"my tls password"
+  }
+}

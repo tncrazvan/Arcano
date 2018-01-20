@@ -1,6 +1,0 @@
-{
-  "CHARSET": "UTF-8",
-  "BIND_ADDRESS": "::",
-  "HTTP_CONTROLLER_PACKAGE_NAME":"elkserver.Controller.Http",
-  "WS_CONTROLLER_PACKAGE_NAME":"elkserver.Controller.WebSocket"
-}
