@@ -40,7 +40,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import elkserver.Http.HttpEvent;
 import elkserver.WebSocket.WebSocketEvent;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -54,9 +53,6 @@ import javax.crypto.spec.PBEKeySpec;
  * @author Razvan
  */
 public class ELK {
-    public static String SSL_CERTIFICATE = "";
-    public static String SSL_CERTIFICATE_PASSWORD = "";
-    public static String BIND_ADDRESS = "127.0.0.1";
     public static String PUBLIC_WWW = "./src/public";
     public static String INDEX_FILE = "/index.html";
     public static int CACHE_MAX_AGE = 60*60*24*365; //1 year
@@ -69,7 +65,6 @@ public class ELK {
     public static final int COOKIE_TTL = 60*60;
     public static final int WS_GROUP_MAX_CLIENTS = 10;
     public static String WS_ACCEPT_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-    public static int PORT = 80;
     public static int WS_MTU = 65536;
     public static int HTTP_MTU = 65536;
     public static final Date DATE = new Date();

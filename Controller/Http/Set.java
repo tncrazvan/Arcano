@@ -52,10 +52,10 @@ public class Set extends HttpController{
     
     public void webSocketGroup(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){
         
-        if(Settings.isset("GROUPS")){
-            JsonObject groups = Settings.get("GROUPS").getAsJsonObject();
-            if(groups.has("ALLOW")){
-                if(groups.get("ALLOW").getAsBoolean()){
+        if(Settings.isset("groups")){
+            JsonObject groups = Settings.get("groups").getAsJsonObject();
+            if(groups.has("allow")){
+                if(groups.get("allow").getAsBoolean()){
                     HttpSession session = new HttpSession(e);
                     WebSocketGroup group = new WebSocketGroup(session);
                     WebSocketGroupApplicationProgramInterface.GROUP_MANAGER.addGroup(group);

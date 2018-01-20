@@ -25,6 +25,7 @@
  */
 package elkserver;
 
+import com.google.gson.JsonObject;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -32,6 +33,11 @@ import java.net.ServerSocket;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import elkserver.Http.HttpEventListener;
+import java.io.File;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -45,7 +51,7 @@ import javax.net.ssl.TrustManagerFactory;
  * @author Razvan
  */
 public abstract class ElkServer {
-    private static final String message = 
+    private static final String message = "\n\n"+
 "  ElkServer is a Java library that makes it easier\n" +
 "  to program and manage a Java servlet by providing different tools\n" +
 "  such as:\n" +
@@ -90,56 +96,71 @@ public abstract class ElkServer {
     public abstract void init();
     
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
+        int port = 80;
+        String 
+                logLineSeparator = "\n=================================",
+                bindAddress = "127.0.0.1",
+                settings = "",
+                web_root,
+                tmp =args[0].substring(args[0].length()-1, args[0].length());
         if(args.length > 0){
-            if(args[0].substring(args[0].length()-1, args[0].length()).equals("/")){
-                ELK.PUBLIC_WWW = args[0].substring(0,args[0].length()-1);
+            if(!tmp.equals("/") || !tmp.equals("\\")){
+                settings = args[0]+"/";
             }else{
-                ELK.PUBLIC_WWW = args[0];
-            }
-            if(args.length > 1) {
-                ELK.PORT = Integer.parseInt(args[1]);
+                settings = args[0];
             }
         }
-        Settings.parse();
-        if(Settings.isset("CHARSET"))
-            ELK.CHARSET = Settings.getString("CHARSET");
-        if(Settings.isset("BIND_ADDRESS"))
-            ELK.BIND_ADDRESS = Settings.getString("BIND_ADDRESS");
-        if(Settings.isset("HTTP_CONTROLLER_PACKAGE_NAME"))
-            ELK.HTTP_CONTROLLER_PACKAGE_NAME = Settings.getString("HTTP_CONTROLLER_PACKAGE_NAME");
-        if(Settings.isset("WS_CONTROLLER_PACKAGE_NAME"))
-            ELK.WS_CONTROLLER_PACKAGE_NAME = Settings.getString("WS_CONTROLLER_PACKAGE_NAME");
-        if(Settings.isset("SSL_CERTIFICATE"))
-            ELK.SSL_CERTIFICATE = Settings.getString("HTTPS_CERTIFICATE");
-        if(Settings.isset("SSL_CERTIFICATE_PASSWORD"))
-            ELK.SSL_CERTIFICATE_PASSWORD = Settings.getString("HTTPS_CERTIFICATE_PASSWORD");
-        if(ELK.PORT == 443){
-            if(!Settings.isset("SSL_CERTIFICATE") || !Settings.isset("SSL_CERTIFICATE_PASSWORD")){
-                if(!Settings.isset("SSL_CERTIFICATE")){
-                    System.err.println("SSL certificate missing");
-                }
-                if(!Settings.isset("SSL_CERTIFICATE_PASSWORD")){
-                    System.err.println("SSL certificate password missing");
-                }
-            }else{
-                ELK.SSL_CERTIFICATE = args[2];
-                ELK.SSL_CERTIFICATE_PASSWORD = args[3];
+        Settings.parse(settings);
+        System.out.println(logLineSeparator+"\n###Reading port");
+        port = Settings.getInt("port");
+        System.out.println(">>>port:"+port+" [OK]");
+        System.out.println(logLineSeparator+"\n###Reading bind_address");
+        bindAddress = Settings.getString("bind_address");
+        System.out.println(">>>bind_address:"+bindAddress+" [OK]");
+        System.out.println(logLineSeparator+"\n###Reading web_root");
+        web_root = Settings.getString("web_root");
+        System.out.println(">>>web_root:"+web_root+" [OK]");
+        ELK.PUBLIC_WWW = new File(settings).getParent()+"/"+web_root;
+        System.out.println(logLineSeparator+"\n###Reading charset");
+        ELK.CHARSET = Settings.getString("charset");
+        System.out.println(">>>charset:"+ELK.CHARSET+" [OK]");
+        System.out.println(logLineSeparator+"\n###Reading controllers");
+        JsonObject controllers = Settings.get("controllers").getAsJsonObject();
+        System.out.println(">>>controllers:[object] [OK]");
+        System.out.println(logLineSeparator+"\n###Reading controllers.http");
+        ELK.HTTP_CONTROLLER_PACKAGE_NAME = controllers.get("http").getAsString();
+        System.out.println(">>>controllers.http:"+ELK.HTTP_CONTROLLER_PACKAGE_NAME+" [OK]");
+        System.out.println("logLineSeparator+\n###Reading controllers.websocket");
+        ELK.WS_CONTROLLER_PACKAGE_NAME = controllers.get("websocket").getAsString();
+        System.out.println(">>>controllers.websocket:"+ELK.WS_CONTROLLER_PACKAGE_NAME+" [OK]");
+        if(port == 443){
+            System.out.println(logLineSeparator+"\n###Reading tls");
+            JsonObject tls = Settings.get("tls").getAsJsonObject();
+            System.out.println(">>>tls:[object] [OK]");
+            System.out.println(logLineSeparator+"\n###Reading tls.certificate");
+            String tls_certificate = tls.get("certificate").getAsString();
+            System.out.println(">>>tls.certificate:"+tls_certificate+" [OK]");
+            System.out.println(logLineSeparator+"\n###Reading tls.certificate_type");
+            String certificate_type = tls.get("certificate_type").getAsString();
+            System.out.println(">>>tls.certificate_type:"+certificate_type+" [OK]");
+            System.out.println(logLineSeparator+"\n###Reading tls.password");
+            String password = tls.get("password").getAsString();
+            System.out.println(">>>tls.password:***[OK]");
+            SSLContext sslContext = createSSLContext(ELK.PUBLIC_WWW+"../"+tls_certificate,certificate_type,password);
+            
+            // Create server socket factory
+            SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
 
-                SSLContext sslContext = createSSLContext();
-                // Create server socket factory
-                SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
-
-                // Create server socket
-                SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
-                ssl.bind(new InetSocketAddress(ELK.BIND_ADDRESS, ELK.PORT));
-                init();
-                while(true){
-                    new HttpEventListener(ssl.accept()).start();
-                }
+            // Create server socket
+            SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
+            ssl.bind(new InetSocketAddress(bindAddress, port));
+            init();
+            while(true){
+                new HttpEventListener(ssl.accept()).start();
             }
         }else{
             ServerSocket ss = new ServerSocket();
-            ss.bind(new InetSocketAddress(ELK.BIND_ADDRESS, ELK.PORT));
+            ss.bind(new InetSocketAddress(bindAddress, port));
             init();
             while(true){
                 new HttpEventListener(ss.accept()).start();
@@ -148,15 +169,15 @@ public abstract class ElkServer {
         
     }
     
-    private SSLContext createSSLContext(){
+    private SSLContext createSSLContext(String tlsCertificate, String certificateType, String tlsPassword){
         System.setProperty("https.protocols", "TLSv1.1,TLSv1.2");
         try{
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream(ELK.SSL_CERTIFICATE),ELK.SSL_CERTIFICATE_PASSWORD.toCharArray());
+            KeyStore keyStore = KeyStore.getInstance(certificateType);
+            keyStore.load(new FileInputStream(tlsCertificate),tlsPassword.toCharArray());
              
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-            keyManagerFactory.init(keyStore, ELK.SSL_CERTIFICATE_PASSWORD.toCharArray());
+            keyManagerFactory.init(keyStore, tlsPassword.toCharArray());
             KeyManager[] km = keyManagerFactory.getKeyManagers();
              
             // Create trust manager
@@ -169,7 +190,7 @@ public abstract class ElkServer {
             sslContext.init(km,  tm, null);
              
             return sslContext;
-        } catch (Exception ex){
+        } catch (IOException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException | CertificateException ex){
             ex.printStackTrace();
         }
          

@@ -22,12 +22,12 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
     @Override
     public void onOpen(WebSocketEvent e, ArrayList<String> get_data) {
         //if the settings.json file contains "ALLOW_WS_GROUPS"..
-        if(Settings.isset("GROUPS")){
-            JsonObject groups = Settings.get("GROUPS").getAsJsonObject();
+        if(Settings.isset("groups")){
+            JsonObject groups = Settings.get("groups").getAsJsonObject();
             //if the "GROUPS" contains "ALLOW"
-            if(groups.has("ALLOW")){
+            if(groups.has("allow")){
                 //if "ALLOW" is true
-                if(groups.get("ALLOW").getAsBoolean()){ //ws groups are allowed
+                if(groups.get("allow").getAsBoolean()){ //ws groups are allowed
                     //if query "?join" is present in the request URL
                     if(e.issetUrlQuery("join")){
                         //use that query value as the group's name
