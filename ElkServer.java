@@ -155,12 +155,14 @@ public abstract class ElkServer {
             SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
             ssl.bind(new InetSocketAddress(bindAddress, port));
             init();
+            System.out.println("===== SERVER LISTENING =====");
             while(true){
                 new HttpEventListener(ssl.accept()).start();
             }
         }else{
             ServerSocket ss = new ServerSocket();
             ss.bind(new InetSocketAddress(bindAddress, port));
+            System.out.println("===== SERVER LISTENING =====");
             init();
             while(true){
                 new HttpEventListener(ss.accept()).start();
