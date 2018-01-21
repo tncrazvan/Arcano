@@ -130,7 +130,7 @@ public abstract class ElkServer {
         System.out.println(logLineSeparator+"\n###Reading controllers.http");
         ELK.HTTP_CONTROLLER_PACKAGE_NAME = controllers.get("http").getAsString();
         System.out.println(">>>controllers.http:"+ELK.HTTP_CONTROLLER_PACKAGE_NAME+" [OK]");
-        System.out.println("logLineSeparator+\n###Reading controllers.websocket");
+        System.out.println(logLineSeparator+"\n###Reading controllers.websocket");
         ELK.WS_CONTROLLER_PACKAGE_NAME = controllers.get("websocket").getAsString();
         System.out.println(">>>controllers.websocket:"+ELK.WS_CONTROLLER_PACKAGE_NAME+" [OK]");
         if(port == 443){
