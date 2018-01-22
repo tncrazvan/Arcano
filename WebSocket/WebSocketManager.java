@@ -178,7 +178,7 @@ public abstract class WebSocketManager extends EventManager{
         // this is the standard way that all browsers use 
         // to indicate and end connection frame
         // I make sure there is no
-        System.out.println("payload[0]:"+payload[0]+",bytes:"+bytes);
+        //System.out.println("payload[0]:"+payload[0]+",bytes:"+bytes);
         if(payload[0] == -120 && bytes <= 8){
             close();
             return false;
