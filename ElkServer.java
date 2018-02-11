@@ -89,14 +89,13 @@ public abstract class ElkServer {
         }
         
         ConsoleServlet sc = new ConsoleServlet();
-        sc.listen(args);
+        sc.listen(new String[]{"C:\\Users\\razvan\\Documents\\AtomProjects\\http.ElkServerGitPage.json"});
         
     }
     
     public abstract void init();
     
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
-        int port = 80;
         String 
                 logLineSeparator = "\n=================================",
                 bindAddress = "127.0.0.1",
@@ -112,8 +111,9 @@ public abstract class ElkServer {
         }
         Settings.parse(settings);
         System.out.println(logLineSeparator+"\n###Reading port");
-        port = Settings.getInt("port");
-        System.out.println(">>>port:"+port+" [OK]");
+        ELK.PORT = Settings.getInt("port");
+        
+        System.out.println(">>>port:"+ELK.PORT+" [OK]");
         System.out.println(logLineSeparator+"\n###Reading bind_address");
         bindAddress = Settings.getString("bind_address");
         System.out.println(">>>bind_address:"+bindAddress+" [OK]");
@@ -133,7 +133,7 @@ public abstract class ElkServer {
         System.out.println(logLineSeparator+"\n###Reading controllers.websocket");
         ELK.WS_CONTROLLER_PACKAGE_NAME = controllers.get("websocket").getAsString();
         System.out.println(">>>controllers.websocket:"+ELK.WS_CONTROLLER_PACKAGE_NAME+" [OK]");
-        if(port == 443){
+        if(ELK.PORT == 443){
             System.out.println(logLineSeparator+"\n###Reading tls");
             JsonObject tls = Settings.get("tls").getAsJsonObject();
             System.out.println(">>>tls:[object] [OK]");
@@ -153,7 +153,7 @@ public abstract class ElkServer {
 
             // Create server socket
             SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
-            ssl.bind(new InetSocketAddress(bindAddress, port));
+            ssl.bind(new InetSocketAddress(bindAddress, ELK.PORT));
             init();
             System.out.println("===== SERVER LISTENING =====");
             while(true){
@@ -161,7 +161,7 @@ public abstract class ElkServer {
             }
         }else{
             ServerSocket ss = new ServerSocket();
-            ss.bind(new InetSocketAddress(bindAddress, port));
+            ss.bind(new InetSocketAddress(bindAddress, ELK.PORT));
             System.out.println("===== SERVER LISTENING =====");
             init();
             while(true){

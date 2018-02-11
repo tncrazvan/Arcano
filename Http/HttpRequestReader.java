@@ -66,8 +66,6 @@ public abstract class HttpRequestReader extends Thread{
             SSLSession sslSession = secureClient.getSession();
 
         }*/
-        
-        
         this.client=client;
         reader = new BufferedReader(
                 new InputStreamReader(
@@ -87,7 +85,6 @@ public abstract class HttpRequestReader extends Thread{
         try {
             byte[] chain = new byte[]{0,0,0,0};
             boolean keepReading = true, EOFException = false;
-            int counter = 0;
             while (keepReading) {
                 try{
                     chain[3] = chain[2];
@@ -98,7 +95,6 @@ public abstract class HttpRequestReader extends Thread{
                     if((char)chain[3] == '\r' && (char)chain[2] == '\n' && (char)chain[1] == '\r' && (char)chain[0] == '\n'){
                         keepReading = false;
                     }
-                    
                 }catch(EOFException ex){
                     keepReading = false;
                     EOFException = true;
@@ -106,10 +102,9 @@ public abstract class HttpRequestReader extends Thread{
                 }
             }
             HttpHeader clientHeader = HttpHeader.fromString(outputString);
-            
             outputString = "";
             
-            if(clientHeader.get("Method").equals("POST") && !EOFException){
+            if((clientHeader.get("Method").equals("POST") || ELK.PORT == 25) && !EOFException){
                 
                 try {
                     int chunkSize = 2048, offset = 0;
@@ -123,7 +118,6 @@ public abstract class HttpRequestReader extends Thread{
                         outputString += new String(tmp);
                         offset += chunkSize;
                     }
-                    
                     String[] lines = outputString.split("\r\n");
                     String currentLabel = null,
                             currentValue = "";

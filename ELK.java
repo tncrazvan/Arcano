@@ -53,6 +53,7 @@ import javax.crypto.spec.PBEKeySpec;
  * @author Razvan
  */
 public class ELK {
+    public static int PORT = 80;
     public static String PUBLIC_WWW = "./src/public";
     public static String INDEX_FILE = "/index.html";
     public static int CACHE_MAX_AGE = 60*60*24*365; //1 year

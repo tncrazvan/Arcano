@@ -37,8 +37,13 @@ import java.util.ArrayList;
 public class ControllerNotFound extends HttpController{
     @Override
     public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) {
-        e.setStatus(elkserver.Http.HttpEvent.STATUS_NOT_FOUND);
-        e.send("Page not found");
+        e.setStatus(HttpEvent.STATUS_NOT_FOUND);
+        try{
+            e.send("Page not found");
+        }catch(Exception ex){
+            System.err.println("\n\nException on location: "+e.getClientHeader().get("Resource"));
+            ex.printStackTrace();
+        }
     }
 
     @Override

@@ -41,11 +41,9 @@ public class Settings {
         info = ELK.JSONPARSER.parse(new String(Files.readAllBytes(Paths.get(settings)))).getAsJsonObject();
     }
     public static JsonElement get(String membername){
-        if(!info.has(membername)) return null;
         return info.get(membername);
     }
     public static String getString(String membername){
-        if(get(membername) == null) return null;
         return get(membername).getAsString();
     }
     public static int getInt(String membername){
