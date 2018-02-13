@@ -89,7 +89,7 @@ public abstract class ElkServer {
         }
         
         ConsoleServlet sc = new ConsoleServlet();
-        sc.listen(new String[]{"C:\\Users\\razvan\\Documents\\AtomProjects\\http.ElkServerGitPage.json"});
+        sc.listen(args);
         
     }
     
