@@ -143,7 +143,6 @@ public abstract class HttpRequestReader extends Thread{
                     Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            
             this.onRequest(clientHeader,post);
         } catch (Exception ex) {
             try {

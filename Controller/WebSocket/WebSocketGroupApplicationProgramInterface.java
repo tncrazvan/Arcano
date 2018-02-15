@@ -7,6 +7,8 @@ package elkserver.Controller.WebSocket;
 
 import com.google.gson.JsonObject;
 import elkserver.Settings;
+import elkserver.SmtpServer.Email;
+import elkserver.SmtpServer.SmtpListener;
 import elkserver.WebSocket.WebSocketController;
 import elkserver.WebSocket.WebSocketEvent;
 import elkserver.WebSocket.WebSocketGroup;
@@ -89,6 +91,5 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
                 group = null;
             }
         }
-    }
-    
+    } 
 }

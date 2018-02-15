@@ -33,6 +33,10 @@ import java.net.ServerSocket;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import elkserver.Http.HttpEventListener;
+import elkserver.SmtpServer.Email;
+import elkserver.SmtpServer.EmailFrame;
+import elkserver.SmtpServer.SmtpListener;
+import elkserver.SmtpServer.SmtpServer;
 import java.io.File;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -51,6 +55,7 @@ import javax.net.ssl.TrustManagerFactory;
  * @author Razvan
  */
 public abstract class ElkServer {
+    private SmtpServer smtpServer;
     private static final String message = "\n\n"+
 "  ElkServer is a Java library that makes it easier\n" +
 "  to program and manage a Java servlet by providing different tools\n" +
@@ -75,11 +80,13 @@ public abstract class ElkServer {
 "  \n" +
 "  You should have received a copy of the GNU Affero General Public License\n" +
 "  along with this program.  If not, see <https://www.gnu.org/licenses/>.\n\n";
+    
     /**
      * @param args the command line arguments
      * @throws java.io.IOException
      * @throws java.security.NoSuchAlgorithmException
      */
+    public static ElkServer server;
     public static void main (String[] args) throws IOException, NoSuchAlgorithmException{
         class ConsoleServlet extends ElkServer{
             @Override
@@ -88,20 +95,29 @@ public abstract class ElkServer {
             }
         }
         
-        ConsoleServlet sc = new ConsoleServlet();
-        sc.listen(args);
+        
+        server = new ConsoleServlet();
+        server.listen(new String[]{"C:\\Users\\razvan\\Documents\\AtomProjects\\ElkServerGitPage\\https.json"});
         
     }
     
     public abstract void init();
     
+    public SmtpServer getSmtpServer(){
+        return smtpServer;
+    }
+    
+    String 
+            logLineSeparator = "\n=================================",
+            bindAddress = "127.0.0.1",
+            settings = "",
+            web_root;
+    boolean smtp_allowed = false;
+    
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
-        String 
-                logLineSeparator = "\n=================================",
-                bindAddress = "127.0.0.1",
-                settings = "",
-                web_root,
+        String
                 tmp =args[0].substring(args[0].length()-1, args[0].length());
+        
         if(args.length > 0){
             if(!tmp.equals("/") || !tmp.equals("\\")){
                 settings = args[0]+"/";
@@ -113,40 +129,61 @@ public abstract class ElkServer {
         System.out.println(logLineSeparator+"\n###Reading port");
         ELK.PORT = Settings.getInt("port");
         
-        System.out.println(">>>port:"+ELK.PORT+" [OK]");
+        System.out.println("\t>>>port:"+ELK.PORT+" [OK]");
         System.out.println(logLineSeparator+"\n###Reading bind_address");
         bindAddress = Settings.getString("bind_address");
-        System.out.println(">>>bind_address:"+bindAddress+" [OK]");
+        System.out.println("\t>>>bind_address:"+bindAddress+" [OK]");
         System.out.println(logLineSeparator+"\n###Reading web_root");
         web_root = Settings.getString("web_root");
-        System.out.println(">>>web_root:"+web_root+" [OK]");
+        System.out.println("\t>>>web_root:"+web_root+" [OK]");
         ELK.PUBLIC_WWW = new File(settings).getParent()+"/"+web_root;
         System.out.println(logLineSeparator+"\n###Reading charset");
         ELK.CHARSET = Settings.getString("charset");
-        System.out.println(">>>charset:"+ELK.CHARSET+" [OK]");
+        System.out.println("\t>>>charset:"+ELK.CHARSET+" [OK]");
         System.out.println(logLineSeparator+"\n###Reading controllers");
         JsonObject controllers = Settings.get("controllers").getAsJsonObject();
-        System.out.println(">>>controllers:[object] [OK]");
+        System.out.println("\t>>>controllers:[object] [OK]");
         System.out.println(logLineSeparator+"\n###Reading controllers.http");
         ELK.HTTP_CONTROLLER_PACKAGE_NAME = controllers.get("http").getAsString();
-        System.out.println(">>>controllers.http:"+ELK.HTTP_CONTROLLER_PACKAGE_NAME+" [OK]");
+        System.out.println("\t>>>controllers.http:"+ELK.HTTP_CONTROLLER_PACKAGE_NAME+" [OK]");
         System.out.println(logLineSeparator+"\n###Reading controllers.websocket");
         ELK.WS_CONTROLLER_PACKAGE_NAME = controllers.get("websocket").getAsString();
-        System.out.println(">>>controllers.websocket:"+ELK.WS_CONTROLLER_PACKAGE_NAME+" [OK]");
+        System.out.println("\t>>>controllers.websocket:"+ELK.WS_CONTROLLER_PACKAGE_NAME+" [OK]");
+
+        //checking for SMTP server
+        if(Settings.isset("smtp")){
+            System.out.println(logLineSeparator+"\n###Reading smtp");
+            JsonObject smtp = Settings.get("smtp").getAsJsonObject();
+            System.out.println("\t>>>controllers:[object] [OK]");
+            if(smtp.has("allow")){
+                smtp_allowed = smtp.get("allow").getAsBoolean();
+                System.out.println(logLineSeparator+"\t\n###Reading smtp.allow");
+                System.out.println("\t\t>>>smtp.allow:"+smtp_allowed);
+                if(smtp_allowed){
+                    String smtpBindAddress = bindAddress;
+                    if(smtp.has("bind_address")){
+                        smtpBindAddress = smtp.get("bind_address").getAsString();
+                    }
+                    smtpServer = new SmtpServer(new ServerSocket(),smtpBindAddress,25);
+                    new Thread(smtpServer).start();
+                }
+            }
+        }
+        
         if(ELK.PORT == 443){
             System.out.println(logLineSeparator+"\n###Reading tls");
             JsonObject tls = Settings.get("tls").getAsJsonObject();
-            System.out.println(">>>tls:[object] [OK]");
-            System.out.println(logLineSeparator+"\n###Reading tls.certificate");
+            System.out.println(logLineSeparator+"\t\n###Reading tls.certificate");
             String tls_certificate = tls.get("certificate").getAsString();
-            System.out.println(">>>tls.certificate:"+tls_certificate+" [OK]");
-            System.out.println(logLineSeparator+"\n###Reading tls.certificate_type");
+            System.out.println("\t\t>>>tls.certificate:"+tls_certificate+" [OK]");
+            System.out.println(logLineSeparator+"\t\n###Reading tls.certificate_type");
             String certificate_type = tls.get("certificate_type").getAsString();
-            System.out.println(">>>tls.certificate_type:"+certificate_type+" [OK]");
-            System.out.println(logLineSeparator+"\n###Reading tls.password");
+            System.out.println("\t\t>>>tls.certificate_type:"+certificate_type+" [OK]");
+            System.out.println(logLineSeparator+"\t\n###Reading tls.password");
             String password = tls.get("password").getAsString();
-            System.out.println(">>>tls.password:***[OK]");
+            System.out.println("\t\t>>>tls.password:***[OK]");
             SSLContext sslContext = createSSLContext(ELK.PUBLIC_WWW+"../"+tls_certificate,certificate_type,password);
+            
             
             // Create server socket factory
             SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();

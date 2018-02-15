@@ -237,8 +237,6 @@ public abstract class HttpEventManager extends EventManager{
     public void setUserArray(String name, JsonArray a){
         send("<script>window."+name+"="+a.toString()+";</script>\n");
     }
-
-    
     
     private boolean firstMessage = true;
     

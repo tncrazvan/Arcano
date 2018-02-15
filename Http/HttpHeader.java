@@ -90,7 +90,7 @@ public class HttpHeader {
         return str;
     }
     
-    public boolean isdefined(String key){
+    public boolean isDefined(String key){
         if(header.get(key) == null)
             return false;
         return true;
@@ -101,7 +101,6 @@ public class HttpHeader {
     }
     
     public String get(String key){
-        if(header.get(key) != null)
         switch(key){
             case "Status":
             case "Resource":
@@ -115,7 +114,6 @@ public class HttpHeader {
             default:
                 return header.get(key).trim();
         }
-        return null;
     }
     
     public boolean cookieIsset(String key){

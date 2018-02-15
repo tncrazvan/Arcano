@@ -33,12 +33,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.ELK;
 import elkserver.WebSocket.WebSocketEvent;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 /**
  *
  * @author Razvan
  */
 public class HttpEventListener extends HttpRequestReader{
     private final String sessionId;
+    private Matcher matcher;
+    private static final Pattern 
+            upgradePattern = Pattern.compile("Upgrade"),
+            keepAlivePattern = Pattern.compile("keep-alive"),
+            websocketPattern = Pattern.compile("websocket"),
+            http2Pattern = Pattern.compile("h2c");
     public HttpEventListener(Socket client) throws IOException, NoSuchAlgorithmException{
         super(client);
         sessionId = ELK.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());
@@ -47,8 +55,11 @@ public class HttpEventListener extends HttpRequestReader{
     @Override
     public void onRequest(HttpHeader clientHeader, JsonObject post) {
         if(clientHeader != null && clientHeader.get("Connection")!=null){
-            if(clientHeader.get("Connection").equals("Upgrade") || clientHeader.get("Connection").equals("keep-alive, Upgrade")){
-                if(clientHeader.get("Upgrade").equals("websocket")){
+            matcher = upgradePattern.matcher(clientHeader.get("Connection"));
+            if(matcher.find()){
+                matcher = websocketPattern.matcher(clientHeader.get("Upgrade"));
+                //WebSocket connection
+                if(matcher.find()){
                     try {
                         new WebSocketEvent(reader, client, clientHeader, sessionId).execute();
                     }catch(IOException e){
@@ -60,8 +71,15 @@ public class HttpEventListener extends HttpRequestReader{
                     } catch (InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
                         Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                }else{
+                    matcher = http2Pattern.matcher(clientHeader.get("Upgrade"));
+                    // Http 2.x connection
+                    if(matcher.find()){
+                        System.out.println("Http 2.0 connection detected. Not yet implemented.");
+                    }
                 }
             }else{
+                //default connection, assuming it's Http 1.x
                 try {
                     new HttpEvent(output,clientHeader,client,post).execute();
                 } catch (IOException ex) {
@@ -75,5 +93,4 @@ public class HttpEventListener extends HttpRequestReader{
             } 
         }
     }
-    
 }

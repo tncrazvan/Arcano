@@ -82,6 +82,11 @@ public class ELK {
     public static String CHARSET = "UTF-8";
     public static JsonObject MAIN_SETTINGS;
     
+    public static String capitalize(String value){
+        value = value.toLowerCase();
+        return value.substring(0, 1).toUpperCase() + value.substring(1);
+    }
+    
     public static String escapeJavaScript(String js){
         return  js.replaceAll(patternLeftStart, "&lt;")
                 .replaceAll(patternLeftEnd, "&lt;/")
