@@ -173,7 +173,7 @@ public abstract class WebSocketManager extends EventManager{
         int i = 0;
         boolean fin =  (int)(payload[0] & 0x77) != 1;
         opCode = (byte)(payload[0] & 0x0F);
-        // 0x88 = 10001000 = -120
+        // 0x88 = 10001000 --> Decimal from signed 2's complement: -120
         // which means opCode = 8 and fin = 1
         // this is the standard way that all browsers use 
         // to indicate and end connection frame
@@ -187,47 +187,61 @@ public abstract class WebSocketManager extends EventManager{
         }
         
         if(startNew){
-        mask = new byte[4];
-        length = (int)payload[1] & 127;
-        if(length == 126){
-            length = ((payload[2] & 0xff) << 8) | (payload[3] & 0xff);
-            mask[0] = payload[4];
-            mask[1] = payload[5];
-            mask[2] = payload[6];
-            mask[3] = payload[7];
-            payloadOffset = 8;
+            mask = new byte[4];
+            length = (int)payload[1] & 127;
+            if(length == 126){
+                length = ((payload[2] & 0xff) << 8) | (payload[3] & 0xff);
+                
+                //get the mask after getting the length
+                mask = Arrays.copyOfRange(payload, 4, 8);
+                payloadOffset = 8;
 
-        }else if(length == 127){
-            byte[] tmp = new byte[8];
-            tmp[0] = payload[2];
-            tmp[1] = payload[3];
-            tmp[2] = payload[4];
-            tmp[3] = payload[5];
-            tmp[4] = payload[6];
-            tmp[5] = payload[7];
-            tmp[6] = payload[8];
-            tmp[7] = payload[9];
+            }else if(length == 127){
+                //get payload[2] and truncate it on 8 bits by executeing 
+                //bitwise AND on 0xff (which is hex for "11111111"). 
+                //Return the value to local_length. 
+                //Declare a and b for later use.
+                long local_length = payload[2] & 0xff, a, b;
+                for(int pos = 3;pos < 10;pos++){
+                    //get the updated value
+                    a = local_length;
+                    
+                    //shift to left by 8 positions, 
+                    //in order to free space for the next byte
+                    a = a << 8;
+                    
+                    //truncate the peyload item
+                    b = payload[pos] & 0xff;
+                    
+                    //Concatenate b to local_length by executing bitwise OR between a and b.
+                    //Note that a is 8 bits longer each iteration, and the right most 8 bits are all set to "0",
+                    local_length = a | b;
+                    //This operation would looks something like this:
+                    /*
+                        xx...x00000000 +
+                        00...0xxxxxxxx
+                        --------------
+                        xx...xxxxxxxxx
+                    */
+                }
+                
+                length = (int) local_length;
+                
+                //get the mask after getting the length
+                mask = Arrays.copyOfRange(payload, 10, 14);
+                payloadOffset = 14;
+            }else{
+                //get the mask after getting the length
+                mask = Arrays.copyOfRange(payload, 2, 6);
+                payloadOffset = 6;
+            }
 
-            length = (int)ByteBuffer.wrap(tmp).getLong();
-            mask[0] = payload[10];
-            mask[1] = payload[11];
-            mask[2] = payload[12];
-            mask[3] = payload[13];
-            payloadOffset = 14;
+            startNew=false;
+            digest = new byte[length];
+            digestIndex = 0;
         }else{
-            mask[0] = payload[2];
-            mask[1] = payload[3];
-            mask[2] = payload[4];
-            mask[3] = payload[5];
-            payloadOffset = 6;
+            payloadOffset = 0;
         }
-
-        startNew=false;
-        digest = new byte[length];
-        digestIndex = 0;
-    }else{
-        payloadOffset = 0;
-    }
         
         
         
@@ -246,58 +260,6 @@ public abstract class WebSocketManager extends EventManager{
             return true;
         }
         return false;
-        
-    }
-    
-    public byte[] oldUnmask(byte[] payload,int bytes){
-        ByteBuffer buf = ByteBuffer.wrap(payload);
-        int fin =  payload[0] & 0x77;
-        this.oldOpCode = (byte)(payload[0] & 0x0F);
-        if(fin != 1){
-            byte[] result;
-            if(this.oldLength == 126){
-                for(int i=0;i<8;i++) buf.get();
-            }else if(this.oldLength == 127){
-                for(int i=0;i<14;i++) buf.get();
-            }else{
-                for(int i=0;i<6;i++) buf.get();
-            }
-            
-            int resultOffset=buf.position();
-            result = new byte[bytes-resultOffset];
-            
-            byte currentByte;
-            if(!Arrays.toString(this.oldMask).equals("null"))
-            for(int i = 0;i<result.length;i++){
-                currentByte = (byte) (payload[resultOffset+i] ^ this.oldMask[i%this.oldMask.length]);
-                result[i] = currentByte;
-            }
-            return result;
-        }else{
-            byte[] result;
-            byte[] masks = new byte[4];
-            int length = (int)payload[1] & 127;
-            this.oldLength = length;
-            if(length == 126){
-                for(int i=0;i<4;i++) buf.get();
-            }else if(length == 127){
-                for(int i=0;i<10;i++) buf.get();
-            }else{
-                for(int i=0;i<2;i++) buf.get();
-            }
-            
-            buf.get(masks, 0, masks.length);
-            int resultOffset=buf.position();
-            result = new byte[bytes-resultOffset];
-            
-            byte currentByte;
-            for(int i = 0;i<result.length;i++){
-                currentByte = (byte) (payload[resultOffset+i] ^ masks[i%masks.length]);
-                result[i] = currentByte;
-            }
-            this.oldMask = masks;
-            return result;
-        }
         
     }
     
