@@ -94,7 +94,7 @@ public abstract class ElkServer {
         
         
         server = new ConsoleServlet();
-        server.listen(new String[]{"C:\\Users\\razvan\\Documents\\AtomProjects\\ElkServerGitPage\\https.json"});
+        server.listen(args);
         
     }
     
