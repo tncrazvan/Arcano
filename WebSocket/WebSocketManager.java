@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.Http.HttpHeader;
-import elkserver.ELK;
+import elkserver.Elk;
 import elkserver.EventManager;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -106,7 +106,7 @@ public abstract class WebSocketManager extends EventManager{
     public void execute(){
         new Thread(()->{
             try {
-                String acceptKey = DatatypeConverter.printBase64Binary(ELK.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + ELK.WS_ACCEPT_KEY));
+                String acceptKey = DatatypeConverter.printBase64Binary(Elk.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + Elk.wsAcceptKey));
                 
                 header.set("Status", "HTTP/1.1 101 Switching Protocols");
                 header.set("Connection","Upgrade");
@@ -115,7 +115,7 @@ public abstract class WebSocketManager extends EventManager{
                 outputStream.write((header.toString()+"\r\n").getBytes());
                 outputStream.flush();
                 onOpen(client);
-                byte[] data = new byte[ELK.WS_MTU];
+                byte[] data = new byte[Elk.wsMtu];
                 //char[] data = new char[128];
                 InputStream read = client.getInputStream();
                 int bytes = 0;
@@ -360,13 +360,13 @@ public abstract class WebSocketManager extends EventManager{
     
     public void broadcast(String msg,Object o){
         try {
-            broadcast(msg.getBytes(ELK.CHARSET),o);
+            broadcast(msg.getBytes(Elk.charset),o);
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     public void broadcast(byte[] data,Object o){
-        Iterator i = ELK.WS_EVENTS.get(o.getClass().getCanonicalName()).iterator();
+        Iterator i = Elk.WS_EVENTS.get(o.getClass().getCanonicalName()).iterator();
         while(i.hasNext()){
             WebSocketEvent e = (WebSocketEvent) i.next();
             if(e!=this){
@@ -387,7 +387,7 @@ public abstract class WebSocketManager extends EventManager{
     
     public void send(String data, WebSocketGroup group){
         try {
-            send(data.getBytes(ELK.CHARSET),group);
+            send(data.getBytes(Elk.charset),group);
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
         }

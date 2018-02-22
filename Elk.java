@@ -43,8 +43,12 @@ import java.util.logging.Logger;
 import elkserver.WebSocket.WebSocketEvent;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
@@ -52,36 +56,67 @@ import javax.crypto.spec.PBEKeySpec;
  *
  * @author Razvan
  */
-public class ELK {
-    public static int PORT = 80;
-    public static String PUBLIC_WWW = "./src/public";
-    public static String INDEX_FILE = "/index.html";
-    public static int CACHE_MAX_AGE = 60*60*24*365; //1 year
-    public static String HTTP_CONTROLLER_PACKAGE_NAME = "elkserver.Controller.Http";
-    public static String WS_CONTROLLER_PACKAGE_NAME = "elkserver.Controller.WebSocket";
-    public static String HTTP_CONTROLLER_NOT_FOUND = "ControllerNotFound";
-    public static String WS_CONTROLLER_NOT_FOUND = "ControllerNotFound";
-    //public static final ArrayList<WebSocketEvent> EVENT_WS = new ArrayList<>();
-    public static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();
-    public static final int COOKIE_TTL = 60*60;
-    public static final int WS_GROUP_MAX_CLIENTS = 10;
-    public static String WS_ACCEPT_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-    public static int WS_MTU = 65536;
-    public static int HTTP_MTU = 65536;
-    public static final Date DATE = new Date();
-    public static final Gson JSON_PARSER = new Gson();
-    public static final JsonParser JSONPARSER = new JsonParser();
-    public static boolean running = false;
-    public static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
-    public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
+public class Elk {
+    
+    //settings
+    protected static boolean 
+            listen = true,
+            groupsAllowed = false,
+            smtpAllowed = false;
+    protected static int port = 80;
+    protected static String 
+            webRoot = "./src/public",
+            charset = "UTF-8",
+            bindAddress = "127.0.0.1",
+            httpControllerPackageName = "elkserver.Controller.Http",
+            wsControllerPackageName = "elkserver.Controller.WebSocket",
+            httpControllerNotFound = "ControllerNotFound",
+            wsControllerNotFound = "ControllerNotFound";
+    
+    //advanced settings
+    protected static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();
+    protected static final int 
+            cookieTtl = 60*60,
+            wsGroupMaxClient = 10,
+            wsMtu = 65536,
+            httpMtu = 65536,
+            cacheMaxAge = 60*60*24*365; //1 year
+    
+    protected static String wsAcceptKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+    protected static JsonObject mainSettings;
+    public static final Calendar calendar = Calendar.getInstance();
+    protected static String indexFile = "/index.html";
+    
+    
+    //other vars
+    protected static final Date date = new Date();
+    protected static final Gson JSON_PARSER = new Gson();
+    protected static final JsonParser JSONPARSER = new JsonParser();
+    protected static boolean running = false;
+    protected static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
+    protected static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
     private static final String patternLeftStart = "<\\s*(?=script)";
     private static final String patternLeftEnd = "<\\s*\\/\\s*(?=script)";
     private static final String patternRightEnd = "(?<=&lt;\\/script)>";
     private static final String patternRightStart1 = "(?<=\\&lt\\;script)\\s*>";
     private static final String patternRightStart2 = "(?<=\\&lt\\;script).*\\s*>";
-    public static String CHARSET = "UTF-8";
-    public static JsonObject MAIN_SETTINGS;
     
+    private final static char[] MULTIPART_CHARS =
+             "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                  .toCharArray();
+
+    public static String generateMultipartBoundary() {
+             StringBuilder buffer = new StringBuilder();
+             Random rand = new Random();
+             int count = rand.nextInt(11) + 30; // a random size from 30 to 40
+             for (int i = 0; i < count; i++) {
+             buffer.append(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
+             }
+             return buffer.toString();
+        }
+
+
     public static String capitalize(String value){
         value = value.toLowerCase();
         return value.substring(0, 1).toUpperCase() + value.substring(1);
@@ -128,18 +163,18 @@ public class ELK {
     
     public static String atob(String value){
         try {
-            return new String(ELK.BASE64_DECODER.decode(value.getBytes(CHARSET)),CHARSET);
+            return new String(Elk.BASE64_DECODER.decode(value.getBytes(charset)),charset);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
     
     public static byte[] atobByte(String value){
         try {
-            return ELK.BASE64_DECODER.decode(value.getBytes(CHARSET));
+            return Elk.BASE64_DECODER.decode(value.getBytes(charset));
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
@@ -153,18 +188,18 @@ public class ELK {
     
     public static String btoa(String value){
         try {
-            return new String(BASE64_ENCODER.encode(value.getBytes(CHARSET)),CHARSET);
+            return new String(BASE64_ENCODER.encode(value.getBytes(charset)),charset);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
     
     public static byte[] btoaByte(String value){
         try {
-            return BASE64_ENCODER.encode(value.getBytes(CHARSET));
+            return BASE64_ENCODER.encode(value.getBytes(charset));
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
@@ -181,7 +216,7 @@ public class ELK {
             
             return new BigInteger(1, crypt.digest()).toString(16);
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
-            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
@@ -361,8 +396,8 @@ public class ELK {
         String result = null;
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-512");
-            md.update(salt.getBytes(CHARSET));
-            byte[] bytes = md.digest(result.getBytes(CHARSET));
+            md.update(salt.getBytes(charset));
+            byte[] bytes = md.digest(result.getBytes(charset));
             StringBuilder sb = new StringBuilder();
             for(int i=0; i< bytes.length ;i++){
                sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
@@ -372,16 +407,16 @@ public class ELK {
         } 
             catch (NoSuchAlgorithmException e){
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
     }
     
     public static byte[] getSha512Bytes(String value, String salt){
         try {
-            return getSha512String(value, salt).getBytes(CHARSET);
+            return getSha512String(value, salt).getBytes(charset);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
@@ -449,7 +484,7 @@ public class ELK {
         try {
             return BCrypt.generateStorngPasswordHash(value);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
-            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
     }
@@ -458,11 +493,46 @@ public class ELK {
         try {
             return BCrypt.validatePassword(originalString, cryptoString);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
-            Logger.getLogger(ELK.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
     }
     
+    /**
+     * 
+     * @param subject The string to analyze
+     * @param regex Your regex
+     * @return the first group matched
+     */
+    public static boolean matchRegex(String subject, String regex){
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(subject);
+        return matcher.find();
+    }
+    
+    
+    /**
+     * 
+     * @param subject The string to analyze
+     * @param regex Your regex
+     * @param group The which you want to extract from the matcher
+     * @return the specified matched group
+     */
+    public static String extractRegexGroup(String subject,String regex,int group){
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(subject);
+        if(matcher.find()){
+            if(group < 0){
+                group = matcher.groupCount() + group;
+            }
+            return matcher.group(group);
+        }
+        return null;
+    }
+    
+    public static String extractRegex(String subject,String regex){
+        return extractRegexGroup(subject, regex, 0);
+    }
     
     
 }

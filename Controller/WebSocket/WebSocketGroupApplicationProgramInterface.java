@@ -8,11 +8,15 @@ package elkserver.Controller.WebSocket;
 import com.google.gson.JsonObject;
 import elkserver.Settings;
 import elkserver.SmtpServer.Email;
-import elkserver.SmtpServer.SmtpListener;
+import elkserver.SmtpServer.EmailComposer;
+import elkserver.SmtpServer.EmailFrame;
 import elkserver.WebSocket.WebSocketController;
 import elkserver.WebSocket.WebSocketEvent;
 import elkserver.WebSocket.WebSocketGroup;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -91,5 +95,5 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
                 group = null;
             }
         }
-    } 
+    }
 }

@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  *
  * @author razvan
  */
-public class EventManager {
+public class EventManager extends Elk{
     protected final HttpHeader clientHeader;
     protected final Map<String,String> queryString = new HashMap<>();
     protected final String location;

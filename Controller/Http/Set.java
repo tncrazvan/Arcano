@@ -30,7 +30,7 @@ import elkserver.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
 import java.util.ArrayList;
 import elkserver.Http.Cookie;
 import elkserver.Http.HttpEvent;
-import elkserver.ELK;
+import elkserver.Elk;
 import elkserver.Http.HttpController;
 import elkserver.Http.HttpSession;
 import elkserver.Settings;
@@ -91,16 +91,16 @@ public class Set extends HttpController{
                     expire = post_data.get("expire").getAsString();
                 e.setCookie(name, value, path, domain, expire);
 
-                String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Cookie", value));
+                String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Cookie", value));
                 e.send(jsonCookie);
                 
                 //System.out.println(e.getHeader().toString());
             }else{
-                String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Error", "-1"));
+                String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Error", "-1"));
                 e.send(jsonCookie);
             }
         }else{
-            String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Error", "-2"));
+            String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Error", "-2"));
             e.send(jsonCookie);
         }
     }

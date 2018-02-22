@@ -12,10 +12,11 @@ package elkserver.SmtpServer;
 public class EmailFrame {
     private final String message;
     private final String[] contentType;
-    EmailFrame(String message, String[] contentType) {
+    public EmailFrame(String message, String contentType, String charset) {
         this.message = message;
-        this.contentType=contentType;
+        this.contentType=new String[]{contentType,charset};
     }
+    
     public String getContentTye(){
         return contentType[0];
     }

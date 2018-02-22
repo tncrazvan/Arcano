@@ -29,7 +29,7 @@ import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import elkserver.Http.Cookie;
 import elkserver.Http.HttpEvent;
-import elkserver.ELK;
+import elkserver.Elk;
 import elkserver.Http.HttpController;
 
 /**
@@ -59,7 +59,7 @@ public class Unset extends HttpController{
                 e.flushHeaders();
             }
         }else{
-            String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Error", "-1"));
+            String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Error", "-1"));
             e.send(jsonCookie);
         }
     }

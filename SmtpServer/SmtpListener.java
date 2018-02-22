@@ -5,8 +5,6 @@
  */
 package elkserver.SmtpServer;
 
-import java.util.ArrayList;
-
 /**
  *
  * @author razvan

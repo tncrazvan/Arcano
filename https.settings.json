@@ -1,18 +1,22 @@
 {
-  "port": 443,
-  "web_root":"path/to/your/website/",
-  "charset": "UTF-8",
-  "bind_address": "::",
-  "controllers":{
-	"http":"elkserver.Controller.Http",
-	"websocket":"elkserver.Controller.WebSocket"
-  },
-  "groups":{
-    "allow":true
-  },
-  "tls":{
-    "certificate":"tls_certificate.jks",
-	"certificate_type":"JKS",
-	"password":"my tls password"
-  }
+    "port":80,
+    "webRoot":"www/",
+    "charset":"UTF-8",
+    "bindAddress":"::",
+    "controllers":{
+            "http":"elkserver.Controller.Http",
+            "websocket":"elkserver.Controller.WebSocket"
+    },
+    "groups":{
+            "allow":true
+    },
+    "smtp":{
+            "allow":true,
+            "hostname":"yourDomainName.com"
+    },
+    "tls":{
+            "certificate":"tls_certificate.jks",
+            "certificateType":"JKS",
+            "password":"yout password"
+    }
 }

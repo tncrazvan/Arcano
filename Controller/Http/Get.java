@@ -30,7 +30,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import elkserver.Http.HttpEvent;
-import elkserver.ELK;
+import elkserver.Elk;
 import elkserver.Http.HttpController;
 
 /**
@@ -45,7 +45,7 @@ public class Get extends HttpController{
     public void onClose() {}
     
     public void file(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) throws FileNotFoundException, IOException{
-        e.setContentType(ELK.processContentType(get_data.get(0)));
+        e.setContentType(Elk.processContentType(get_data.get(0)));
         e.sendFileContents("/"+(get_data.get(0).equals("")?get_data.get(1):get_data.get(0)));
     }
     
@@ -68,7 +68,7 @@ public class Get extends HttpController{
                 String name = post_data.get("name").getAsString();
                 if(e.cookieIsset(name)){
                     e.setContentType("application/json");
-                    String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
+                    String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
                     e.send(jsonCookie);
                 }else{
                     e.setContentType("text/plain");
@@ -81,7 +81,7 @@ public class Get extends HttpController{
                 e.flush();
             }
         }else{
-            String jsonCookie = ELK.JSON_PARSER.toJson(new elkserver.Http.Cookie("Error", "-1"));
+            String jsonCookie = Elk.JSON_PARSER.toJson(new elkserver.Http.Cookie("Error", "-1"));
             e.send(jsonCookie);
         }
     }

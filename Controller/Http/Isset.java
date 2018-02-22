@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import elkserver.Http.Cookie;
 import elkserver.Http.HttpEvent;
-import elkserver.ELK;
+import elkserver.Elk;
 import elkserver.Http.HttpController;
 
 /**
@@ -48,7 +48,7 @@ public class Isset extends HttpController{
     
     public void file(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) throws FileNotFoundException, IOException{
         if(get_data.size() >= 0){
-            File f = new File(ELK.PUBLIC_WWW+"/"+get_data.get(0));
+            File f = new File(Elk.webRoot+"/"+get_data.get(0));
             if(f.exists()){
                 e.send(0);
             }else{
@@ -72,7 +72,7 @@ public class Isset extends HttpController{
                 e.send(-1);
             } 
         }else{
-            String jsonCookie = ELK.JSON_PARSER.toJson(new Cookie("Error", "-1"));
+            String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Error", "-1"));
             e.send(jsonCookie);
         }
     }

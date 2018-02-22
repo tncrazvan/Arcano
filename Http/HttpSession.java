@@ -25,7 +25,7 @@
  */
 package elkserver.Http;
 
-import elkserver.ELK;
+import elkserver.Elk;
 import elkserver.WebSocket.WebSocketEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class HttpSession{
         if(e.cookieIsset("sessionId")){
             id = e.getCookie("sessionId");
         }else{
-            id = ELK.getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random());
+            id = Elk.getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random());
             e.setCookie("sessionId", id, "/");
             SESSION_STORAGE.put(id, null);
         }
@@ -51,7 +51,7 @@ public class HttpSession{
         if(e.cookieIsset("sessionId")){
             id = e.getCookie("sessionId");
         }else{
-            id = ELK.getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random());
+            id = Elk.getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random());
             e.setCookie("sessionId", id, "/");
             SESSION_STORAGE.put(id, null);
         }

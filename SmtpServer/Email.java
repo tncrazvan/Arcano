@@ -15,11 +15,19 @@ public class Email {
     private final String subject,sender;
     private final ArrayList<EmailFrame> frames;
     private final ArrayList<String> recipents;
-    public Email(String subject, String sender, ArrayList<EmailFrame> frames, ArrayList<String> recipents) {
+    public Email(String subject, ArrayList<EmailFrame> frames, String sender, ArrayList<String> recipents) {
         this.subject=subject;
         this.sender=sender;
         this.frames=frames;
         this.recipents=recipents;
+    }
+    
+    public boolean addRecipient(String recipient){
+        return this.recipents.add(recipient);
+    }
+    
+    public boolean removeRcipient(String recipient){
+        return this.recipents.remove(recipient);
     }
     
     public ArrayList<EmailFrame> getFrames(){

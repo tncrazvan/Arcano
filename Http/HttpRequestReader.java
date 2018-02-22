@@ -37,7 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import elkserver.ELK;
+import elkserver.Elk;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -47,7 +47,7 @@ import javax.net.ssl.SSLSocket;
  *
  * @author Razvan
  */
-public abstract class HttpRequestReader extends Thread{
+public abstract class HttpRequestReader extends Elk implements Runnable{
     protected Socket client=null;
     protected SSLSocket secureClient=null;
     protected BufferedReader reader=null;
@@ -104,7 +104,7 @@ public abstract class HttpRequestReader extends Thread{
             HttpHeader clientHeader = HttpHeader.fromString(outputString);
             outputString = "";
             
-            if((clientHeader.get("Method").equals("POST") || ELK.PORT == 25) && !EOFException){
+            if((clientHeader.get("Method").equals("POST") || port == 25) && !EOFException){
                 
                 try {
                     int chunkSize = 2048, offset = 0;
@@ -114,7 +114,7 @@ public abstract class HttpRequestReader extends Thread{
                     keepReading = true;
                     while (keepReading && !arrayIsEmpty) {
                         keepReading = (input.read(tmp, offset, chunkSize)== -1);
-                        arrayIsEmpty = ELK.byteArrayIsEmpty(tmp);
+                        arrayIsEmpty = byteArrayIsEmpty(tmp);
                         outputString += new String(tmp);
                         offset += chunkSize;
                     }
@@ -132,7 +132,7 @@ public abstract class HttpRequestReader extends Thread{
                             if(matcher.find() && currentLabel == null){
                                 currentLabel = matcher.group();
                                 i +=2;
-                                currentValue = ELK.atob(lines[i]);
+                                currentValue = atob(lines[i]);
                                 post.addProperty(currentLabel, currentValue);
                                 currentLabel = null;
                             }

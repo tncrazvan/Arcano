@@ -38,7 +38,7 @@ import java.nio.file.Paths;
 public class Settings {
     private static JsonObject info = null;
     public static void parse(String settings) throws IOException{
-        info = ELK.JSONPARSER.parse(new String(Files.readAllBytes(Paths.get(settings)))).getAsJsonObject();
+        info = Elk.JSONPARSER.parse(new String(Files.readAllBytes(Paths.get(settings)))).getAsJsonObject();
     }
     public static JsonElement get(String membername){
         return info.get(membername);

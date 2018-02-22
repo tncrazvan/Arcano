@@ -33,7 +33,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import elkserver.ELK;
+import elkserver.Elk;
 import java.io.DataOutputStream;
 
 /**
@@ -58,11 +58,11 @@ public class HttpEvent extends HttpEventManager{
         Method onCloseMethod;
         
         
-        String[] uri = ELK.decodeUrl(location).split("/");
+        String[] uri = Elk.decodeUrl(location).split("/");
         if(uri.length>1){
             //System.out.println("Class defined");
             String[] classpath = uri[1].split("\\.");
-            String classname =ELK.HTTP_CONTROLLER_PACKAGE_NAME;
+            String classname =Elk.httpControllerPackageName;
             String tmp = "";
             for(int i =0;i<classpath.length;i++){
                 tmp = classpath[i].substring(0, 1);
@@ -77,7 +77,7 @@ public class HttpEvent extends HttpEventManager{
                 Class.forName(classname);
                 if(!tmp.equals("@")){
                     setContentType("text/html");
-                    sendFileContents(ELK.INDEX_FILE);
+                    sendFileContents(Elk.indexFile);
                     client.close();
                 }else{
                     c = Class.forName(classname);
@@ -123,7 +123,7 @@ public class HttpEvent extends HttpEventManager{
                 
                     
                 try {
-                    c = Class.forName(ELK.HTTP_CONTROLLER_PACKAGE_NAME+"."+ELK.HTTP_CONTROLLER_NOT_FOUND);
+                    c = Class.forName(Elk.httpControllerPackageName+"."+Elk.httpControllerNotFound);
                     
                     x = c.newInstance();
                     m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),post.getClass());
@@ -158,7 +158,7 @@ public class HttpEvent extends HttpEventManager{
         }else{
             try {
                 setContentType("text/html");
-                sendFileContents(ELK.INDEX_FILE);
+                sendFileContents(Elk.indexFile);
             } catch (IOException ex) {
                 Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
             }

@@ -25,7 +25,7 @@
  */
 package elkserver.WebSocket;
 
-import elkserver.ELK;
+import elkserver.Elk;
 import elkserver.Http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +40,7 @@ public class WebSocketGroup {
     private WebSocketEvent master = null;
 
     public WebSocketGroup(HttpSession session) {
-        this.key = ELK.getBCryptString(session.getSessionId());
+        this.key = Elk.getBCryptString(session.getSessionId());
     }
     
     public void addClient(WebSocketEvent e){
@@ -81,6 +81,6 @@ public class WebSocketGroup {
     }
     
     public boolean matchCreator(WebSocketEvent e){
-        return ELK.validateBCryptString(e.getSession().getSessionId(), key);
+        return Elk.validateBCryptString(e.getSession().getSessionId(), key);
     }
 }

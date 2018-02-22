@@ -51,7 +51,7 @@ import javax.net.ssl.TrustManagerFactory;
  *
  * @author Razvan
  */
-public abstract class ElkServer {
+public abstract class ElkServer extends Elk{
     private SmtpServer smtpServer;
     private static final String message = "\n\n"+
 "  ElkServer is a Java library that makes it easier\n" +
@@ -83,7 +83,12 @@ public abstract class ElkServer {
      * @throws java.io.IOException
      * @throws java.security.NoSuchAlgorithmException
      */
-    public static ElkServer server;
+    private static ElkServer server;
+    
+    public static ElkServer getServer(){
+        return server;
+    }
+    
     public static void main (String[] args) throws IOException, NoSuchAlgorithmException{
         class ConsoleServlet extends ElkServer{
             @Override
@@ -94,7 +99,7 @@ public abstract class ElkServer {
         
         
         server = new ConsoleServlet();
-        server.listen(args);
+        server.listen(new String[]{"C:\\Users\\razvan\\Documents\\AtomProjects\\ElkServerGitPage\\http.json"});
         
     }
     
@@ -104,48 +109,39 @@ public abstract class ElkServer {
         return smtpServer;
     }
     
-    String 
-            logLineSeparator = "\n=================================",
-            bindAddress = "127.0.0.1",
-            settings = "",
-            web_root;
-    boolean smtp_allowed = false;
+    
     
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
-        String
-                tmp =args[0].substring(args[0].length()-1, args[0].length());
-        
-        if(args.length > 0){
-            if(!tmp.equals("/") || !tmp.equals("\\")){
-                settings = args[0]+"/";
-            }else{
-                settings = args[0];
-            }
-        }
-        Settings.parse(settings);
+        String logLineSeparator = "\n=================================";
+
+        Settings.parse(args[0]);
         System.out.println(logLineSeparator+"\n###Reading port");
-        ELK.PORT = Settings.getInt("port");
+        port = Settings.getInt("port");
+        System.out.println("\t>>>port:"+port+" [OK]");
         
-        System.out.println("\t>>>port:"+ELK.PORT+" [OK]");
-        System.out.println(logLineSeparator+"\n###Reading bind_address");
-        bindAddress = Settings.getString("bind_address");
-        System.out.println("\t>>>bind_address:"+bindAddress+" [OK]");
-        System.out.println(logLineSeparator+"\n###Reading web_root");
-        web_root = Settings.getString("web_root");
-        System.out.println("\t>>>web_root:"+web_root+" [OK]");
-        ELK.PUBLIC_WWW = new File(settings).getParent()+"/"+web_root;
+        System.out.println(logLineSeparator+"\n###Reading bindAddress");
+        bindAddress = Settings.getString("bindAddress");
+        System.out.println("\t>>>bindAddress:"+bindAddress+" [OK]");
+        
+        System.out.println(logLineSeparator+"\n###Reading webRoot");
+        webRoot = new File(args[0]).getParent()+"/"+Settings.getString("webRoot");
+        System.out.println("\t>>>webRoot:"+webRoot+" [OK]");
+        
         System.out.println(logLineSeparator+"\n###Reading charset");
-        ELK.CHARSET = Settings.getString("charset");
-        System.out.println("\t>>>charset:"+ELK.CHARSET+" [OK]");
+        charset = Settings.getString("charset");
+        System.out.println("\t>>>charset:"+charset+" [OK]");
+        
         System.out.println(logLineSeparator+"\n###Reading controllers");
         JsonObject controllers = Settings.get("controllers").getAsJsonObject();
         System.out.println("\t>>>controllers:[object] [OK]");
+        
         System.out.println(logLineSeparator+"\n###Reading controllers.http");
-        ELK.HTTP_CONTROLLER_PACKAGE_NAME = controllers.get("http").getAsString();
-        System.out.println("\t>>>controllers.http:"+ELK.HTTP_CONTROLLER_PACKAGE_NAME+" [OK]");
+        httpControllerPackageName = controllers.get("http").getAsString();
+        System.out.println("\t>>>controllers.http:"+httpControllerPackageName+" [OK]");
+        
         System.out.println(logLineSeparator+"\n###Reading controllers.websocket");
-        ELK.WS_CONTROLLER_PACKAGE_NAME = controllers.get("websocket").getAsString();
-        System.out.println("\t>>>controllers.websocket:"+ELK.WS_CONTROLLER_PACKAGE_NAME+" [OK]");
+        wsControllerPackageName = controllers.get("websocket").getAsString();
+        System.out.println("\t>>>controllers.websocket:"+wsControllerPackageName+" [OK]");
 
         //checking for SMTP server
         if(Settings.isset("smtp")){
@@ -153,33 +149,43 @@ public abstract class ElkServer {
             JsonObject smtp = Settings.get("smtp").getAsJsonObject();
             System.out.println("\t>>>controllers:[object] [OK]");
             if(smtp.has("allow")){
-                smtp_allowed = smtp.get("allow").getAsBoolean();
+                smtpAllowed = smtp.get("allow").getAsBoolean();
                 System.out.println(logLineSeparator+"\t\n###Reading smtp.allow");
-                System.out.println("\t\t>>>smtp.allow:"+smtp_allowed);
-                if(smtp_allowed){
+                System.out.println("\t\t>>>smtp.allow:"+smtpAllowed);
+                if(smtpAllowed){
                     String smtpBindAddress = bindAddress;
-                    if(smtp.has("bind_address")){
-                        smtpBindAddress = smtp.get("bind_address").getAsString();
+                    if(smtp.has("bindAddress")){
+                        smtpBindAddress = smtp.get("bindAddress").getAsString();
                     }
-                    smtpServer = new SmtpServer(new ServerSocket(),smtpBindAddress,25);
-                    new Thread(smtpServer).start();
+                    if(smtp.has("hostname")){
+                        smtpServer = new SmtpServer(new ServerSocket(),smtpBindAddress,25,smtp.get("hostname").getAsString());
+                        new Thread(smtpServer).start();
+                        System.out.println("###Smtp server started.");
+                    }else{
+                        System.err.println("[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
+                    }
+                    
                 }
             }
         }
         
-        if(ELK.PORT == 443){
+        if(port == 443){
             System.out.println(logLineSeparator+"\n###Reading tls");
             JsonObject tls = Settings.get("tls").getAsJsonObject();
+            
             System.out.println(logLineSeparator+"\t\n###Reading tls.certificate");
             String tls_certificate = tls.get("certificate").getAsString();
             System.out.println("\t\t>>>tls.certificate:"+tls_certificate+" [OK]");
-            System.out.println(logLineSeparator+"\t\n###Reading tls.certificate_type");
-            String certificate_type = tls.get("certificate_type").getAsString();
+            
+            System.out.println(logLineSeparator+"\t\n###Reading tls.certificateType");
+            String certificate_type = tls.get("certificateType").getAsString();
             System.out.println("\t\t>>>tls.certificate_type:"+certificate_type+" [OK]");
+            
             System.out.println(logLineSeparator+"\t\n###Reading tls.password");
             String password = tls.get("password").getAsString();
             System.out.println("\t\t>>>tls.password:***[OK]");
-            SSLContext sslContext = createSSLContext(ELK.PUBLIC_WWW+"../"+tls_certificate,certificate_type,password);
+            
+            SSLContext sslContext = createSSLContext(webRoot+"../"+tls_certificate,certificate_type,password);
             
             
             // Create server socket factory
@@ -187,19 +193,19 @@ public abstract class ElkServer {
 
             // Create server socket
             SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
-            ssl.bind(new InetSocketAddress(bindAddress, ELK.PORT));
+            ssl.bind(new InetSocketAddress(bindAddress, port));
             init();
             System.out.println("===== SERVER LISTENING =====");
-            while(true){
-                new HttpEventListener(ssl.accept()).start();
+            while(listen){
+                new Thread(new HttpEventListener(ssl.accept())).start();
             }
         }else{
             ServerSocket ss = new ServerSocket();
-            ss.bind(new InetSocketAddress(bindAddress, ELK.PORT));
+            ss.bind(new InetSocketAddress(bindAddress, port));
             System.out.println("===== SERVER LISTENING =====");
             init();
-            while(true){
-                new HttpEventListener(ss.accept()).start();
+            while(listen){
+                new Thread(new HttpEventListener(ss.accept())).start();
             }
         }
         

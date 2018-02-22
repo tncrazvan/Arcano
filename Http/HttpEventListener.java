@@ -31,7 +31,7 @@ import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import elkserver.ELK;
+import elkserver.Elk;
 import elkserver.WebSocket.WebSocketEvent;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,7 +49,7 @@ public class HttpEventListener extends HttpRequestReader{
             http2Pattern = Pattern.compile("h2c");
     public HttpEventListener(Socket client) throws IOException, NoSuchAlgorithmException{
         super(client);
-        sessionId = ELK.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());
+        sessionId = Elk.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());
     }
     
     @Override

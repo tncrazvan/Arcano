@@ -33,11 +33,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import elkserver.ELK;
+import elkserver.Elk;
 import elkserver.EventManager;
 import java.io.DataOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -185,8 +184,8 @@ public abstract class HttpEventManager extends EventManager{
         //header = new HttpHeader();
         
         
-        File f = new File(java.net.URLDecoder.decode(ELK.PUBLIC_WWW+location, "UTF-8"));
-        header.set("Content-Type", ELK.processContentType(location));
+        File f = new File(java.net.URLDecoder.decode(Elk.webRoot+location, "UTF-8"));
+        header.set("Content-Type", Elk.processContentType(location));
         if(f.exists() /*&& !location.equals(ELK.INDEX_FILE)*/){
             if(!f.isDirectory()){
                 sendFileContents(f);
@@ -202,7 +201,7 @@ public abstract class HttpEventManager extends EventManager{
                 onControllerRequest(location);
             }else{
                 header.set("Content-Type", "text/plain");
-                onControllerRequest("/@"+ELK.HTTP_CONTROLLER_NOT_FOUND);
+                onControllerRequest("/@"+Elk.httpControllerNotFound);
                 client.close();
             }
         }
@@ -227,7 +226,7 @@ public abstract class HttpEventManager extends EventManager{
     }
     
     public void setUserObject(String name, Object o) throws IOException{
-        send("<script>window."+name+"="+ELK.JSON_PARSER.toJson(o)+";</script>\n");
+        send("<script>window."+name+"="+Elk.JSON_PARSER.toJson(o)+";</script>\n");
     }
     
     public void setUserObject(String name, JsonObject o){
@@ -243,7 +242,7 @@ public abstract class HttpEventManager extends EventManager{
     public void sendHeaders(){
         firstMessage = false;
         try {
-            output.write((header.toString()+"\r\n").getBytes(ELK.CHARSET));
+            output.write((header.toString()+"\r\n").getBytes(Elk.charset));
             output.flush();
             alive = true;
         } catch (IOException ex) {
@@ -287,7 +286,7 @@ public abstract class HttpEventManager extends EventManager{
     
     public void send(String data){
         try {
-            send(data.getBytes(ELK.CHARSET));
+            send(data.getBytes(Elk.charset));
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -301,7 +300,7 @@ public abstract class HttpEventManager extends EventManager{
     }
     
     public void sendFileContents(String filename) throws IOException{
-        sendFileContents(new File(ELK.PUBLIC_WWW+filename));
+        sendFileContents(new File(Elk.webRoot+filename));
     }
     
     public void disableDefaultHeaders(){

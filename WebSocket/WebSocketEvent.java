@@ -26,7 +26,6 @@
 package elkserver.WebSocket;
 
 import java.io.BufferedReader;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,7 +34,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import elkserver.Http.HttpHeader;
-import elkserver.ELK;
+import elkserver.Elk;
 import elkserver.Http.HttpSession;
 
 
@@ -58,11 +57,11 @@ public class WebSocketEvent extends WebSocketManager{
         super(reader,client,clientHeader,requestId);
         session = new HttpSession(this);
         singleton = this;
-        String[] uri = ELK.decodeUrl(location).split("/");
+        String[] uri = Elk.decodeUrl(location).split("/");
         if(uri.length>1){
             //System.out.println("Class defined");
             String[] classpath = uri[1].split("\\.");
-            String classname =ELK.WS_CONTROLLER_PACKAGE_NAME;
+            String classname =Elk.wsControllerPackageName;
             String tmp = "";
             for(int i =0;i<classpath.length;i++){
                 tmp = classpath[i].substring(0, 1);
@@ -91,7 +90,7 @@ public class WebSocketEvent extends WebSocketManager{
                     //Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
                     //System.out.println("HERE");
                     try {
-                        c = Class.forName(ELK.WS_CONTROLLER_PACKAGE_NAME+".ControllerNotFound");
+                        c = Class.forName(Elk.wsControllerPackageName+".ControllerNotFound");
                         x = c.newInstance();
                         if(uri.length > 2){
                             //System.out.println("Parameters defined");
@@ -109,7 +108,7 @@ public class WebSocketEvent extends WebSocketManager{
                 }
             }else{
                 try {
-                    c = Class.forName(ELK.WS_CONTROLLER_PACKAGE_NAME+".ControllerNotFound");
+                    c = Class.forName(Elk.wsControllerPackageName+".ControllerNotFound");
                     x = c.newInstance();
                     if(uri.length > 2){
                         //System.out.println("Parameters defined");
@@ -127,7 +126,7 @@ public class WebSocketEvent extends WebSocketManager{
             }
         }else{
             try {
-                c = Class.forName(ELK.WS_CONTROLLER_PACKAGE_NAME+".ControllerNotFound");
+                c = Class.forName(Elk.wsControllerPackageName+".ControllerNotFound");
                 x = c.newInstance();
                 if(uri.length > 2){
                     //System.out.println("Parameters defined");
@@ -150,7 +149,7 @@ public class WebSocketEvent extends WebSocketManager{
     protected void onClose(Socket client) {
         
         try {
-            ELK.WS_EVENTS.get(c.getCanonicalName()).remove(singleton);
+            Elk.WS_EVENTS.get(c.getCanonicalName()).remove(singleton);
             onCloseMethod.invoke(x,this.singleton,args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
@@ -161,12 +160,12 @@ public class WebSocketEvent extends WebSocketManager{
     protected void onOpen(Socket client) {        
         try {
             
-            if(ELK.WS_EVENTS.get(c.getCanonicalName()) == null){
+            if(Elk.WS_EVENTS.get(c.getCanonicalName()) == null){
                 ArrayList<WebSocketEvent> tmp = new ArrayList<>();
                 tmp.add(singleton);
-                ELK.WS_EVENTS.put(c.getCanonicalName(), tmp);
+                Elk.WS_EVENTS.put(c.getCanonicalName(), tmp);
             }else{
-                ELK.WS_EVENTS.get(c.getCanonicalName()).add(singleton);
+                Elk.WS_EVENTS.get(c.getCanonicalName()).add(singleton);
             }
             onOpenMethod.invoke(x,this.singleton,args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
