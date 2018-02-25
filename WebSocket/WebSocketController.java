@@ -25,13 +25,14 @@
  */
 package elkserver.WebSocket;
 
+import elkserver.Elk;
 import java.util.ArrayList;
 
 /**
  *
  * @author razvan
  */
-public abstract class WebSocketController{
+public abstract class WebSocketController extends Elk{
     public static final WebSocketGroupManager GROUP_MANAGER = new WebSocketGroupManager();
     public abstract void onOpen(WebSocketEvent e, ArrayList<String> get_data);
     public abstract  void onMessage(WebSocketEvent e, byte[] data, ArrayList<String> get_data);
