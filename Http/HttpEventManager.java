@@ -196,12 +196,17 @@ public abstract class HttpEventManager extends EventManager{
         }else{
             if(location.substring(1,2).equals("@")){
                 if(header.get("Content-Type").equals("")){
-                    header.set("Content-Type", "text/plain");
+                    header.set("Content-Type", "text/html");
                 }
                 onControllerRequest(location);
             }else{
-                header.set("Content-Type", "text/plain");
-                onControllerRequest("/@"+Elk.httpControllerNotFound);
+                header.set("Content-Type", "text/html");
+                try{
+                    Class.forName(httpControllerPackageName+"."+location.substring(1));
+                    sendFileContents(indexFile);
+                }catch(ClassNotFoundException ex){
+                    onControllerRequest("/@"+Elk.httpControllerNotFound);
+                }
                 client.close();
             }
         }
