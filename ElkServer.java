@@ -99,7 +99,7 @@ public abstract class ElkServer extends Elk{
         
         
         server = new ConsoleServlet();
-        server.listen(new String[]{"C:\\Users\\razvan\\Documents\\AtomProjects\\ElkServerGitPage\\http.json"});
+        server.listen(args);
         
     }
     

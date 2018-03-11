@@ -59,11 +59,11 @@ public abstract class WebSocketManager extends EventManager{
     private Map<String,String> userLanguages = new HashMap<>();
     protected byte[] oldMask;
     protected byte[] mask;
+    protected long length;
     protected int 
             oldOpCode,
             oldLength,
             opCode,
-            length,
             payloadOffset = 0,
             digestIndex = 0;
     private boolean 
@@ -189,6 +189,7 @@ public abstract class WebSocketManager extends EventManager{
         if(startNew){
             mask = new byte[4];
             length = (int)payload[1] & 127;
+            
             if(length == 126){
                 length = ((payload[2] & 0xff) << 8) | (payload[3] & 0xff);
                 
@@ -202,6 +203,10 @@ public abstract class WebSocketManager extends EventManager{
                 //Return the value to local_length. 
                 //Declare a and b for later use.
                 long local_length = payload[2] & 0xff, a, b;
+                //System.out.println("##############################");
+                
+                /*System.out.println("\tpayload[1] \n\t\t"+Long.toBinaryString(payload[1])+"(Value:"+(payload[1])+")");
+                System.out.println("\tpayload[2] \n\t\t"+Long.toBinaryString(local_length)+"(Value:"+local_length+")");*/
                 for(int pos = 3;pos < 10;pos++){
                     //get the updated value
                     a = local_length;
@@ -212,10 +217,16 @@ public abstract class WebSocketManager extends EventManager{
                     
                     //truncate the peyload item
                     b = payload[pos] & 0xff;
-                    
                     //Concatenate b to local_length by executing bitwise OR between a and b.
                     //Note that a is 8 bits longer each iteration, and the right most 8 bits are all set to "0",
                     local_length = a | b;
+                    /*System.out.println("\tpayload["+pos+"] \n\t\t"
+                            +Long.toBinaryString(a)
+                            + "+\n\t\t"
+                            +Long.toBinaryString(b)
+                            +"\n\t\t----------------------------------------------"
+                            +"\n\t\t"
+                            +Long.toBinaryString(local_length)+"(Value:"+local_length+")");*/
                     //This operation would looks something like this:
                     /*
                         xx...x00000000 +
@@ -224,8 +235,8 @@ public abstract class WebSocketManager extends EventManager{
                         xx...xxxxxxxxx
                     */
                 }
-                
-                length = (int) local_length;
+                //System.out.println("\tValue:"+local_length+"("+Long.toBinaryString(local_length)+")");
+                length = local_length & 0xffffffff;
                 
                 //get the mask after getting the length
                 mask = Arrays.copyOfRange(payload, 10, 14);
@@ -236,8 +247,9 @@ public abstract class WebSocketManager extends EventManager{
                 payloadOffset = 6;
             }
 
-            startNew=false;
-            digest = new byte[length];
+            startNew = false;
+            System.out.println("Length:"+length+", opcode:"+opCode);
+            digest = new byte[(int)length];
             digestIndex = 0;
         }else{
             payloadOffset = 0;
