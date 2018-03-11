@@ -57,21 +57,9 @@ public abstract class WebSocketManager extends EventManager{
     protected final String requesteId;
     protected final OutputStream outputStream;
     private Map<String,String> userLanguages = new HashMap<>();
-    protected byte[] oldMask;
-    protected byte[] mask;
-    protected long length;
-    protected int 
-            oldOpCode,
-            oldLength,
-            opCode,
-            payloadOffset = 0,
-            digestIndex = 0;
-    private boolean 
-            connected = true;
-    private byte[] digest = new byte[8];
-    private boolean startNew = true;
+    private boolean connected = true;
+    private WebSocketFrame originalFrame = null, precedingFrame = null;
     
-    private long prev_hit;
     //private final HttpHeader header;
     public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader,String requestId) throws IOException {
         super(clientHeader);
@@ -104,34 +92,37 @@ public abstract class WebSocketManager extends EventManager{
     }
     
     public void execute(){
-        new Thread(()->{
-            try {
-                String acceptKey = DatatypeConverter.printBase64Binary(Elk.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + Elk.wsAcceptKey));
-                
-                header.set("Status", "HTTP/1.1 101 Switching Protocols");
-                header.set("Connection","Upgrade");
-                header.set("Upgrade","websocket");
-                header.set("Sec-WebSocket-Accept",acceptKey);
-                outputStream.write((header.toString()+"\r\n").getBytes());
-                outputStream.flush();
-                onOpen(client);
-                byte[] data = new byte[Elk.wsMtu];
-                //char[] data = new char[128];
-                InputStream read = client.getInputStream();
-                int bytes = 0;
-                while(connected){
-                    bytes = read.read(data);
-                    if(unmask(data, bytes)){
-                        onMessage(client, digest);
-                        startNew = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String acceptKey = DatatypeConverter.printBase64Binary(Elk.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + Elk.wsAcceptKey));
+                    
+                    header.set("Status", "HTTP/1.1 101 Switching Protocols");
+                    header.set("Connection","Upgrade");
+                    header.set("Upgrade","websocket");
+                    header.set("Sec-WebSocket-Accept",acceptKey);
+                    outputStream.write((header.toString()+"\r\n").getBytes());
+                    outputStream.flush();
+                    onOpen(client);
+                    byte[] data = new byte[Elk.wsMtu];
+                    //char[] data = new char[128];
+                    InputStream read = client.getInputStream();
+                    int bytes;
+                    while(connected){
+                        bytes = read.read(data);
+                        if(bytes == -1){
+                            close();
+                        }else{
+                            unmask(data, bytes);
+                        }
                     }
+                } catch (IOException ex) {
+                    close();
+                } catch (NoSuchAlgorithmException ex) {
+                    Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            } catch (IOException ex) {
-                close();
-            } catch (NoSuchAlgorithmException ex) {
-                Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
         }).start();
 
         
@@ -162,117 +153,9 @@ public abstract class WebSocketManager extends EventManager{
              +---------------------------------------------------------------+
         */
     
-    
-    public boolean unmask(byte[] payload,int bytes) throws UnsupportedEncodingException{
-        //System.out.println("---------- NEW -----------");
-        if(bytes == -1){
-            close();
-            return false;
-        }
-        
-        int i = 0;
-        boolean fin =  (int)(payload[0] & 0x77) != 1;
-        opCode = (byte)(payload[0] & 0x0F);
-        // 0x88 = 10001000 --> Decimal from signed 2's complement: -120
-        // which means opCode = 8 and fin = 1
-        // this is the standard way that all browsers use 
-        // to indicate and end connection frame
-        // I make sure there is no
-        //System.out.println("payload[0]:"+payload[0]+",bytes:"+bytes);
-        if(payload[0] == -120 && bytes <= 8){
-            close();
-            return false;
-        }else if(bytes <= 6){
-            return false;
-        }
-        
-        if(startNew){
-            mask = new byte[4];
-            length = (int)payload[1] & 127;
-            
-            if(length == 126){
-                length = ((payload[2] & 0xff) << 8) | (payload[3] & 0xff);
-                
-                //get the mask after getting the length
-                mask = Arrays.copyOfRange(payload, 4, 8);
-                payloadOffset = 8;
-
-            }else if(length == 127){
-                //get payload[2] and truncate it on 8 bits by executeing 
-                //bitwise AND on 0xff (which is hex for "11111111"). 
-                //Return the value to local_length. 
-                //Declare a and b for later use.
-                long local_length = payload[2] & 0xff, a, b;
-                //System.out.println("##############################");
-                
-                /*System.out.println("\tpayload[1] \n\t\t"+Long.toBinaryString(payload[1])+"(Value:"+(payload[1])+")");
-                System.out.println("\tpayload[2] \n\t\t"+Long.toBinaryString(local_length)+"(Value:"+local_length+")");*/
-                for(int pos = 3;pos < 10;pos++){
-                    //get the updated value
-                    a = local_length;
-                    
-                    //shift to left by 8 positions, 
-                    //in order to free space for the next byte
-                    a = a << 8;
-                    
-                    //truncate the peyload item
-                    b = payload[pos] & 0xff;
-                    //Concatenate b to local_length by executing bitwise OR between a and b.
-                    //Note that a is 8 bits longer each iteration, and the right most 8 bits are all set to "0",
-                    local_length = a | b;
-                    /*System.out.println("\tpayload["+pos+"] \n\t\t"
-                            +Long.toBinaryString(a)
-                            + "+\n\t\t"
-                            +Long.toBinaryString(b)
-                            +"\n\t\t----------------------------------------------"
-                            +"\n\t\t"
-                            +Long.toBinaryString(local_length)+"(Value:"+local_length+")");*/
-                    //This operation would looks something like this:
-                    /*
-                        xx...x00000000 +
-                        00...0xxxxxxxx
-                        --------------
-                        xx...xxxxxxxxx
-                    */
-                }
-                //System.out.println("\tValue:"+local_length+"("+Long.toBinaryString(local_length)+")");
-                length = local_length & 0xffffffff;
-                
-                //get the mask after getting the length
-                mask = Arrays.copyOfRange(payload, 10, 14);
-                payloadOffset = 14;
-            }else{
-                //get the mask after getting the length
-                mask = Arrays.copyOfRange(payload, 2, 6);
-                payloadOffset = 6;
-            }
-
-            startNew = false;
-            System.out.println("Length:"+length+", opcode:"+opCode);
-            digest = new byte[(int)length];
-            digestIndex = 0;
-        }else{
-            payloadOffset = 0;
-        }
-        
-        
-        
-        if(fin){
-            payloadOffset = 0;
-        }
-        
-        byte currentByte;
-        while(digestIndex < digest.length && (payloadOffset+i) < bytes){
-            currentByte = (byte) (payload[(payloadOffset+i)] ^ mask[digestIndex%mask.length]);
-            digest[digestIndex] = currentByte;
-            digestIndex++;
-            i++;
-        }
-        if(digestIndex == digest.length){
-            return true;
-        }
-        return false;
-        
+    public void unmask(byte[] payload,int bytes) throws UnsupportedEncodingException{
+        WebSocketFrame frame = new WebSocketFrame(payload,bytes,originalFrame);
+        onMessage(client, frame.getDigestedPayload());
     }
     
     public void close(){

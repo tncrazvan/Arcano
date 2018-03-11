@@ -102,10 +102,16 @@ public class Elk {
     private static final String patternRightStart1 = "(?<=\\&lt\\;script)\\s*>";
     private static final String patternRightStart2 = "(?<=\\&lt\\;script).*\\s*>";
     
+    
     private final static char[] MULTIPART_CHARS =
              "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
                   .toCharArray();
 
+    
+    public static long getUnsignedInt(int x) {
+        return x & 0x00000000ffffffffL;
+    }
+    
     public static String generateMultipartBoundary() {
              StringBuilder buffer = new StringBuilder();
              Random rand = new Random();
@@ -419,6 +425,10 @@ public class Elk {
             Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
+    }
+
+    public static String atob(byte[] digest) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     

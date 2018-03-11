@@ -7,16 +7,10 @@ package elkserver.Controller.WebSocket;
 
 import com.google.gson.JsonObject;
 import elkserver.Settings;
-import elkserver.SmtpServer.Email;
-import elkserver.SmtpServer.EmailComposer;
-import elkserver.SmtpServer.EmailFrame;
 import elkserver.WebSocket.WebSocketController;
 import elkserver.WebSocket.WebSocketEvent;
 import elkserver.WebSocket.WebSocketGroup;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -67,7 +61,7 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
             e.close();
         }
     }
-
+    private int counter = 0;
     @Override
     public void onMessage(WebSocketEvent e, byte[] data, ArrayList<String> get_data) {
         //send data to everyone inside the group except for this client (obviously)
