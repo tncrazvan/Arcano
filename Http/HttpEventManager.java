@@ -202,7 +202,7 @@ public abstract class HttpEventManager extends EventManager{
             }else{
                 header.set("Content-Type", "text/html");
                 try{
-                    Class.forName(httpControllerPackageName+"."+location.substring(1));
+                    Class.forName(httpControllerPackageName+"."+location.substring(1).split("[#?&/\\\\]")[0]);
                     sendFileContents(indexFile);
                 }catch(ClassNotFoundException ex){
                     onControllerRequest("/@"+Elk.httpControllerNotFound);

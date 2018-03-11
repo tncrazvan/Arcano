@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,6 +40,7 @@ import java.util.logging.Logger;
 import elkserver.Http.HttpHeader;
 import elkserver.Elk;
 import elkserver.EventManager;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.xml.bind.DatatypeConverter;
@@ -58,7 +58,6 @@ public abstract class WebSocketManager extends EventManager{
     protected final OutputStream outputStream;
     private Map<String,String> userLanguages = new HashMap<>();
     private boolean connected = true;
-    private WebSocketFrame originalFrame = null, precedingFrame = null;
     
     //private final HttpHeader header;
     public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader,String requestId) throws IOException {
@@ -111,10 +110,9 @@ public abstract class WebSocketManager extends EventManager{
                     int bytes;
                     while(connected){
                         bytes = read.read(data);
-                        if(bytes == -1){
-                            close();
-                        }else{
-                            unmask(data, bytes);
+                        if(unmask(data, bytes)){
+                            onMessage(client, digest);
+                            startNew = true;
                         }
                     }
                 } catch (IOException ex) {
@@ -153,9 +151,98 @@ public abstract class WebSocketManager extends EventManager{
              +---------------------------------------------------------------+
         */
     
-    public void unmask(byte[] payload,int bytes) throws UnsupportedEncodingException{
-        WebSocketFrame frame = new WebSocketFrame(payload,bytes,originalFrame);
-        onMessage(client, frame.getDigestedPayload());
+    protected byte[] mask;
+    protected int 
+            opCode,
+            length,
+            payloadOffset = 0,
+            digestIndex = 0;
+    private byte[] digest = new byte[8];
+    private boolean startNew = true;
+    public boolean unmask(byte[] payload,int bytes) throws UnsupportedEncodingException{
+        //System.out.println("---------- NEW -----------");
+        if(bytes == -1){
+            close();
+            return false;
+        }
+        
+        int i = 0;
+        boolean fin =  (int)(payload[0] & 0x77) != 1;
+        opCode = (byte)(payload[0] & 0x0F);
+        // 0x88 = 10001000 = -120
+        // which means opCode = 8 and fin = 1
+        // this is the standard way that all browsers use 
+        // to indicate and end connection frame
+        // I make sure there is no
+        //System.out.println("payload[0]:"+payload[0]+",bytes:"+bytes);
+        if(payload[0] == -120 && bytes <= 8){
+            close();
+            return false;
+        }else if(bytes <= 6){
+            return false;
+        }
+        
+        if(startNew){
+        mask = new byte[4];
+        length = (int)payload[1] & 127;
+        if(length == 126){
+            length = ((payload[2] & 0xff) << 8) | (payload[3] & 0xff);
+            mask[0] = payload[4];
+            mask[1] = payload[5];
+            mask[2] = payload[6];
+            mask[3] = payload[7];
+            payloadOffset = 8;
+
+        }else if(length == 127){
+            byte[] tmp = new byte[8];
+            tmp[0] = payload[2];
+            tmp[1] = payload[3];
+            tmp[2] = payload[4];
+            tmp[3] = payload[5];
+            tmp[4] = payload[6];
+            tmp[5] = payload[7];
+            tmp[6] = payload[8];
+            tmp[7] = payload[9];
+
+            length = (int)ByteBuffer.wrap(tmp).getLong();
+            mask[0] = payload[10];
+            mask[1] = payload[11];
+            mask[2] = payload[12];
+            mask[3] = payload[13];
+            payloadOffset = 14;
+        }else{
+            mask[0] = payload[2];
+            mask[1] = payload[3];
+            mask[2] = payload[4];
+            mask[3] = payload[5];
+            payloadOffset = 6;
+        }
+
+        startNew=false;
+        digest = new byte[length];
+        digestIndex = 0;
+    }else{
+        payloadOffset = 0;
+    }
+        
+        
+        
+        if(fin){
+            payloadOffset = 0;
+        }
+        
+        byte currentByte;
+        while(digestIndex < digest.length && (payloadOffset+i) < bytes){
+            currentByte = (byte) (payload[(payloadOffset+i)] ^ mask[digestIndex%mask.length]);
+            digest[digestIndex] = currentByte;
+            digestIndex++;
+            i++;
+        }
+        if(digestIndex == digest.length){
+            return true;
+        }
+        return false;
+        
     }
     
     public void close(){
