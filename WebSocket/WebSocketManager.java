@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,10 +41,11 @@ import java.util.logging.Logger;
 import elkserver.Http.HttpHeader;
 import elkserver.Elk;
 import elkserver.EventManager;
-import java.nio.ByteBuffer;
+import java.io.DataInputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import javax.xml.bind.DatatypeConverter;
+import static sun.security.krb5.Confounder.bytes;
 
 /**
  *
@@ -107,13 +109,11 @@ public abstract class WebSocketManager extends EventManager{
                     byte[] data = new byte[Elk.wsMtu];
                     //char[] data = new char[128];
                     InputStream read = client.getInputStream();
+                    DataInputStream dis = new DataInputStream(read);
                     int bytes;
+                    byte tmp;
                     while(connected){
-                        bytes = read.read(data);
-                        if(unmask(data, bytes)){
-                            onMessage(client, digest);
-                            startNew = true;
-                        }
+                        unmask(dis.readByte());
                     }
                 } catch (IOException ex) {
                     close();
@@ -150,99 +150,113 @@ public abstract class WebSocketManager extends EventManager{
              |                     Payload Data continued ...                |
              +---------------------------------------------------------------+
         */
+    private final WebSocketFrameTools tools = new WebSocketFrameTools();
+    /*private boolean fin,continuing = false,rsv1,rsv2,rsv3;
+    private byte opcode;
+    private int length,lengthByte, lastIndex = 0, byteCount, lastLastIndex;
+    private byte[] mask, decoded;
+    private String result = "";
+    private int t = 0;
+    private ByteBuffer buf;
+    private int b;
     
-    protected byte[] mask;
-    protected int 
-            opCode,
-            length,
-            payloadOffset = 0,
-            digestIndex = 0;
-    private byte[] digest = new byte[8];
-    private boolean startNew = true;
-    public boolean unmask(byte[] payload,int bytes) throws UnsupportedEncodingException{
-        //System.out.println("---------- NEW -----------");
-        if(bytes == -1){
-            close();
-            return false;
+    buf = ByteBuffer.wrap(payload);
+    b = buf.get();//index=0
+    fin = ((b & 0x80) != 0);
+    //System.out.println("fin="+fin);
+    rsv1 = ((b & 0x40) != 0);
+    rsv2 = ((b & 0x20) != 0);
+    rsv3 = ((b & 0x10) != 0);
+    opcode = (byte)(b & 0x0F);
+    //System.out.println("opcode="+opcode);
+    b = buf.get(); //   index=1
+    lengthByte = b & 0x7F;
+    byteCount = tools.parseByteCount(lengthByte);
+    length = tools.parseLength(buf, lengthByte);
+    //System.out.println("length="+length);
+    //System.out.println("bytes="+bytes);
+    decoded = new byte[length];
+    mask = tools.parseMask(buf);*/
+    private final int FIRST_BYTE = 0, SECOND_BYTE = 1, LENGTH2 = 2, LENGTH8 = 3, MASK = 4, PAYLOAD = 5, DONE = 6;
+    private int lengthKey = 0, reading = FIRST_BYTE, lengthIndex = 0, maskIndex = 0, payloadIndex = 0, payloadLength = 0;
+    private boolean fin,rsv1,rsv2,rsv3;
+    private byte opcode;
+    private byte[] payload = null,mask = null,length = null;
+    public void unmask(byte b) throws UnsupportedEncodingException{
+        //System.out.println("=================================");
+        switch (reading) {
+            case FIRST_BYTE:
+                fin = ((b & 0x80) != 0);
+                rsv1 = ((b & 0x40) != 0);
+                rsv2 = ((b & 0x20) != 0);
+                rsv3 = ((b & 0x10) != 0);
+                opcode = (byte)(b & 0x0F);
+                mask = new byte[4];
+                reading = SECOND_BYTE;
+                break;
+            case SECOND_BYTE:
+                lengthKey = b & 127;
+                if(lengthKey <= 125){
+                    length = new byte[1];
+                    length[0] = (byte) lengthKey;
+                    reading = MASK;
+                }else if(lengthKey == 126){
+                    reading = LENGTH2;
+                    length = new byte[2];
+                }else if(lengthKey == 127){
+                    reading = LENGTH8;
+                    length = new byte[8];
+                }   
+                break;
+            case LENGTH2:
+                length[lengthIndex] = b;
+                lengthIndex++;
+                if(lengthIndex == 2){
+                    payloadLength = ((length[0] & 0xff) << 8) | (length[1] & 0xff);
+                    reading = MASK;
+                }   
+                break;
+            case LENGTH8:
+                length[lengthIndex] = b;
+                lengthIndex++;
+                if(lengthIndex == 8){
+                    payloadLength = length[0] & 0xff;
+                    for(int i = 1; i<length.length;i++){
+                        payloadLength = ((payloadLength) << 8)  | (length[i] & 0xff);
+                    }
+                    reading = MASK;
+                }   
+                break;
+            case MASK:
+                mask[maskIndex] = b;
+                maskIndex++;
+                if(maskIndex == 4){
+                    reading = PAYLOAD;
+                    //int l = (int)ByteBuffer.wrap(length).getLong();
+                    payload = new byte[payloadLength];
+                }   
+                break;
+            case PAYLOAD:
+                payload[payloadIndex] = (byte) (b ^ mask[payloadIndex%4]);
+                payloadIndex++;
+                if(payloadIndex == payload.length-1){
+                    reading = DONE;
+                }   
+                break;
+            case DONE:
+                onMessage(client, payload);
+                lengthKey = 0;
+                reading = FIRST_BYTE;
+                lengthIndex = 0;
+                maskIndex = 0;
+                payloadIndex = 0;
+                payload = null;
+                mask = null;
+                length = null;
+                break;
+            default:
+                break;
         }
-        
-        int i = 0;
-        boolean fin =  (int)(payload[0] & 0x77) != 1;
-        opCode = (byte)(payload[0] & 0x0F);
-        // 0x88 = 10001000 = -120
-        // which means opCode = 8 and fin = 1
-        // this is the standard way that all browsers use 
-        // to indicate and end connection frame
-        // I make sure there is no
-        //System.out.println("payload[0]:"+payload[0]+",bytes:"+bytes);
-        if(payload[0] == -120 && bytes <= 8){
-            close();
-            return false;
-        }else if(bytes <= 6){
-            return false;
-        }
-        
-        if(startNew){
-        mask = new byte[4];
-        length = (int)payload[1] & 127;
-        if(length == 126){
-            length = ((payload[2] & 0xff) << 8) | (payload[3] & 0xff);
-            mask[0] = payload[4];
-            mask[1] = payload[5];
-            mask[2] = payload[6];
-            mask[3] = payload[7];
-            payloadOffset = 8;
-
-        }else if(length == 127){
-            byte[] tmp = new byte[8];
-            tmp[0] = payload[2];
-            tmp[1] = payload[3];
-            tmp[2] = payload[4];
-            tmp[3] = payload[5];
-            tmp[4] = payload[6];
-            tmp[5] = payload[7];
-            tmp[6] = payload[8];
-            tmp[7] = payload[9];
-
-            length = (int)ByteBuffer.wrap(tmp).getLong();
-            mask[0] = payload[10];
-            mask[1] = payload[11];
-            mask[2] = payload[12];
-            mask[3] = payload[13];
-            payloadOffset = 14;
-        }else{
-            mask[0] = payload[2];
-            mask[1] = payload[3];
-            mask[2] = payload[4];
-            mask[3] = payload[5];
-            payloadOffset = 6;
-        }
-
-        startNew=false;
-        digest = new byte[length];
-        digestIndex = 0;
-    }else{
-        payloadOffset = 0;
-    }
-        
-        
-        
-        if(fin){
-            payloadOffset = 0;
-        }
-        
-        byte currentByte;
-        while(digestIndex < digest.length && (payloadOffset+i) < bytes){
-            currentByte = (byte) (payload[(payloadOffset+i)] ^ mask[digestIndex%mask.length]);
-            digest[digestIndex] = currentByte;
-            digestIndex++;
-            i++;
-        }
-        if(digestIndex == digest.length){
-            return true;
-        }
-        return false;
-        
     }
     
     public void close(){
