@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,11 +40,13 @@ import java.util.logging.Logger;
 import elkserver.Http.HttpHeader;
 import elkserver.Elk;
 import elkserver.EventManager;
-import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Date;
 import java.util.Iterator;
 import javax.xml.bind.DatatypeConverter;
-import static sun.security.krb5.Confounder.bytes;
 
 /**
  *
@@ -106,14 +107,13 @@ public abstract class WebSocketManager extends EventManager{
                     outputStream.write((header.toString()+"\r\n").getBytes());
                     outputStream.flush();
                     onOpen(client);
-                    byte[] data = new byte[Elk.wsMtu];
-                    //char[] data = new char[128];
-                    InputStream read = client.getInputStream();
-                    DataInputStream dis = new DataInputStream(read);
+                    byte[] data = new byte[1];
+                    byte currentByte;
                     int bytes;
-                    byte tmp;
+                    InputStream read = client.getInputStream();
+
                     while(connected){
-                        unmask(dis.readByte());
+                        unmask((byte) read.read());
                     }
                 } catch (IOException ex) {
                     close();
@@ -156,7 +156,8 @@ public abstract class WebSocketManager extends EventManager{
     private boolean fin,rsv1,rsv2,rsv3;
     private byte opcode;
     private byte[] payload = null,mask = null,length = null;
-    public void unmask(byte b) throws UnsupportedEncodingException{
+    private String base = "";
+    public void unmask(byte b) throws UnsupportedEncodingException, IOException{
         //System.out.println("=================================");
         switch (reading) {
             case FIRST_BYTE:
@@ -165,6 +166,9 @@ public abstract class WebSocketManager extends EventManager{
                 rsv2 = ((b & 0x20) != 0);
                 rsv3 = ((b & 0x10) != 0);
                 opcode = (byte)(b & 0x0F);
+                if(opcode == 0x8){
+                    close();
+                }
                 mask = new byte[4];
                 reading = SECOND_BYTE;
                 break;
@@ -173,6 +177,7 @@ public abstract class WebSocketManager extends EventManager{
                 if(lengthKey <= 125){
                     length = new byte[1];
                     length[0] = (byte) lengthKey;
+                    payloadLength = lengthKey & 0xff;
                     reading = MASK;
                 }else if(lengthKey == 126){
                     reading = LENGTH2;
@@ -188,8 +193,7 @@ public abstract class WebSocketManager extends EventManager{
                 if(lengthIndex == 2){
                     payloadLength = ((length[0] & 0xff) << 8) | (length[1] & 0xff);
                     reading = MASK;
-                }   
-                break;
+                }   break;
             case LENGTH8:
                 length[lengthIndex] = b;
                 lengthIndex++;
@@ -211,13 +215,17 @@ public abstract class WebSocketManager extends EventManager{
                 }   
                 break;
             case PAYLOAD:
-                payload[payloadIndex] = (byte) (b ^ mask[payloadIndex%4]);
-                payloadIndex++;
+                try{
+                    payload[payloadIndex] = (byte) (b ^ mask[payloadIndex%4]);
+                }catch(Exception e){
+                    e.printStackTrace();
+                }   payloadIndex++;
                 if(payloadIndex == payload.length-1){
                     reading = DONE;
                 }   
                 break;
             case DONE:
+                payload[payloadIndex] = (byte) (b ^ mask[payloadIndex%4]);
                 onMessage(client, payload);
                 lengthKey = 0;
                 reading = FIRST_BYTE;
@@ -231,6 +239,7 @@ public abstract class WebSocketManager extends EventManager{
             default:
                 break;
         }
+        
     }
     
     public void close(){
