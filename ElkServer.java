@@ -99,7 +99,6 @@ public abstract class ElkServer extends Elk{
         
         
         server = new ConsoleServlet();
-        args = new String[]{"C:\\xampp\\htdocs\\playlist\\http.json"};
         server.listen(args);
         
     }
