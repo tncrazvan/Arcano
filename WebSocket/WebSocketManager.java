@@ -224,7 +224,6 @@ public abstract class WebSocketManager extends EventManager{
                 if(payloadIndex == payload.length){
                     reading = DONE;
                     
-                    System.out.println(new String(payload));
                     onMessage(client, payload);
                     lengthKey = 0;
                     reading = FIRST_BYTE;
