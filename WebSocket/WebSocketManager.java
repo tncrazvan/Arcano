@@ -219,24 +219,22 @@ public abstract class WebSocketManager extends EventManager{
                     payload[payloadIndex] = (byte) (b ^ mask[payloadIndex%4]);
                 }catch(Exception e){
                     e.printStackTrace();
-                }   payloadIndex++;
-                if(payloadIndex == payload.length-1){
-                    reading = DONE;
                 }   
-                break;
-            case DONE:
-                payload[payloadIndex] = (byte) (b ^ mask[payloadIndex%4]);
-                onMessage(client, payload);
-                lengthKey = 0;
-                reading = FIRST_BYTE;
-                lengthIndex = 0;
-                maskIndex = 0;
-                payloadIndex = 0;
-                payload = null;
-                mask = null;
-                length = null;
-                break;
-            default:
+                payloadIndex++;
+                if(payloadIndex == payload.length){
+                    reading = DONE;
+                    
+                    System.out.println(new String(payload));
+                    onMessage(client, payload);
+                    lengthKey = 0;
+                    reading = FIRST_BYTE;
+                    lengthIndex = 0;
+                    maskIndex = 0;
+                    payloadIndex = 0;
+                    payload = null;
+                    mask = null;
+                    length = null;
+                }   
                 break;
         }
         
