@@ -150,33 +150,7 @@ public abstract class WebSocketManager extends EventManager{
              |                     Payload Data continued ...                |
              +---------------------------------------------------------------+
         */
-    private final WebSocketFrameTools tools = new WebSocketFrameTools();
-    /*private boolean fin,continuing = false,rsv1,rsv2,rsv3;
-    private byte opcode;
-    private int length,lengthByte, lastIndex = 0, byteCount, lastLastIndex;
-    private byte[] mask, decoded;
-    private String result = "";
-    private int t = 0;
-    private ByteBuffer buf;
-    private int b;
     
-    buf = ByteBuffer.wrap(payload);
-    b = buf.get();//index=0
-    fin = ((b & 0x80) != 0);
-    //System.out.println("fin="+fin);
-    rsv1 = ((b & 0x40) != 0);
-    rsv2 = ((b & 0x20) != 0);
-    rsv3 = ((b & 0x10) != 0);
-    opcode = (byte)(b & 0x0F);
-    //System.out.println("opcode="+opcode);
-    b = buf.get(); //   index=1
-    lengthByte = b & 0x7F;
-    byteCount = tools.parseByteCount(lengthByte);
-    length = tools.parseLength(buf, lengthByte);
-    //System.out.println("length="+length);
-    //System.out.println("bytes="+bytes);
-    decoded = new byte[length];
-    mask = tools.parseMask(buf);*/
     private final int FIRST_BYTE = 0, SECOND_BYTE = 1, LENGTH2 = 2, LENGTH8 = 3, MASK = 4, PAYLOAD = 5, DONE = 6;
     private int lengthKey = 0, reading = FIRST_BYTE, lengthIndex = 0, maskIndex = 0, payloadIndex = 0, payloadLength = 0;
     private boolean fin,rsv1,rsv2,rsv3;
