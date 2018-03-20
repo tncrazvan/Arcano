@@ -248,27 +248,34 @@ public abstract class WebSocketManager extends EventManager{
             Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+    public void send(String data){
+        try {
+            send(data.getBytes(Elk.charset), false);
+        } catch (UnsupportedEncodingException ex) {
+            Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     public void send(byte[] data){
-        int offset = 0, tmpLength = 60000;
-        if(data.length > tmpLength){
+        send(data, true);
+    }
+    public void send(byte[] data,boolean binary){
+        int offset = 0, maxLength = Elk.wsMtu-1;
+        if(data.length > maxLength){
             while(offset < data.length){
-                encodeAndSendBytes(Arrays.copyOfRange(data, offset, offset+tmpLength));
-
-                if(offset+tmpLength > data.length){
-                    encodeAndSendBytes(Arrays.copyOfRange(data, offset, data.length));
+                if(offset+maxLength > data.length){
+                    encodeAndSendBytes(Arrays.copyOfRange(data, offset, data.length),binary);
                     offset = data.length;
                 }else{
-                    offset += tmpLength;
+                    encodeAndSendBytes(Arrays.copyOfRange(data, offset, offset+maxLength),binary);
+                    offset += maxLength;
                 }
             }
         }else{
-            encodeAndSendBytes(data);
+            encodeAndSendBytes(data,binary);
         }
-        
     }
     
-    private void encodeAndSendBytes(byte[] messageBytes){
+    private void encodeAndSendBytes(byte[] messageBytes, boolean binary){
         try {
             outputStream.flush();
         } catch (IOException ex) {
@@ -276,7 +283,7 @@ public abstract class WebSocketManager extends EventManager{
         }
         try {
             //We need to set only FIN and Opcode.
-            outputStream.write(0x82);
+            outputStream.write(binary?0x82:0x81);
 
             //Prepare the payload length.
             if(messageBytes.length <= 125) {
@@ -306,7 +313,7 @@ public abstract class WebSocketManager extends EventManager{
         send(""+data);
     }
     
-    public void send(String message) {
+    /*public void send(String message) {
         try {
             byte messageBytes[] = message.getBytes();
 
@@ -332,38 +339,43 @@ public abstract class WebSocketManager extends EventManager{
             close();
         }
 
-    }
+    }*/
     
     public void broadcast(String msg,Object o){
         try {
-            broadcast(msg.getBytes(Elk.charset),o);
+            broadcast(msg.getBytes(Elk.charset),o,false);
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     public void broadcast(byte[] data,Object o){
+        broadcast(data, o, true);
+    }
+    public void broadcast(byte[] data,Object o,boolean binary){
         Iterator i = Elk.WS_EVENTS.get(o.getClass().getCanonicalName()).iterator();
         while(i.hasNext()){
             WebSocketEvent e = (WebSocketEvent) i.next();
             if(e!=this){
-                e.send(data);
+                e.send(data,binary);
             }
         }
     }
     
-    
-    public void send(byte[] data, WebSocketGroup group){
+    public void send(byte[] data,WebSocketGroup group){
+        send(data, group, true);
+    }
+    public void send(byte[] data, WebSocketGroup group,boolean binary){
         group.getMap().keySet().forEach((key) -> {
             WebSocketEvent client = group.getMap().get(key);
             if((WebSocketManager)client != this){
-                client.send(data);
+                client.send(data,binary);
             }
         });
     }
     
     public void send(String data, WebSocketGroup group){
         try {
-            send(data.getBytes(Elk.charset),group);
+            send(data.getBytes(Elk.charset),group,false);
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
         }

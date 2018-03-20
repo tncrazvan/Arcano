@@ -61,11 +61,10 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
             e.close();
         }
     }
-    private int counter = 0;
     @Override
     public void onMessage(WebSocketEvent e, byte[] data, ArrayList<String> get_data) {
         //send data to everyone inside the group except for this client (obviously)
-        e.send(data, group);
+        e.send(data, group, false);
         /**
          * NOTE: the other clients will receive the data as raw bytes.
          * in the case of JavaScript, you should read this data using a 
