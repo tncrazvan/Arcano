@@ -40,11 +40,7 @@ import java.util.logging.Logger;
 import elkserver.Http.HttpHeader;
 import elkserver.Elk;
 import elkserver.EventManager;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
 import java.util.Iterator;
 import javax.xml.bind.DatatypeConverter;
 
@@ -61,7 +57,6 @@ public abstract class WebSocketManager extends EventManager{
     protected final OutputStream outputStream;
     private Map<String,String> userLanguages = new HashMap<>();
     private boolean connected = true;
-    
     //private final HttpHeader header;
     public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader,String requestId) throws IOException {
         super(clientHeader);
@@ -108,10 +103,7 @@ public abstract class WebSocketManager extends EventManager{
                     outputStream.flush();
                     onOpen(client);
                     byte[] data = new byte[1];
-                    byte currentByte;
-                    int bytes;
                     InputStream read = client.getInputStream();
-
                     while(connected){
                         unmask((byte) read.read());
                     }
@@ -379,7 +371,11 @@ public abstract class WebSocketManager extends EventManager{
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
     }
+    
+    
+    
     
     protected abstract void onOpen(Socket client);
     protected abstract void onMessage(Socket client, byte[] data);
