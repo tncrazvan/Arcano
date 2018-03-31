@@ -25,7 +25,6 @@
  */
 package elkserver.Http;
 
-import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -42,11 +41,9 @@ import java.io.DataOutputStream;
  */
 public class HttpEvent extends HttpEventManager{
     private final HttpEvent singleton;
-    private final JsonObject post;
-    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, JsonObject post) {
-        super(output,clientHeader,client);
+    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, String content) {
+        super(output,clientHeader,client,content);
         singleton = this;
-        this.post = post;
     }
     
     @Override
@@ -91,18 +88,18 @@ public class HttpEvent extends HttpEventManager{
                             for(int i = 3;i<uri.length;i++){
                                 args.add(uri[i]);
                             }
-                            m = x.getClass().getDeclaredMethod(uri[2],this.getClass(),args.getClass(),post.getClass());
+                            m = x.getClass().getDeclaredMethod(uri[2],this.getClass(),args.getClass(),content.getClass());
                         }else{
                             //System.out.println("Parameters not defined");
-                            m = x.getClass().getDeclaredMethod(uri[2],this.getClass(),args.getClass(),post.getClass());
+                            m = x.getClass().getDeclaredMethod(uri[2],this.getClass(),args.getClass(),content.getClass());
                         }
                     }else{
                         //System.out.println("Method not defined");
-                        m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),post.getClass());
+                        m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),content.getClass());
                     }
                     onCloseMethod = x.getClass().getDeclaredMethod("onClose");
                     try {
-                        m.invoke(x,singleton,args,post);
+                        m.invoke(x,singleton,args,content);
                         onCloseMethod.invoke(x);
                         client.close();
                     } catch (IllegalAccessException | 
@@ -126,9 +123,9 @@ public class HttpEvent extends HttpEventManager{
                     c = Class.forName(Elk.httpControllerPackageName+"."+Elk.httpControllerNotFound);
                     
                     x = c.newInstance();
-                    m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),post.getClass());
+                    m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),content.getClass());
                     onCloseMethod = x.getClass().getDeclaredMethod("onClose");
-                    m.invoke(x,singleton,args,post);
+                    m.invoke(x,singleton,args,content);
                     onCloseMethod.invoke(x);
                     client.close();
                 } catch (ClassNotFoundException | IOException | IllegalAccessException | 

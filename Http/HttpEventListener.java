@@ -53,7 +53,7 @@ public class HttpEventListener extends HttpRequestReader{
     }
     
     @Override
-    public void onRequest(HttpHeader clientHeader, JsonObject post) {
+    public void onRequest(HttpHeader clientHeader, String content) {
         if(clientHeader != null && clientHeader.get("Connection")!=null){
             matcher = upgradePattern.matcher(clientHeader.get("Connection"));
             if(matcher.find()){
@@ -79,17 +79,12 @@ public class HttpEventListener extends HttpRequestReader{
                     }
                 }
             }else{
-                //default connection, assuming it's Http 1.x
                 try {
-                    new HttpEvent(output,clientHeader,client,post).execute();
+                    //default connection, assuming it's Http 1.x
+                    new HttpEvent(output,clientHeader,client,content).execute();
                 } catch (IOException ex) {
-                    try {
-                        client.close();
-                    } catch (IOException ex1) {
-                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex1);
-                    }
+                    Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                
             } 
         }
     }

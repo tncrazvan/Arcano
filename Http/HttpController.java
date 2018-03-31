@@ -25,7 +25,6 @@
  */
 package elkserver.Http;
 
-import com.google.gson.JsonObject;
 import elkserver.Elk;
 import java.util.ArrayList;
 
@@ -34,6 +33,6 @@ import java.util.ArrayList;
  * @author razvan
  */
 public abstract class HttpController extends Elk{
-    public abstract void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data);
+    public abstract void main(HttpEvent e, ArrayList<String> path, String content);
     public abstract void onClose();
 }

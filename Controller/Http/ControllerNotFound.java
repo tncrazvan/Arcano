@@ -36,7 +36,7 @@ import java.util.ArrayList;
  */
 public class ControllerNotFound extends HttpController{
     @Override
-    public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) {
+    public void main(HttpEvent e, ArrayList<String> path, String content) {
         e.setStatus(HttpEvent.STATUS_NOT_FOUND);
         try{
             e.send("Page not found");

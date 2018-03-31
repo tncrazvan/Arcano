@@ -55,7 +55,6 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
     protected final DataOutputStream output;
     protected final DataInputStream input;
     private String outputString = "";
-    private final JsonObject post = new JsonObject();
     public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
         /*if(JHS.PORT == 443){
             secureClient = (SSLSocket) client;
@@ -105,45 +104,24 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
             outputString = "";
             
             if((clientHeader.get("Method").equals("POST") || port == 25) && !EOFException){
+                int chunkSize, offset = 0;
+                if(clientHeader.isDefined("Content-Length")){
+                    chunkSize = Integer.parseInt(clientHeader.get("Content-Length"));
+                }else{
+                    chunkSize = Elk.httpMtu;
+                }
+                byte[] tmp = new byte[chunkSize];
+                boolean arrayIsEmpty = false;
                 
-                try {
-                    int chunkSize = 2048, offset = 0;
-                    byte[] tmp = new byte[chunkSize];
-                    boolean arrayIsEmpty = false;
-
-                    keepReading = true;
-                    while (keepReading && !arrayIsEmpty) {
-                        keepReading = (input.read(tmp, offset, chunkSize)== -1);
-                        arrayIsEmpty = byteArrayIsEmpty(tmp);
-                        outputString += new String(tmp);
-                        offset += chunkSize;
-                    }
-                    String[] lines = outputString.split("\r\n");
-                    String currentLabel = null,
-                            currentValue = "";
-                    Pattern pattern1 = Pattern.compile("^Content-Disposition");
-                    Pattern pattern2 = Pattern.compile("(?<=name\\=\\\").*?(?=\\\")");
-                    Matcher matcher;
-                    boolean next = false, skippedBlank = false;
-                    for(int i = 0; i<lines.length; i++){
-                        matcher = pattern1.matcher(lines[i]);
-                        if(matcher.find()){
-                            matcher = pattern2.matcher(lines[i]);
-                            if(matcher.find() && currentLabel == null){
-                                currentLabel = matcher.group();
-                                i +=2;
-                                currentValue = atob(lines[i]);
-                                post.addProperty(currentLabel, currentValue);
-                                currentLabel = null;
-                            }
-                        }
-                    }
-                    
-                } catch (IOException ex) {
-                    Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
+                keepReading = true;
+                while (keepReading && !arrayIsEmpty) {
+                    keepReading = (input.read(tmp, offset, chunkSize)== -1);
+                    arrayIsEmpty = byteArrayIsEmpty(tmp);
+                    outputString += new String(tmp);
+                    offset += chunkSize;
                 }
             }
-            this.onRequest(clientHeader,post);
+            this.onRequest(clientHeader,outputString);
         } catch (Exception ex) {
             try {
                 client.close();
@@ -154,6 +132,6 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
     }
     
     
-    public abstract void onRequest(HttpHeader clientHeader, JsonObject post);
+    public abstract void onRequest(HttpHeader clientHeader, String content);
     
 }

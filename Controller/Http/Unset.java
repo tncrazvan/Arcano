@@ -39,12 +39,13 @@ import elkserver.Http.HttpController;
 public class Unset extends HttpController{
 
     @Override
-    public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) {}
+    public void main(HttpEvent e, ArrayList<String> path, String content) {}
     
     @Override
     public void onClose() {}
     
-    public void cookie(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){
+    public void cookie(HttpEvent e, ArrayList<String> path, String content){
+        JsonObject post_data = e.readAsMultipartFormData();
         if(e.getMethod().equals("POST")){
             if(post_data.has("name") && post_data.has("domain") && post_data.has("path")){
                 String name = post_data.get("name").getAsString();

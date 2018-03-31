@@ -39,14 +39,14 @@ import elkserver.Http.HttpController;
  */
 public class Get extends HttpController{
     @Override
-    public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){}
+    public void main(HttpEvent e, ArrayList<String> path, String content){}
     
     @Override
     public void onClose() {}
     
-    public void file(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) throws FileNotFoundException, IOException{
-        e.setContentType(Elk.processContentType(get_data.get(0)));
-        e.sendFileContents("/"+(get_data.get(0).equals("")?get_data.get(1):get_data.get(0)));
+    public void file(HttpEvent e, ArrayList<String> path, String content) throws FileNotFoundException, IOException{
+        e.setContentType(Elk.processContentType(path.get(0)));
+        e.sendFileContents("/"+(path.get(0).equals("")?path.get(1):path.get(0)));
     }
     
     class Cookie{
@@ -61,8 +61,8 @@ public class Get extends HttpController{
         
     }
     
-    public void cookie(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){
-
+    public void cookie(HttpEvent e, ArrayList<String> path, String content){
+        JsonObject post_data = e.readAsMultipartFormData();
         if(e.getMethod().equals("POST")){
             if(post_data.has("name")){
                 String name = post_data.get("name").getAsString();

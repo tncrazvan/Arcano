@@ -45,12 +45,12 @@ public class Set extends HttpController{
             GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.",
             GROUPS_POLICY_NOT_DEFINED = "WebSocket groups policy is not defined by the server therefore by default it is disabled.";
     @Override
-    public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) {}
+    public void main(HttpEvent e, ArrayList<String> path, String content) {}
     
     @Override
     public void onClose() {}
     
-    public void webSocketGroup(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){
+    public void webSocketGroup(HttpEvent e, ArrayList<String> path, String content){
         
         if(Settings.isset("groups")){
             JsonObject groups = Settings.get("groups").getAsJsonObject();
@@ -75,7 +75,8 @@ public class Set extends HttpController{
         
     }
     
-    public void cookie(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){
+    public void cookie(HttpEvent e, ArrayList<String> path, String content){
+        JsonObject post_data = e.readAsMultipartFormData();
         if(e.getMethod().equals("POST")){
             if(post_data.has("name") 
                 && post_data.has("value") 
@@ -86,10 +87,10 @@ public class Set extends HttpController{
                 String 
                     name = post_data.get("name").getAsString(),
                     value = post_data.get("value").getAsString(),
-                    path = post_data.get("path").getAsString(),
+                    cpath = post_data.get("path").getAsString(),
                     domain = post_data.get("domain").getAsString(),
                     expire = post_data.get("expire").getAsString();
-                e.setCookie(name, value, path, domain, expire);
+                e.setCookie(name, value, cpath, domain, expire);
 
                 String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Cookie", value));
                 e.send(jsonCookie);

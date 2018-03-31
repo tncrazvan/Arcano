@@ -41,14 +41,14 @@ import elkserver.Http.HttpController;
  */
 public class Isset extends HttpController{
     @Override
-    public void main(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){}
+    public void main(HttpEvent e, ArrayList<String> path, String content){}
     
     @Override
     public void onClose() {}
     
-    public void file(HttpEvent e, ArrayList<String> get_data, JsonObject post_data) throws FileNotFoundException, IOException{
-        if(get_data.size() >= 0){
-            File f = new File(Elk.webRoot+"/"+get_data.get(0));
+    public void file(HttpEvent e, ArrayList<String> path, String content) throws FileNotFoundException, IOException{
+        if(path.size() >= 0){
+            File f = new File(Elk.webRoot+"/"+path.get(0));
             if(f.exists()){
                 e.send(0);
             }else{
@@ -59,7 +59,8 @@ public class Isset extends HttpController{
         }
     }
     
-    public void cookie(HttpEvent e, ArrayList<String> get_data, JsonObject post_data){
+    public void cookie(HttpEvent e, ArrayList<String> path, String content){
+        JsonObject post_data = e.readAsMultipartFormData();
         if(e.getClientHeader().get("Method").equals("POST")){
            if(post_data.has("name")){
                 String name = post_data.get("name").getAsString();
