@@ -71,33 +71,6 @@ public abstract class HttpEventManager extends EventManager{
             Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public JsonObject readAsMultipartFormData(){
-        JsonObject object = new JsonObject();
-        String[] lines = content.split("\r\n");
-        String currentLabel = null,
-                currentValue = "";
-        Pattern pattern1 = Pattern.compile("^Content-Disposition");
-        Pattern pattern2 = Pattern.compile("(?<=name\\=\\\").*?(?=\\\")");
-        Matcher matcher;
-        boolean next = false, skippedBlank = false;
-        for(int i = 0; i<lines.length; i++){
-            matcher = pattern1.matcher(lines[i]);
-            if(matcher.find()){
-                matcher = pattern2.matcher(lines[i]);
-                if(matcher.find() && currentLabel == null){
-                    currentLabel = matcher.group();
-                    i +=2;
-                    currentValue = lines[i];
-                    object.addProperty(currentLabel, currentValue);
-                    currentLabel = null;
-                }
-            }
-        }
-        
-        return object;
-    }
-    
     public Socket getClient(){
         return client;
     }

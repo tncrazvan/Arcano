@@ -103,6 +103,33 @@ public class Elk {
     private static final String patternRightStart2 = "(?<=\\&lt\\;script).*\\s*>";
     
     
+    public static Map<String,Object> readAsMultipartFormData(String content){
+        Map<String,Object> object = new HashMap<>();
+        
+        String[] lines = content.split("\r\n");
+        String currentLabel = null,
+                currentValue = "";
+        Pattern pattern1 = Pattern.compile("^Content-Disposition");
+        Pattern pattern2 = Pattern.compile("(?<=name\\=\\\").*?(?=\\\")");
+        Matcher matcher;
+        boolean next = false, skippedBlank = false;
+        for(int i = 0; i<lines.length; i++){
+            matcher = pattern1.matcher(lines[i]);
+            if(matcher.find()){
+                matcher = pattern2.matcher(lines[i]);
+                if(matcher.find() && currentLabel == null){
+                    currentLabel = matcher.group();
+                    i +=2;
+                    currentValue = lines[i];
+                    object.put(currentLabel, currentValue);
+                    currentLabel = null;
+                }
+            }
+        }
+        
+        return object;
+    }
+    
     private final static char[] MULTIPART_CHARS =
              "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
                   .toCharArray();

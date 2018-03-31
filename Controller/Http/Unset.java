@@ -30,7 +30,9 @@ import java.util.ArrayList;
 import elkserver.Http.Cookie;
 import elkserver.Http.HttpEvent;
 import elkserver.Elk;
+import static elkserver.Elk.readAsMultipartFormData;
 import elkserver.Http.HttpController;
+import java.util.Map;
 
 /**
  *
@@ -45,12 +47,15 @@ public class Unset extends HttpController{
     public void onClose() {}
     
     public void cookie(HttpEvent e, ArrayList<String> path, String content){
-        JsonObject post_data = e.readAsMultipartFormData();
+        Map<String,Object> multipart = readAsMultipartFormData(content);
+        
         if(e.getMethod().equals("POST")){
-            if(post_data.has("name") && post_data.has("domain") && post_data.has("path")){
-                String name = post_data.get("name").getAsString();
+            if(multipart.containsKey("name") 
+                    && multipart.containsKey("domain") 
+                    && multipart.containsKey("path")){
+                String name = (String) multipart.get("name");
                 if(e.cookieIsset(name)){
-                    e.unsetCookie(name, post_data.get("path").getAsString(), post_data.get("domain").getAsString());
+                    e.unsetCookie(name, (String) multipart.get("path"), (String) multipart.get("domain"));
                     e.send(0);
                 }else{
                     e.send(0);

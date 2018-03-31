@@ -33,7 +33,9 @@ import java.util.ArrayList;
 import elkserver.Http.Cookie;
 import elkserver.Http.HttpEvent;
 import elkserver.Elk;
+import static elkserver.Elk.readAsMultipartFormData;
 import elkserver.Http.HttpController;
+import java.util.Map;
 
 /**
  *
@@ -60,10 +62,11 @@ public class Isset extends HttpController{
     }
     
     public void cookie(HttpEvent e, ArrayList<String> path, String content){
-        JsonObject post_data = e.readAsMultipartFormData();
+        Map<String,Object> multipart = readAsMultipartFormData(content);
+        
         if(e.getClientHeader().get("Method").equals("POST")){
-           if(post_data.has("name")){
-                String name = post_data.get("name").getAsString();
+           if(multipart.containsKey("name")){
+                String name = (String) multipart.get("name");
                 if(e.cookieIsset(name)){
                     e.send(0);
                 }else{

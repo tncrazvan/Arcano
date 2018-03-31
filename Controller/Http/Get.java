@@ -25,13 +25,13 @@
  */
 package elkserver.Controller.Http;
 
-import com.google.gson.JsonObject;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import elkserver.Http.HttpEvent;
 import elkserver.Elk;
 import elkserver.Http.HttpController;
+import java.util.Map;
 
 /**
  *
@@ -62,10 +62,11 @@ public class Get extends HttpController{
     }
     
     public void cookie(HttpEvent e, ArrayList<String> path, String content){
-        JsonObject post_data = e.readAsMultipartFormData();
+        Map<String,Object> multipart = readAsMultipartFormData(content);
+        
         if(e.getMethod().equals("POST")){
-            if(post_data.has("name")){
-                String name = post_data.get("name").getAsString();
+            if(multipart.containsKey("name")){
+                String name = (String) multipart.get("name");
                 if(e.cookieIsset(name)){
                     e.setContentType("application/json");
                     String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
