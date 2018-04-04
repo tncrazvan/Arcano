@@ -1,0 +1,22 @@
+{
+    "port":443,
+    "webRoot":"www/",
+    "charset":"UTF-8",
+    "bindAddress":"::",
+    "controllers":{
+            "http":"elkserver.Controller.Http",
+            "websocket":"elkserver.Controller.WebSocket"
+    },
+    "groups":{
+            "allow":true
+    },
+    "smtp":{
+            "allow":true,
+            "hostname":"yourDomainName.com"
+    },
+    "tls":{
+            "certificate":"tls_certificate.jks",
+            "certificateType":"JKS",
+            "password":"yout password"
+    }
+}

@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package elkserver.SmtpServer;
+package com.razshare.elkserver.SmtpServer;
 
-import elkserver.Elk;
+import com.razshare.elkserver.Elk;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;

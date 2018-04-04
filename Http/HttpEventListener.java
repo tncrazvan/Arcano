@@ -23,16 +23,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.Http;
+package com.razshare.elkserver.Http;
 
-import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import elkserver.Elk;
-import elkserver.WebSocket.WebSocketEvent;
+import com.razshare.elkserver.Elk;
+import com.razshare.elkserver.WebSocket.WebSocketEvent;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 /**

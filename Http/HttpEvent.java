@@ -23,7 +23,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.Http;
+package com.razshare.elkserver.Http;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -32,7 +32,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import elkserver.Elk;
+import com.razshare.elkserver.Elk;
 import java.io.DataOutputStream;
 
 /**

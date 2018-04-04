@@ -23,10 +23,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.Controller.WebSocket;
+package com.razshare.elkserver.Controller.WebSocket;
 
-import elkserver.WebSocket.WebSocketController;
-import elkserver.WebSocket.WebSocketEvent;
+import com.razshare.elkserver.WebSocket.WebSocketController;
+import com.razshare.elkserver.WebSocket.WebSocketEvent;
 import java.util.ArrayList;
 
 /**

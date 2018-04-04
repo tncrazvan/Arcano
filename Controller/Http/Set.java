@@ -23,19 +23,18 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.Controller.Http;
+package com.razshare.elkserver.Controller.Http;
 
 import com.google.gson.JsonObject;
-import elkserver.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
+import com.razshare.elkserver.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
 import java.util.ArrayList;
-import elkserver.Http.Cookie;
-import elkserver.Http.HttpEvent;
-import elkserver.Elk;
-import static elkserver.Elk.readAsMultipartFormData;
-import elkserver.Http.HttpController;
-import elkserver.Http.HttpSession;
-import elkserver.Settings;
-import elkserver.WebSocket.WebSocketGroup;
+import com.razshare.elkserver.Http.Cookie;
+import com.razshare.elkserver.Http.HttpEvent;
+import com.razshare.elkserver.Elk;
+import com.razshare.elkserver.Http.HttpController;
+import com.razshare.elkserver.Http.HttpSession;
+import com.razshare.elkserver.Settings;
+import com.razshare.elkserver.WebSocket.WebSocketGroup;
 import java.util.Map;
 
 /**

@@ -23,7 +23,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver;
+package com.razshare.elkserver;
 
 import com.google.gson.JsonObject;
 import java.io.FileInputStream;
@@ -32,8 +32,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
-import elkserver.Http.HttpEventListener;
-import elkserver.SmtpServer.SmtpServer;
+import com.razshare.elkserver.Http.HttpEventListener;
+import com.razshare.elkserver.SmtpServer.SmtpServer;
 import java.io.File;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;

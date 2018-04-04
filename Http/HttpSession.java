@@ -23,10 +23,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.Http;
+package com.razshare.elkserver.Http;
 
-import elkserver.Elk;
-import elkserver.WebSocket.WebSocketEvent;
+import com.razshare.elkserver.Elk;
+import com.razshare.elkserver.WebSocket.WebSocketEvent;
 import java.util.HashMap;
 import java.util.Map;
 

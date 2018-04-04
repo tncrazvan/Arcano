@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package elkserver.Controller.WebSocket;
+package com.razshare.elkserver.Controller.WebSocket;
 
 import com.google.gson.JsonObject;
-import elkserver.Settings;
-import elkserver.WebSocket.WebSocketController;
-import elkserver.WebSocket.WebSocketEvent;
-import elkserver.WebSocket.WebSocketGroup;
+import com.razshare.elkserver.Settings;
+import com.razshare.elkserver.WebSocket.WebSocketController;
+import com.razshare.elkserver.WebSocket.WebSocketEvent;
+import com.razshare.elkserver.WebSocket.WebSocketGroup;
 import java.util.ArrayList;
 
 /**

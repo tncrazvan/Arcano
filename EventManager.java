@@ -23,9 +23,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver;
+package com.razshare.elkserver;
 
-import elkserver.Http.HttpHeader;
+import com.razshare.elkserver.Http.HttpHeader;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;

@@ -23,11 +23,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.Controller.Http;
+package com.razshare.elkserver.Controller.Http;
 
-import com.google.gson.JsonObject;
-import elkserver.Http.HttpController;
-import elkserver.Http.HttpEvent;
+import com.razshare.elkserver.Http.HttpController;
+import com.razshare.elkserver.Http.HttpEvent;
 import java.util.ArrayList;
 
 /**

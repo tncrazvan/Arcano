@@ -23,7 +23,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.WebSocket;
+package com.razshare.elkserver.WebSocket;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,9 +33,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import elkserver.Http.HttpHeader;
-import elkserver.Elk;
-import elkserver.Http.HttpSession;
+import com.razshare.elkserver.Http.HttpHeader;
+import com.razshare.elkserver.Elk;
+import com.razshare.elkserver.Http.HttpSession;
 
 
 /**
@@ -159,6 +159,7 @@ public class WebSocketEvent extends WebSocketManager{
     @Override
     protected void onOpen(Socket client) {        
         try {
+            
             
             if(Elk.WS_EVENTS.get(c.getCanonicalName()) == null){
                 ArrayList<WebSocketEvent> tmp = new ArrayList<>();

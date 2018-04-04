@@ -23,7 +23,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.Http;
+package com.razshare.elkserver.Http;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -36,12 +36,10 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import elkserver.Elk;
-import elkserver.EventManager;
+import com.razshare.elkserver.Elk;
+import com.razshare.elkserver.EventManager;
 import java.io.DataOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  *

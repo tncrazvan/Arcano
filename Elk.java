@@ -23,10 +23,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver;
+package com.razshare.elkserver;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.razshare.elkserver.WebSocket.WebSocketEvent;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -40,7 +41,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import elkserver.WebSocket.WebSocketEvent;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package elkserver.SmtpServer;
+package com.razshare.elkserver.SmtpServer;
 
 import java.util.ArrayList;
 

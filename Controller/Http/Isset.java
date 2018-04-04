@@ -23,18 +23,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.Controller.Http;
+package com.razshare.elkserver.Controller.Http;
 
-import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import elkserver.Http.Cookie;
-import elkserver.Http.HttpEvent;
-import elkserver.Elk;
-import static elkserver.Elk.readAsMultipartFormData;
-import elkserver.Http.HttpController;
+import com.razshare.elkserver.Http.Cookie;
+import com.razshare.elkserver.Http.HttpEvent;
+import com.razshare.elkserver.Elk;
+import com.razshare.elkserver.Http.HttpController;
 import java.util.Map;
 
 /**

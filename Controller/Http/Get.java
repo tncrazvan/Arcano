@@ -23,14 +23,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package elkserver.Controller.Http;
+package com.razshare.elkserver.Controller.Http;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import elkserver.Http.HttpEvent;
-import elkserver.Elk;
-import elkserver.Http.HttpController;
+import com.razshare.elkserver.Http.HttpEvent;
+import com.razshare.elkserver.Elk;
+import com.razshare.elkserver.Http.HttpController;
 import java.util.Map;
 
 /**
@@ -82,7 +82,7 @@ public class Get extends HttpController{
                 e.flush();
             }
         }else{
-            String jsonCookie = Elk.JSON_PARSER.toJson(new elkserver.Http.Cookie("Error", "-1"));
+            String jsonCookie = Elk.JSON_PARSER.toJson(new com.razshare.elkserver.Http.Cookie("Error", "-1"));
             e.send(jsonCookie);
         }
     }
