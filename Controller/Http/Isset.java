@@ -60,9 +60,8 @@ public class Isset extends HttpController{
     }
     
     public void cookie(HttpEvent e, ArrayList<String> path, String content){
-        Map<String,Object> multipart = readAsMultipartFormData(content);
-        
         if(e.getClientHeader().get("Method").equals("POST")){
+            Map<String,String> multipart = readAsMultipartFormData(content);
            if(multipart.containsKey("name")){
                 String name = (String) multipart.get("name");
                 if(e.cookieIsset(name)){

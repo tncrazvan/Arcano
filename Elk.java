@@ -103,8 +103,8 @@ public class Elk {
     private static final String patternRightStart2 = "(?<=\\&lt\\;script).*\\s*>";
     
     
-    public static Map<String,Object> readAsMultipartFormData(String content){
-        Map<String,Object> object = new HashMap<>();
+    public static Map<String,String> readAsMultipartFormData(String content){
+        Map<String,String> object = new HashMap<>();
         
         String[] lines = content.split("\r\n");
         String currentLabel = null,

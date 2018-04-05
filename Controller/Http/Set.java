@@ -30,7 +30,6 @@ import com.razshare.elkserver.Controller.WebSocket.WebSocketGroupApplicationProg
 import java.util.ArrayList;
 import com.razshare.elkserver.Http.Cookie;
 import com.razshare.elkserver.Http.HttpEvent;
-import com.razshare.elkserver.Elk;
 import com.razshare.elkserver.Http.HttpController;
 import com.razshare.elkserver.Http.HttpSession;
 import com.razshare.elkserver.Settings;
@@ -42,6 +41,9 @@ import java.util.Map;
  * @author Razvan
  */
 public class Set extends HttpController{
+    private boolean 
+            readAsBase64=false,
+            writeAsBase64=false;
     private static final String 
             GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.",
             GROUPS_POLICY_NOT_DEFINED = "WebSocket groups policy is not defined by the server therefore by default it is disabled.";
@@ -50,6 +52,13 @@ public class Set extends HttpController{
     
     @Override
     public void onClose() {}
+    
+    public void readAsBase64(boolean val){
+        readAsBase64 = val;
+    }
+    public void writeAsBase64(boolean val){
+        writeAsBase64 = val;
+    }
     
     public void webSocketGroup(HttpEvent e, ArrayList<String> path, String content){
         
@@ -77,9 +86,8 @@ public class Set extends HttpController{
     }
     
     public void cookie(HttpEvent e, ArrayList<String> path, String content){
-        Map<String,Object> multipart = readAsMultipartFormData(content);
-        
         if(e.getMethod().equals("POST")){
+            Map<String,String> multipart = readAsMultipartFormData(content);
             if(multipart.containsKey("name") 
                 && multipart.containsKey("value") 
                 && multipart.containsKey("path") 
@@ -92,18 +100,20 @@ public class Set extends HttpController{
                     cpath = (String) multipart.get("path"),
                     domain = (String) multipart.get("domain"),
                     expire = (String) multipart.get("expire");
+                
                 e.setCookie(name, value, cpath, domain, expire);
 
-                String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Cookie", value));
-                e.send(jsonCookie);
+                JsonObject cookie = new JsonObject();
+                cookie.addProperty("type", "cookie");
+                cookie.addProperty("value", value);
+                e.send(cookie.toString());
                 
-                //System.out.println(e.getHeader().toString());
             }else{
-                String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Error", "-1"));
+                String jsonCookie = JSON_PARSER.toJson(new Cookie("Error", "-1"));
                 e.send(jsonCookie);
             }
         }else{
-            String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Error", "-2"));
+            String jsonCookie = JSON_PARSER.toJson(new Cookie("Error", "-2"));
             e.send(jsonCookie);
         }
     }

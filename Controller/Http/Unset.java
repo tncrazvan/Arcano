@@ -45,7 +45,7 @@ public class Unset extends HttpController{
     public void onClose() {}
     
     public void cookie(HttpEvent e, ArrayList<String> path, String content){
-        Map<String,Object> multipart = readAsMultipartFormData(content);
+        Map<String,String> multipart = readAsMultipartFormData(content);
         
         if(e.getMethod().equals("POST")){
             if(multipart.containsKey("name") 
