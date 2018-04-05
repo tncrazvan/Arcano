@@ -65,9 +65,9 @@ public class Elk {
             smtpAllowed = false;
     protected static int port = 80;
     protected static String 
-            webRoot = "./src/public",
+            webRoot = "www/",
             charset = "UTF-8",
-            bindAddress = "127.0.0.1",
+            bindAddress = "::",
             httpControllerPackageName = "com.razshare.elkserver.Controller.Http",
             wsControllerPackageName = "com.razshare.elkserver.Controller.WebSocket",
             httpControllerNotFound = "ControllerNotFound",

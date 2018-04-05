@@ -116,19 +116,23 @@ public abstract class ElkServer extends Elk{
 
         Settings.parse(args[0]);
         System.out.println(logLineSeparator+"\n###Reading port");
-        port = Settings.getInt("port");
+        if(Settings.isset("port"))
+            port = Settings.getInt("port");
         System.out.println("\t>>>port:"+port+" [OK]");
         
         System.out.println(logLineSeparator+"\n###Reading bindAddress");
-        bindAddress = Settings.getString("bindAddress");
+        if(Settings.isset("bindAddress"))
+            bindAddress = Settings.getString("bindAddress");
         System.out.println("\t>>>bindAddress:"+bindAddress+" [OK]");
         
         System.out.println(logLineSeparator+"\n###Reading webRoot");
-        webRoot = new File(args[0]).getParent()+"/"+Settings.getString("webRoot");
+        if(Settings.isset("webRoot"))
+            webRoot = new File(args[0]).getParent()+"/"+Settings.getString("webRoot");
         System.out.println("\t>>>webRoot:"+webRoot+" [OK]");
         
         System.out.println(logLineSeparator+"\n###Reading charset");
-        charset = Settings.getString("charset");
+        if(Settings.isset("charset"))
+            charset = Settings.getString("charset");
         System.out.println("\t>>>charset:"+charset+" [OK]");
         
         System.out.println(logLineSeparator+"\n###Reading controllers");
