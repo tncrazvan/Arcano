@@ -38,6 +38,7 @@ import com.razshare.elkserver.Elk;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
+import java.net.SocketTimeoutException;
 import javax.net.ssl.SSLSocket;
 
 /**
@@ -53,15 +54,7 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
     protected final DataInputStream input;
     private String outputString = "";
     public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
-        /*if(JHS.PORT == 443){
-            secureClient = (SSLSocket) client;
-            secureClient.setEnabledCipherSuites(secureClient.getSupportedCipherSuites());
-
-            
-            secureClient.startHandshake();
-            SSLSession sslSession = secureClient.getSession();
-
-        }*/
+        client.setSoTimeout(httpTimeout);
         this.client=client;
         reader = new BufferedReader(
                 new InputStreamReader(
@@ -99,23 +92,32 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
             }
             HttpHeader clientHeader = HttpHeader.fromString(outputString);
             outputString = "";
-            
             if((clientHeader.get("Method").equals("POST") || port == 25) && !EOFException){
-                int chunkSize, offset = 0;
+                int chunkSize = 0;
                 if(clientHeader.isDefined("Content-Length")){
                     chunkSize = Integer.parseInt(clientHeader.get("Content-Length"));
-                }else{
-                    chunkSize = Elk.httpMtu;
                 }
-                byte[] tmp = new byte[chunkSize];
-                boolean arrayIsEmpty = false;
                 
-                keepReading = true;
-                while (keepReading && !arrayIsEmpty) {
-                    keepReading = (input.read(tmp, offset, chunkSize)== -1);
-                    arrayIsEmpty = byteArrayIsEmpty(tmp);
-                    outputString += new String(tmp);
-                    offset += chunkSize;
+                if(chunkSize > 0){
+                    chain = new byte[chunkSize];
+                    input.readFully(chain);
+                    outputString = new String(chain);
+                }else{
+                    int offset = 0;
+                    chain = new byte[httpMtu];
+                    try{
+                        while(input.read(chain)>0){
+                            if(offset < httpMtu){
+                                offset++;
+                            }else{
+                                outputString = new String(chain);
+                                offset = 0;
+                                chain = new byte[httpMtu];
+                            }
+                        }
+                    }catch(SocketTimeoutException e){
+                        outputString = new String(chain);
+                    }
                 }
             }
             this.onRequest(clientHeader,outputString);

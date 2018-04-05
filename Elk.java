@@ -80,6 +80,7 @@ public class Elk {
             wsGroupMaxClient = 10,
             wsMtu = 65536,
             httpMtu = 65536,
+            httpTimeout = 3000,
             cacheMaxAge = 60*60*24*365; //1 year
     
     protected static String wsAcceptKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
