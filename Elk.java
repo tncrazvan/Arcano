@@ -68,8 +68,8 @@ public class Elk {
             webRoot = "./src/public",
             charset = "UTF-8",
             bindAddress = "127.0.0.1",
-            httpControllerPackageName = "elkserver.Controller.Http",
-            wsControllerPackageName = "elkserver.Controller.WebSocket",
+            httpControllerPackageName = "com.razshare.elkserver.Controller.Http",
+            wsControllerPackageName = "com.razshare.elkserver.Controller.WebSocket",
             httpControllerNotFound = "ControllerNotFound",
             wsControllerNotFound = "ControllerNotFound";
     
