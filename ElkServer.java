@@ -128,6 +128,9 @@ public abstract class ElkServer extends Elk{
         System.out.println(logLineSeparator+"\n###Reading webRoot");
         if(Settings.isset("webRoot"))
             webRoot = new File(args[0]).getParent()+"/"+Settings.getString("webRoot");
+        else
+            webRoot = new File(args[0]).getParent()+"/"+webRoot;
+        
         System.out.println("\t>>>webRoot:"+webRoot+" [OK]");
         
         System.out.println(logLineSeparator+"\n###Reading charset");
