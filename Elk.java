@@ -117,6 +117,24 @@ public class Elk {
         return wscnf;
     }
     
+    private static com.razshare.elkserver.Controller.Http.Get httpget = new com.razshare.elkserver.Controller.Http.Get();
+    
+    public static com.razshare.elkserver.Controller.Http.Get get(){
+        return httpget;
+    }
+    
+    private static com.razshare.elkserver.Controller.Http.Set httpset = new com.razshare.elkserver.Controller.Http.Set();
+    
+    public static com.razshare.elkserver.Controller.Http.Set set(){
+        return httpset;
+    }
+    
+    private static com.razshare.elkserver.Controller.Http.Isset httpisset = new com.razshare.elkserver.Controller.Http.Isset();
+    
+    public static com.razshare.elkserver.Controller.Http.Isset isset(){
+        return httpisset;
+    }
+    
     /**
      * Reads and input string and returns a Map<String, String> 
      * that contains the multipart form data.
