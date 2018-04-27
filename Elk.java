@@ -106,34 +106,21 @@ public class Elk {
     private static com.razshare.elkserver.Controller.Http.ControllerNotFound 
             httpcnf = new 
             com.razshare.elkserver.Controller.Http.ControllerNotFound();
-    public static void httpNotFound(HttpEvent e, ArrayList<String> path, String content){
+    protected static void httpNotFound(HttpEvent e, ArrayList<String> path, String content){
         httpcnf.main(e, path, content);
     }
     
-    private static com.razshare.elkserver.Controller.WebSocket.ControllerNotFound 
-            wscnf = new 
+    protected static com.razshare.elkserver.Controller.WebSocket.ControllerNotFound 
+            webSocketNotFound = new 
             com.razshare.elkserver.Controller.WebSocket.ControllerNotFound();
-    public static com.razshare.elkserver.Controller.WebSocket.ControllerNotFound webSocketNotFound(){
-        return wscnf;
-    }
+
     
-    private static com.razshare.elkserver.Controller.Http.Get httpget = new com.razshare.elkserver.Controller.Http.Get();
-    
-    public static com.razshare.elkserver.Controller.Http.Get get(){
-        return httpget;
-    }
-    
-    private static com.razshare.elkserver.Controller.Http.Set httpset = new com.razshare.elkserver.Controller.Http.Set();
-    
-    public static com.razshare.elkserver.Controller.Http.Set set(){
-        return httpset;
-    }
-    
-    private static com.razshare.elkserver.Controller.Http.Isset httpisset = new com.razshare.elkserver.Controller.Http.Isset();
-    
-    public static com.razshare.elkserver.Controller.Http.Isset isset(){
-        return httpisset;
-    }
+    protected static com.razshare.elkserver.Controller.Http.Get get = new com.razshare.elkserver.Controller.Http.Get();
+ 
+    protected static com.razshare.elkserver.Controller.Http.Set set = new com.razshare.elkserver.Controller.Http.Set();
+
+    protected static com.razshare.elkserver.Controller.Http.Isset isset = new com.razshare.elkserver.Controller.Http.Isset();
+
     
     /**
      * Reads and input string and returns a Map<String, String> 
