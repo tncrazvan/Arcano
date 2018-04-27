@@ -32,23 +32,52 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
- *
+ * Containst the settings file objects.
  * @author Razvan
  */
 public class Settings {
     private static JsonObject info = null;
+    
+    /**
+     * Creates an JsonObject from the given String.
+     * @param settings json file.
+     * @throws IOException 
+     */
     public static void parse(String settings) throws IOException{
         info = Elk.JSONPARSER.parse(new String(Files.readAllBytes(Paths.get(settings)))).getAsJsonObject();
     }
+    
+    /**
+     * 
+     * @param membername object name.
+     * @return the settings object as a JsonElement.
+     */
     public static JsonElement get(String membername){
         return info.get(membername);
     }
+    
+    /**
+     * 
+     * @param membername object name.
+     * @return the settings object as a String.
+     */
     public static String getString(String membername){
         return get(membername).getAsString();
     }
+    
+    /**
+     * 
+     * @param membername object name.
+     * @return the settings object as an int.
+     */
     public static int getInt(String membername){
         return get(membername).getAsInt();
     }
+    
+    /**
+     * Checks if the object name is iset in the settings file.
+     * @param key
+     */
     public static boolean isset(String key){
         return info.has(key);
     }

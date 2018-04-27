@@ -27,6 +27,7 @@ package com.razshare.elkserver;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.razshare.elkserver.Http.HttpEvent;
 import com.razshare.elkserver.WebSocket.WebSocketEvent;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -53,11 +54,10 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 /**
- *
+ * 
  * @author Razvan
  */
 public class Elk {
-    
     //settings
     protected static boolean 
             listen = true,
@@ -103,7 +103,27 @@ public class Elk {
     private static final String patternRightStart1 = "(?<=\\&lt\\;script)\\s*>";
     private static final String patternRightStart2 = "(?<=\\&lt\\;script).*\\s*>";
     
+    private static com.razshare.elkserver.Controller.Http.ControllerNotFound 
+            httpcnf = new 
+            com.razshare.elkserver.Controller.Http.ControllerNotFound();
+    public static void httpNotFound(HttpEvent e, ArrayList<String> path, String content){
+        httpcnf.main(e, path, content);
+    }
     
+    private static com.razshare.elkserver.Controller.WebSocket.ControllerNotFound 
+            wscnf = new 
+            com.razshare.elkserver.Controller.WebSocket.ControllerNotFound();
+    public static com.razshare.elkserver.Controller.WebSocket.ControllerNotFound webSocketNotFound(){
+        return wscnf;
+    }
+    
+    /**
+     * Reads and input string and returns a Map<String, String> 
+     * that contains the multipart form data.
+     * 
+     * @param content the raw characters to read.
+     * @return a map containing every pair of key and value of the multipart form data. Both key and value are String.
+     */
     public static Map<String,String> readAsMultipartFormData(String content){
         Map<String,String> object = new HashMap<>();
         
@@ -134,28 +154,40 @@ public class Elk {
     private final static char[] MULTIPART_CHARS =
              "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
                   .toCharArray();
-
     
-    public static long getUnsignedInt(int x) {
-        return x & 0x00000000ffffffffL;
-    }
-    
+    /**
+     * Generates a unique string that can be used to define a multipart form data boundary.
+     * @return a unique multipart form data boundary.
+     */
     public static String generateMultipartBoundary() {
-             StringBuilder buffer = new StringBuilder();
-             Random rand = new Random();
-             int count = rand.nextInt(11) + 30; // a random size from 30 to 40
-             for (int i = 0; i < count; i++) {
-                buffer.append(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
-             }
-             return buffer.toString();
+        StringBuilder buffer = new StringBuilder();
+        Random rand = new Random();
+        int count = rand.nextInt(11) + 30; // a random size from 30 to 40
+        for (int i = 0; i < count; i++) {
+           buffer.append(MULTIPART_CHARS[rand.nextInt(MULTIPART_CHARS.length)]);
         }
+        return buffer.toString();
+    }
 
 
+    /**
+     * 
+     * 
+     * @param value input string
+     * @return a capitalized version of the value.
+     */
     public static String capitalize(String value){
         value = value.toLowerCase();
         return value.substring(0, 1).toUpperCase() + value.substring(1);
     }
     
+    
+    /**
+     * Escapes the html script tag by using html character entities.
+     * 
+     * @param js input javascript code.
+     * @return escaped javascript.
+     */
     public static String escapeJavaScript(String js){
         return  js.replaceAll(patternLeftStart, "&lt;")
                 .replaceAll(patternLeftEnd, "&lt;/")
@@ -166,12 +198,21 @@ public class Elk {
     }
     
     
+    /**
+     * Gets the current time in milliseconds.
+     * @return current time in milliseconds.
+     */
     public static long time(){
         return System.currentTimeMillis() / 1000L;
     }
     
-    public static void rmdir(File folder){
-        File[] files = folder.listFiles();
+    /**
+     * Removes the given directory.
+     * 
+     * @param directory directory to be removed.
+     */
+    public static void rmdir(File directory){
+        File[] files = directory.listFiles();
         if(files!=null) { //some JVMs return null for empty dirs
             for(File f: files) {
                 if(f.isDirectory()) {
@@ -181,10 +222,14 @@ public class Elk {
                 }
             }
         }
-        folder.delete();
+        directory.delete();
     }
     
-
+    /**
+     * Removes unset bytes in byte array starting from the right most byte, which is bytes[bytes.length-1].
+     * @param bytes input byte array.
+     * @return trimmed byte array.
+     */
     public static byte[] trim(byte[] bytes){
         int i = bytes.length - 1;
         while (i >= 0 && bytes[i] == 0)
@@ -195,6 +240,11 @@ public class Elk {
         return Arrays.copyOf(bytes, i + 1);
     }
     
+    /**
+     * Decodes base64 String.
+     * @param value base64 String.
+     * @return decoded String.
+     */
     public static String atob(String value){
         try {
             return new String(Elk.BASE64_DECODER.decode(value.getBytes(charset)),charset);
@@ -204,6 +254,11 @@ public class Elk {
         return null;
     }
     
+    /**
+     * Decodes base64 String to byte array.
+     * @param value encoded String.
+     * @return decoded byte array.
+     */
     public static byte[] atobByte(String value){
         try {
             return Elk.BASE64_DECODER.decode(value.getBytes(charset));
@@ -213,13 +268,22 @@ public class Elk {
         return null;
     }
     
+    /**
+     * Decodes base64 byte array.
+     * @param value encoded byte array.
+     * @return decoded byte array.
+     */
     public static byte[] atobByte(byte[] value){
         return BASE64_DECODER.decode(value);
     }
     
     
    
-    
+   /**
+    * Encodes String to base64.
+    * @param value input String.
+    * @return encoded String.
+    */ 
     public static String btoa(String value){
         try {
             return new String(BASE64_ENCODER.encode(value.getBytes(charset)),charset);
@@ -229,6 +293,11 @@ public class Elk {
         return null;
     }
     
+    /**
+     * Encodes String to base64 byte array.
+     * @param value input String.
+     * @return encoded byte array.
+     */
     public static byte[] btoaByte(String value){
         try {
             return BASE64_ENCODER.encode(value.getBytes(charset));
@@ -238,10 +307,20 @@ public class Elk {
         return null;
     }
     
+    /**
+     * Encodes byte array to base64.
+     * @param value input byte array.
+     * @return encoded byte array.
+     */
     public static byte[] btoaByte(byte[] value){
         return BASE64_ENCODER.encode(value);
     }
     
+    /**
+     * Encodes String to sha1.
+     * @param str input String.
+     * @return encoded String.
+     */
     public static String getSha1String(String str){
         try {
             MessageDigest crypt = MessageDigest.getInstance("SHA-1");
@@ -255,13 +334,24 @@ public class Elk {
         }
     }
     
+    /**
+     * Encodes String to sha1 byte array.
+     * @param input input String.
+     * @return encoded byte array.
+     * @throws NoSuchAlgorithmException
+     * @throws UnsupportedEncodingException 
+     */
     public static byte[] getSha1Bytes(String input) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         
         return MessageDigest.getInstance("SHA-1").digest(input.getBytes("UTF-8"));
     }
     
 
-    
+    /**
+     * Decodes URL String.
+     * @param data URL String.
+     * @return decoded String.
+     */
     public static String decodeUrl(String data) {
       try {
          data = data.replaceAll("%(?![0-9a-fA-F]{2})", "%25");
@@ -273,6 +363,13 @@ public class Elk {
       return data;
    }
     
+    /**
+     * Returns the mime type of the given resource.
+     * For example, given the filename "/index.html", the mime type returned will be "text/html".
+     * This can be useful when sending data to your clients.
+     * @param location resource name.
+     * @return the mime type of the given resource as a String.
+     */
     public static String processContentType(String location){
         String tmp_type = "";
         String[] tmp_type0 = location.split("/");
@@ -418,6 +515,11 @@ public class Elk {
         System.arraycopy(source, srcBegin, destination, dstBegin, srcEnd - srcBegin);
     }
     
+    /**
+     * Checks if the given byte array is emtpy.
+     * @param array input byte array.
+     * @return true if array is empty, false otherwise.
+     */
     public static boolean byteArrayIsEmpty(final byte[] array) {
         int sum = 0;
         for (byte b : array) {
@@ -426,6 +528,12 @@ public class Elk {
         return (sum == 0);
     }
     
+    /**
+     * Encodes the given String to sha512.
+     * @param value input String.
+     * @param salt salt String. Can be empty.
+     * @return encoded String.
+     */
     public static String getSha512String(String value, String salt){
         String result = null;
         try {
@@ -446,6 +554,12 @@ public class Elk {
         return result;
     }
     
+    /**
+     * Encodes the given String to a sha512 byte array.
+     * @param value input String.
+     * @param salt salt String. Can be empty.
+     * @return encoded byte array.
+     */
     public static byte[] getSha512Bytes(String value, String salt){
         try {
             return getSha512String(value, salt).getBytes(charset);
@@ -454,11 +568,6 @@ public class Elk {
             return null;
         }
     }
-
-    public static String atob(byte[] digest) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    
     
     static class BCrypt{
         private static String generateStorngPasswordHash(String password) throws NoSuchAlgorithmException, InvalidKeySpecException{
@@ -518,6 +627,13 @@ public class Elk {
         }
     }
     
+    /**
+     * Encodes the value to BCrypt. Note that encoding the same value twice will generate a different BCrypt string.
+     * This means you cannot simply check two encoded string to find out if they were generated from the same value like Sha1.
+     * Use Elk#validateBCryptString to validate an encoded strings.
+     * @param value input String.
+     * @return encoded String.
+     */
     public static String getBCryptString(String value){
         try {
             return BCrypt.generateStorngPasswordHash(value);
@@ -527,6 +643,12 @@ public class Elk {
         }
     }
     
+    /**
+     * Checks if the given cryptoStrong has been created from the given originalString.
+     * @param originalString this is the validation string. The encrypted string will be validated using this value.
+     * @param cryptoString this is the encoded string.
+     * @return true if the cryptoString was created from the originalString, false otherwise.
+     */
     public static boolean validateBCryptString(String originalString, String cryptoString){
         try {
             return BCrypt.validatePassword(originalString, cryptoString);
@@ -537,7 +659,7 @@ public class Elk {
     }
     
     /**
-     * 
+     * Matches a regular expression on the given subject String.
      * @param subject The string to analyze
      * @param regex Your regex
      * @return the first group matched
@@ -550,24 +672,30 @@ public class Elk {
     
     
     /**
-     * 
-     * @param subject The string to analyze
-     * @param regex Your regex
-     * @param group The which you want to extract from the matcher
-     * @return the specified matched group
+     * Extracts the nth occurrence of the given regular expression on the given subject String.
+     * @param subject the input String.
+     * @param regex your regular expression.
+     * @param n the occurences counter.
+     * @return the nth occurred String.
      */
-    public static String extractRegexGroup(String subject,String regex,int group){
+    public static String extractRegexGroup(String subject,String regex,int n){
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(subject);
         if(matcher.find()){
-            if(group < 0){
-                group = matcher.groupCount() + group;
+            if(n < 0){
+                n = matcher.groupCount() + n;
             }
-            return matcher.group(group);
+            return matcher.group(n);
         }
         return null;
     }
     
+    /**
+     * Extracts the first occurrence of the given regular expression on the given subject String.
+     * @param subject
+     * @param regex
+     * @return the first occurred String.
+     */
     public static String extractRegex(String subject,String regex){
         return extractRegexGroup(subject, regex, 0);
     }

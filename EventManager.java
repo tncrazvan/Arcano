@@ -33,10 +33,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Provides a layer of abstraction for both HttpEventManager and WebSocketEventManager.
+ * Contains a few methods that are useful to both classes, 
+ * such as Http Header managing methods, tools to set, unset, 
+ * and read cookie, and more.
  * @author razvan
  */
-public class EventManager extends Elk{
+public abstract class EventManager extends Elk{
     protected final HttpHeader clientHeader;
     protected final Map<String,String> queryString = new HashMap<>();
     protected final String location;
@@ -67,14 +70,28 @@ public class EventManager extends Elk{
         location = parts[0];
     }
     
+    /**
+     * Checks if the requested URL contains the given key as a query.
+     * @param key name of the query.
+     * @return 
+     */
     public boolean issetUrlQuery(String key){
         return queryString.containsKey(key);
     }
     
+    /**
+     * 
+     * @param key name of the query.
+     * @return the value of the query.
+     */
     public String getUrlQuery(String key){
         return queryString.get(key);
     }
     
+    /**
+     * Finds the languages of the client application.
+     * The value is stored in EventManager#userLanguages.
+     */
     protected void findUserLanguages(){
         if(clientHeader.get("Accept-Language") == null){
             userLanguages.put("unknown", "unknown");
@@ -88,34 +105,90 @@ public class EventManager extends Elk{
             }
         }
     }
+    
+    /**
+     * Notices the client to unset the given cookie.
+     * @param key name of the cookie
+     * @param path path of the cookie
+     * @param domain domain of the cookie
+     */
     public void unsetCookie(String key, String path, String domain){
         header.setCookie(key,"deleted",path,domain,"0");
     }
     
+    /**
+     * Notices the client to unset the given cookie.
+     * @param key name of the cookie
+     * @param path path of the cookie
+     */
     public void unsetCookie(String key, String path){
         unsetCookie(key, path, clientHeader.get("Host"));
     }
     
+    /**
+     * Notices the client to unset the given cookie.
+     * @param key name of the cookie
+     */
     public void unsetCookie(String key){
         unsetCookie(key, "/", clientHeader.get("Host"));
     }
     
+    /**
+     * Notices the client to set the given cookie.
+     * @param name name of the cookie.
+     * @param value value of the cookie.
+     * @param path path of the cookie.
+     * @param domain domain of the cooke.
+     * @param expire time to live of the cookie.
+     */
     public void setCookie(String name,String value, String path, String domain, String expire){
         header.setCookie(name, value, path, domain, expire);
     }
+    
+    /**
+     * Notices the client to set the given cookie.
+     * @param name name of the cookie.
+     * @param value value of the cookie.
+     * @param path path of the cookie.
+     * @param domain domain of the cooke.
+     */
     public void setCookie(String name,String value, String path, String domain){
         header.setCookie(name, value, path, domain);
     }
+    
+    /**
+     * Notices the client to set the given cookie.
+     * @param name name of the cookie.
+     * @param value value of the cookie.
+     * @param path path of the cookie.
+     */
     public void setCookie(String name,String value, String path){
         header.setCookie(name, value, path);
     }
+    
+    /**
+     * Notices the client to set the given cookie.
+     * @param name name of the cookie.
+     * @param value value of the cookie.
+     */
     public void setCookie(String name,String value){
         header.setCookie(name, value);
     }
     
+    
+    /**
+     * Gets the value of the cookie.
+     * @param name name of the cookie.
+     * @return value of the cookie.
+     */
     public String getCookie(String name){
         return clientHeader.getCookie(name);
     }
+    
+    /**
+     * Checks if the cookie is set.
+     * @param key name of the cookie.
+     */
     public boolean cookieIsset(String key){
         return clientHeader.cookieIsset(key);
     }

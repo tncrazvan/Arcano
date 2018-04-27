@@ -110,7 +110,12 @@ public abstract class ElkServer extends Elk{
     }
     
     
-    
+    /**
+     * Starts the server listening.
+     * @param args First argument must be the settings file. Check documentation to learn how to create a settings files.
+     * @throws IOException
+     * @throws NoSuchAlgorithmException 
+     */
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
         String logLineSeparator = "\n=================================";
 
@@ -218,6 +223,14 @@ public abstract class ElkServer extends Elk{
         
     }
     
+    
+    /**
+     * Creates an SSLContext which can be used to generate Secure Sockets.
+     * @param tlsCertificate your tls certificate file location.
+     * @param certificateType your tls certificate type.
+     * @param tlsPassword your tls certificate password
+     * @return an SSLContext generated from your certificate.
+     */
     private SSLContext createSSLContext(String tlsCertificate, String certificateType, String tlsPassword){
         System.setProperty("https.protocols", "TLSv1.1,TLSv1.2");
         try{
