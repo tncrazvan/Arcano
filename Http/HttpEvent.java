@@ -34,6 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.razshare.elkserver.Elk;
 import java.io.DataOutputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  *
@@ -41,7 +42,7 @@ import java.io.DataOutputStream;
  */
 public class HttpEvent extends HttpEventManager{
     private final HttpEvent singleton;
-    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, String content) {
+    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, String content) throws UnsupportedEncodingException {
         super(output,clientHeader,client,content);
         singleton = this;
     }

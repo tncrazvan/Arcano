@@ -27,10 +27,9 @@ package com.razshare.elkserver;
 
 import com.razshare.elkserver.Http.HttpHeader;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Provides a layer of abstraction for both HttpEventManager and WebSocketEventManager.
@@ -45,29 +44,25 @@ public abstract class EventManager extends Elk{
     protected final String location;
     protected final Map<String,String> userLanguages = new HashMap<>();
     protected final HttpHeader header;
-    public EventManager(HttpHeader clientHeader) {
+    public EventManager(HttpHeader clientHeader) throws UnsupportedEncodingException {
         header = new HttpHeader();
         this.clientHeader=clientHeader;
-        
-        String[] parts = clientHeader.get("Resource").split("\\?");
+        String[] parts = URLDecoder.decode(clientHeader.get("Resource"),charset).split("\\?");
         String[] tmp,object;
         
+        location = parts[0];
+        
         if(parts.length > 1){
-            try {
-                tmp = java.net.URLDecoder.decode(parts[1], "UTF-8").split("\\&");
-                for (String part : tmp) {
-                    object = part.split("=", 2);
-                    if(object.length > 1){
-                        queryString.put(object[0].trim(), object[1]);
-                    }else{
-                        queryString.put(object[0].trim(), "");
-                    }
+            tmp = parts[1].split("\\&");
+            for (String part : tmp) {
+                object = part.split("=", 2);
+                if(object.length > 1){
+                    queryString.put(object[0].trim(), object[1]);
+                }else{
+                    queryString.put(object[0].trim(), "");
                 }
-            } catch (UnsupportedEncodingException ex) {
-                Logger.getLogger(EventManager.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        location = parts[0];
     }
     
     /**

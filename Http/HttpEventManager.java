@@ -52,7 +52,7 @@ public abstract class HttpEventManager extends EventManager{
     private boolean alive=true;
     protected final Socket client;
     protected final String content;
-    public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client,String content) {
+    public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client,String content) throws UnsupportedEncodingException {
         super(clientHeader);
         this.client=client;
         this.output = output;
@@ -182,10 +182,7 @@ public abstract class HttpEventManager extends EventManager{
     
     public boolean execute() throws IOException{
         findUserLanguages();
-        //header = new HttpHeader();
-        
-        
-        File f = new File(java.net.URLDecoder.decode(Elk.webRoot+location, "UTF-8"));
+        File f = new File(Elk.webRoot+location);
         header.set("Content-Type", Elk.processContentType(location));
         if(f.exists() /*&& !location.equals(ELK.INDEX_FILE)*/){
             if(!f.isDirectory()){

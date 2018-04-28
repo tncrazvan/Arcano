@@ -368,6 +368,9 @@ public class Elk {
       return data;
    }
     
+    public static String getContentType(String location){
+        return processContentType(location);
+    }
     /**
      * Returns the mime type of the given resource.
      * For example, given the filename "/index.html", the mime type returned will be "text/html".

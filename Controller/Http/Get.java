@@ -45,7 +45,7 @@ public class Get extends HttpController{
     public void onClose() {}
     
     public void file(HttpEvent e, ArrayList<String> path, String content) throws FileNotFoundException, IOException{
-        e.setContentType(Elk.processContentType(path.get(0)));
+        e.setContentType(getContentType(path.get(0)));
         e.sendFileContents("/"+(path.get(0).equals("")?path.get(1):path.get(0)));
     }
     

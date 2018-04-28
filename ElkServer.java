@@ -35,6 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import com.razshare.elkserver.Http.HttpEventListener;
 import com.razshare.elkserver.SmtpServer.SmtpServer;
 import java.io.File;
+import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableKeyException;
@@ -117,6 +118,7 @@ public abstract class ElkServer extends Elk{
      * @throws NoSuchAlgorithmException 
      */
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
+        String settingsPath = new File(args[0]).getParent().toString();
         String logLineSeparator = "\n=================================";
 
         Settings.parse(args[0]);
@@ -197,7 +199,7 @@ public abstract class ElkServer extends Elk{
             String password = tls.get("password").getAsString();
             System.out.println("\t\t>>>tls.password:***[OK]");
             
-            SSLContext sslContext = createSSLContext(webRoot+"../"+tls_certificate,certificate_type,password);
+            SSLContext sslContext = createSSLContext(settingsPath+"/"+tls_certificate,certificate_type,password);
             
             
             // Create server socket factory
@@ -234,11 +236,14 @@ public abstract class ElkServer extends Elk{
     private SSLContext createSSLContext(String tlsCertificate, String certificateType, String tlsPassword){
         System.setProperty("https.protocols", "TLSv1.1,TLSv1.2");
         try{
-            KeyStore keyStore = KeyStore.getInstance(certificateType);
-            keyStore.load(new FileInputStream(tlsCertificate),tlsPassword.toCharArray());
-             
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+            KeyStore keyStore = KeyStore.getInstance(certificateType);
+            
+            InputStream is = new FileInputStream(tlsCertificate);
+            keyStore.load(is,tlsPassword.toCharArray());
+            is.close();
+             
             keyManagerFactory.init(keyStore, tlsPassword.toCharArray());
             KeyManager[] km = keyManagerFactory.getKeyManagers();
              
@@ -249,6 +254,7 @@ public abstract class ElkServer extends Elk{
              
             // Initialize SSLContext
             SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+            
             sslContext.init(km,  tm, null);
              
             return sslContext;
