@@ -1,6 +1,6 @@
 /**
  * ElkServer is a Java library that makes it easier
- * to program and manage a Java servlet by providing different tools
+ * to program and manage a Java Web Server by providing different tools
  * such as:
  * 1) An MVC (Model-View-Controller) alike design pattern to manage 
  *    client requests without using any URL rewriting rules.

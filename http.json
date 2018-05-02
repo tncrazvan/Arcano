@@ -4,14 +4,14 @@
     "charset":"UTF-8",
     "bindAddress":"::",
     "controllers":{
-            "http":"elkserver.Controller.Http",
-            "websocket":"elkserver.Controller.WebSocket"
+        "http":"com.razshare.elkserver.Controller.Http",
+        "websocket":"com.razshare.elkserver.Controller.WebSocket"
     },
     "groups":{
-            "allow":true
+        "allow":true
     },
     "smtp":{
-            "allow":true,
-            "hostname":"yourDomainName.com"
+        "allow":true,
+        "hostname":"yourDomainName.com"
     }
 }

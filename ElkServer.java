@@ -1,6 +1,6 @@
 /**
  * ElkServer is a Java library that makes it easier
- * to program and manage a Java servlet by providing different tools
+ * to program and manage a Java Web Server by providing different tools
  * such as:
  * 1) An MVC (Model-View-Controller) alike design pattern to manage 
  *    client requests without using any URL rewriting rules.
@@ -56,7 +56,7 @@ public abstract class ElkServer extends Elk{
     private SmtpServer smtpServer;
     private static final String message = "\n\n"+
 "  ElkServer is a Java library that makes it easier\n" +
-"  to program and manage a Java servlet by providing different tools\n" +
+"  to program and manage a Java Web Server by providing different tools\n" +
 "  such as:\n" +
 "  1) An MVC (Model-View-Controller) alike design pattern to manage \n" +
 "     client requests without using any URL rewriting rules.\n" +
