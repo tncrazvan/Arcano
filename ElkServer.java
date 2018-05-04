@@ -54,30 +54,6 @@ import javax.net.ssl.TrustManagerFactory;
  */
 public abstract class ElkServer extends Elk{
     private SmtpServer smtpServer;
-    private static final String message = "\n\n"+
-"  ElkServer is a Java library that makes it easier\n" +
-"  to program and manage a Java Web Server by providing different tools\n" +
-"  such as:\n" +
-"  1) An MVC (Model-View-Controller) alike design pattern to manage \n" +
-"     client requests without using any URL rewriting rules.\n" +
-"  2) A WebSocket Manager, allowing the server to accept and manage \n" +
-"     incoming WebSocket connections.\n" +
-"  3) Direct access to every socket bound to every client application.\n" +
-"  4) Direct access to the headers of the incomming and outgoing Http messages.\n" +
-"  Copyright (C) 2016-2018  Tanase Razvan Catalin\n" +
-"  \n" +
-"  This program is free software: you can redistribute it and/or modify\n" +
-"  it under the terms of the GNU Affero General Public License as\n" +
-"  published by the Free Software Foundation, either version 3 of the\n" +
-"  License, or (at your option) any later version.\n" +
-"  \n" +
-"  This program is distributed in the hope that it will be useful,\n" +
-"  but WITHOUT ANY WARRANTY; without even the implied warranty of\n" +
-"  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n" +
-"  GNU Affero General Public License for more details.\n" +
-"  \n" +
-"  You should have received a copy of the GNU Affero General Public License\n" +
-"  along with this program.  If not, see <https://www.gnu.org/licenses/>.\n\n";
     
     /**
      * @param args the command line arguments
@@ -94,15 +70,13 @@ public abstract class ElkServer extends Elk{
         class ConsoleWebServer extends ElkServer{
             @Override
             public void init() {
-                System.out.println(message);
+                
             }
         }
         
         
         server = new ConsoleWebServer();
-        server.listen(new String[]{
-            "C:\\elk\\htdocs\\ElkServerGitPage\\http.json"
-        });
+        server.listen(args);
         
     }
     
@@ -121,7 +95,7 @@ public abstract class ElkServer extends Elk{
      */
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
         String settingsPath = new File(args[0]).getParent().toString();
-        String logLineSeparator = "\n=================================";
+        String logLineSeparator = "\n";
 
         Settings.parse(args[0]);
         System.out.println(logLineSeparator+"\n###Reading port");
@@ -216,14 +190,14 @@ public abstract class ElkServer extends Elk{
             SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
             ssl.bind(new InetSocketAddress(bindAddress, port));
             init();
-            System.out.println("===== SERVER LISTENING =====");
+            System.out.println("\nServer listening...");
             while(listen){
                 new Thread(new HttpEventListener(ssl.accept())).start();
             }
         }else{
             ServerSocket ss = new ServerSocket();
             ss.bind(new InetSocketAddress(bindAddress, port));
-            System.out.println("===== SERVER LISTENING =====");
+            System.out.println("\nServer listening...");
             init();
             while(listen){
                 new Thread(new HttpEventListener(ss.accept())).start();
