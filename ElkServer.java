@@ -91,7 +91,7 @@ public abstract class ElkServer extends Elk{
     }
     
     public static void main (String[] args) throws IOException, NoSuchAlgorithmException{
-        class ConsoleServlet extends ElkServer{
+        class ConsoleWebServer extends ElkServer{
             @Override
             public void init() {
                 System.out.println(message);
@@ -99,8 +99,10 @@ public abstract class ElkServer extends Elk{
         }
         
         
-        server = new ConsoleServlet();
-        server.listen(args);
+        server = new ConsoleWebServer();
+        server.listen(new String[]{
+            "C:\\elk\\htdocs\\ElkServerGitPage\\http.json"
+        });
         
     }
     
@@ -144,6 +146,11 @@ public abstract class ElkServer extends Elk{
         if(Settings.isset("charset"))
             charset = Settings.getString("charset");
         System.out.println("\t>>>charset:"+charset+" [OK]");
+        
+        System.out.println(logLineSeparator+"\n###Reading timeout");
+        if(Settings.isset("timeout"))
+            timeout = Settings.getInt("timeout");
+        System.out.println("\t>>>timeout:"+timeout+" [OK]");
         
         System.out.println(logLineSeparator+"\n###Reading controllers");
         JsonObject controllers = Settings.get("controllers").getAsJsonObject();

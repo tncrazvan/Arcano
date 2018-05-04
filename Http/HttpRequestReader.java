@@ -54,7 +54,6 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
     protected final DataInputStream input;
     private String outputString = "";
     public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
-        client.setSoTimeout(httpTimeout);
         this.client=client;
         reader = new BufferedReader(
                 new InputStreamReader(

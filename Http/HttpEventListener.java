@@ -79,6 +79,7 @@ public class HttpEventListener extends HttpRequestReader{
                 }
             }else{
                 try {
+                    client.setSoTimeout(timeout);
                     //default connection, assuming it's Http 1.x
                     new HttpEvent(output,clientHeader,client,content).execute();
                 } catch (IOException ex) {
