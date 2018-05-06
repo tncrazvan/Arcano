@@ -68,6 +68,12 @@ public class Set extends HttpController{
                 if(groups.get("allow").getAsBoolean()){
                     HttpSession session = new HttpSession(e);
                     WebSocketGroup group = new WebSocketGroup(session);
+                    if(e.issetUrlQuery("visibility")){
+                        group.setVisibility(Integer.parseInt(e.getUrlQuery("visibility")));
+                    }
+                    if(e.issetUrlQuery("name")){
+                        group.setGroupName(e.getUrlQuery("name"));
+                    }
                     WebSocketGroupApplicationProgramInterface.GROUP_MANAGER.addGroup(group);
                     e.send(group.getKey());
                 }else{

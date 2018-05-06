@@ -50,4 +50,8 @@ public class WebSocketGroupManager {
     public WebSocketGroup getGroup(String key){
         return groups.get(key);
     }
+    
+    public Map<String,WebSocketGroup> getAllGroups(){
+        return groups;
+    }
 }

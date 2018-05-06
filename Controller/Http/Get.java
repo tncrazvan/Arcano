@@ -25,12 +25,17 @@
  */
 package com.razshare.elkserver.Controller.Http;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.razshare.elkserver.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import com.razshare.elkserver.Http.HttpEvent;
 import com.razshare.elkserver.Elk;
 import com.razshare.elkserver.Http.HttpController;
+import com.razshare.elkserver.WebSocket.WebSocketGroup;
 import java.util.Map;
 
 /**
@@ -59,6 +64,27 @@ public class Get extends HttpController{
             this.value=value;
         }
         
+    }
+    
+    public void allWebSocketGroups(HttpEvent e, ArrayList<String> path, String content){
+        WebSocketGroup group;
+        JsonArray arr = new JsonArray();
+        for(String key : 
+        WebSocketGroupApplicationProgramInterface
+        .GROUP_MANAGER
+        .getAllGroups().keySet()){
+            group = WebSocketGroupApplicationProgramInterface
+                            .GROUP_MANAGER
+                            .getGroup(key);
+            if(group.getVisibility() == WebSocketGroup.PUBLIC){
+                JsonObject o = new JsonObject();
+                o.addProperty("name", group.getGroupName());
+                o.addProperty("id", key);
+                arr.add(o);
+            }
+            
+        }
+        e.send(arr.toString());
     }
     
     public void cookie(HttpEvent e, ArrayList<String> path, String content){

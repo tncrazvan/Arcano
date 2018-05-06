@@ -35,17 +35,39 @@ import java.util.Map;
  * @author razvan
  */
 public class WebSocketGroup {
+    public static final int 
+            PRIVATE = 0,
+            PUBLIC = 1;
     private final String key;
     private final Map<String, WebSocketEvent> events = new HashMap<>();
     private WebSocketEvent master = null;
+    private int visibility = PRIVATE;
+    private String name;
 
     public WebSocketGroup(HttpSession session) {
         this.key = Elk.getBCryptString(session.getSessionId());
     }
     
+    public void setGroupName(String name){
+        this.name = name;
+    }
+    
+    public String getGroupName(){
+        return name;
+    }
+    
+    public void setVisibility(int v){
+        visibility = v;
+    }
+    
+    public int getVisibility(){
+        return visibility;
+    }
+    
     public void addClient(WebSocketEvent e){
         events.put(e.getSession().getSessionId(), e);
     }
+    
     public WebSocketEvent removeClient(WebSocketEvent e){
         if(matchCreator(e)){
             master = null;

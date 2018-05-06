@@ -64,8 +64,15 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
 
                             //save the pointer in a local variable
                             group = GROUP_MANAGER.getGroup(groupName);
-                            //and add this client to the group
-                            group.addClient(e);
+                            //if the group is public
+                            if(group.getVisibility() == WebSocketGroup.PUBLIC){
+                                //add this client to the group
+                                group.addClient(e);
+                            }else{
+                                //if the group is not public, close the connection
+                                e.close();
+                            }
+                            
                         }
                     }
                 }else{
@@ -99,14 +106,15 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
         if(group.clientExists(e)){
             //remove the client from group
             group.removeClient(e);
-            //if this was the last client in the group...
-            if(GROUP_MANAGER.getGroup(groupName).getMap().size() <= 0){
-                //remove the group from the public list
-                GROUP_MANAGER.removeGroup(group);
-                //and mark the group for garbage collection to free memory
-                //by setting it to null
-                group = null;
-            }
+        }
+        //if groups has no clients, remove it from memory
+        if(GROUP_MANAGER.getGroup(groupName).getMap().size() <= 0){
+            //remove the group from the public list
+            GROUP_MANAGER.removeGroup(group);
+            //and mark the group for garbage collection to free memory
+            //by setting it to null
+            group = null;
+            System.out.println("removing group from memory");
         }
     }
 }
