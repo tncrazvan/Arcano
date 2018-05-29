@@ -31,7 +31,6 @@ import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.razshare.elkserver.Elk;
 import java.io.DataOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -42,9 +41,14 @@ import java.io.UnsupportedEncodingException;
  */
 public class HttpEvent extends HttpEventManager{
     private final HttpEvent singleton;
+    public HttpSession session;
     public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, String content) throws UnsupportedEncodingException {
         super(output,clientHeader,client,content);
         singleton = this;
+    }
+    
+    public void sessionStart(){
+        session = HttpSession.start(this);
     }
     
     @Override
@@ -107,12 +111,12 @@ public class HttpEvent extends HttpEventManager{
                             IllegalArgumentException | 
                             InvocationTargetException | 
                             IOException ex) {
-                        Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
+                        logger.log(Level.SEVERE,null,ex);
                         try {
                             onCloseMethod.invoke(x);
                             client.close();
                         } catch (IOException | InvocationTargetException ex2) {
-                            Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex2);
+                            logger.log(Level.SEVERE,null,ex);
                         }
                     }
                 }
@@ -132,25 +136,25 @@ public class HttpEvent extends HttpEventManager{
                 } catch (ClassNotFoundException | IOException | IllegalAccessException | 
                         IllegalArgumentException | InvocationTargetException | NoSuchMethodException | 
                         SecurityException ex1) {
-                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
+                    logger.log(Level.SEVERE,null,ex);
                     try {
                         client.close();
                     } catch (IOException ex2) {
-                        Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex2);
+                        logger.log(Level.SEVERE,null,ex);
                     }
                 } catch (InstantiationException ex1) {
-                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex1);
+                    logger.log(Level.SEVERE,null,ex);
                 }
             } catch (InstantiationException | 
                     IllegalAccessException | 
                     NoSuchMethodException | 
                     SecurityException | 
                     IllegalArgumentException | IOException ex) {
-                Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.SEVERE,null,ex);
                 try {
                     client.close();
                 } catch (IOException ex2) {
-                    Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex2);
+                    logger.log(Level.SEVERE,null,ex);
                 }
             }
         }else{
@@ -158,12 +162,12 @@ public class HttpEvent extends HttpEventManager{
                 setContentType("text/html");
                 sendFileContents(Elk.indexFile);
             } catch (IOException ex) {
-                Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.SEVERE,null,ex);
             }
             try {
                 client.close();
             } catch (IOException ex) {
-                Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.SEVERE,null,ex);
             }
         }
     } 

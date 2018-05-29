@@ -116,7 +116,7 @@ public class HttpHeader {
         }
     }
     
-    public boolean cookieIsset(String key){
+    public boolean issetCookie(String key){
         Iterator i = cookies.entrySet().iterator();
         Map.Entry pair;
         String tmp = "";

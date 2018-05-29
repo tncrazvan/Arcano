@@ -27,6 +27,7 @@ package com.razshare.elkserver;
 
 import com.razshare.elkserver.Http.HttpHeader;
 import java.io.UnsupportedEncodingException;
+import java.net.Socket;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -184,7 +185,10 @@ public abstract class EventManager extends Elk{
      * Checks if the cookie is set.
      * @param key name of the cookie.
      */
+    public boolean issetCookie(String key){
+        return clientHeader.issetCookie(key);
+    }
     public boolean cookieIsset(String key){
-        return clientHeader.cookieIsset(key);
+        return issetCookie(key);
     }
 }

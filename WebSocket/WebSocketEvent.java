@@ -32,7 +32,6 @@ import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.razshare.elkserver.Http.HttpHeader;
 import com.razshare.elkserver.Elk;
 import com.razshare.elkserver.Http.HttpSession;
@@ -51,11 +50,10 @@ public class WebSocketEvent extends WebSocketManager{
     private ArrayList<String> args = new ArrayList<>();
     private Class<?> c = null;
     private Object x = null;
-    private final HttpSession session;
+    protected HttpSession session;
     
-    public WebSocketEvent(BufferedReader reader,Socket client,HttpHeader clientHeader,String requestId) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException {
-        super(reader,client,clientHeader,requestId);
-        session = new HttpSession(this);
+    public WebSocketEvent(BufferedReader reader,Socket client,HttpHeader clientHeader) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException {
+        super(reader,client,clientHeader);
         singleton = this;
         String[] uri = Elk.decodeUrl(location).split("/");
         if(uri.length>1){
@@ -103,7 +101,7 @@ public class WebSocketEvent extends WebSocketManager{
                         onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
                         onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
                     } catch (ClassNotFoundException ex1) {
-                        Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex1);
+                        logger.log(Level.SEVERE,null,ex);
                     }
                 }
             }else{
@@ -121,7 +119,7 @@ public class WebSocketEvent extends WebSocketManager{
                     onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
                     onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
                 } catch (ClassNotFoundException ex) {
-                    Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
+                    logger.log(Level.SEVERE,null,ex);
                 }
             }
         }else{
@@ -139,9 +137,13 @@ public class WebSocketEvent extends WebSocketManager{
                 onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
                 onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
             } catch (ClassNotFoundException ex) {
-                Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.SEVERE,null,ex);
             }
         }
+    }
+    
+    public void sessionStart(){
+        session = HttpSession.start(this);
     }
 
 
@@ -152,7 +154,7 @@ public class WebSocketEvent extends WebSocketManager{
             Elk.WS_EVENTS.get(c.getCanonicalName()).remove(singleton);
             onCloseMethod.invoke(x,this.singleton,args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE,null,ex);
         }
     }
 
@@ -170,7 +172,7 @@ public class WebSocketEvent extends WebSocketManager{
             }
             onOpenMethod.invoke(x,this.singleton,args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE,null,ex);
         }
     }
 
@@ -179,12 +181,9 @@ public class WebSocketEvent extends WebSocketManager{
         try {
             onMessageMethod.invoke(x,this.singleton,data,args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE,null,ex);
         }
 
     }
     
-    public HttpSession getSession(){
-        return session;
-    }
 }

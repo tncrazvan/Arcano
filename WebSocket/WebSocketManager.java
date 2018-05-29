@@ -36,7 +36,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.razshare.elkserver.Http.HttpHeader;
 import com.razshare.elkserver.Elk;
 import com.razshare.elkserver.EventManager;
@@ -58,12 +57,12 @@ public abstract class WebSocketManager extends EventManager{
     private Map<String,String> userLanguages = new HashMap<>();
     private boolean connected = true;
     //private final HttpHeader header;
-    public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader,String requestId) throws IOException {
+    public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader) throws IOException {
         super(clientHeader);
         this.client=client;
         this.clientHeader=clientHeader;
         this.reader=reader;
-        this.requesteId=requestId;
+        this.requesteId = Elk.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());;
         this.outputStream = client.getOutputStream();
         //header = new HttpHeader();
     }
@@ -110,7 +109,7 @@ public abstract class WebSocketManager extends EventManager{
                 } catch (IOException ex) {
                     close();
                 } catch (NoSuchAlgorithmException ex) {
-                    Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+                    logger.log(Level.SEVERE,null,ex);
                 }
             }
         }).start();
@@ -237,14 +236,14 @@ public abstract class WebSocketManager extends EventManager{
             client.close();
             onClose(client);
         } catch (IOException ex) {
-            Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE,null,ex);
         }
     }
     public void send(String data){
         try {
             send(data.getBytes(Elk.charset), false);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE,null,ex);
         }
     }
     public void send(byte[] data){
@@ -271,7 +270,7 @@ public abstract class WebSocketManager extends EventManager{
         try {
             outputStream.flush();
         } catch (IOException ex) {
-            Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE,null,ex);
         }
         try {
             //We need to set only FIN and Opcode.
@@ -293,7 +292,7 @@ public abstract class WebSocketManager extends EventManager{
             try {
                 outputStream.flush();
             } catch (IOException ex) {
-                Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.SEVERE,null,ex);
             }
         } catch (IOException ex) {
             close();
@@ -337,7 +336,7 @@ public abstract class WebSocketManager extends EventManager{
         try {
             broadcast(msg.getBytes(Elk.charset),o,false);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE,null,ex);
         }
     }
     public void broadcast(byte[] data,Object o){
@@ -369,7 +368,7 @@ public abstract class WebSocketManager extends EventManager{
         try {
             send(data.getBytes(Elk.charset),group,false);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(WebSocketManager.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE,null,ex);
         }
         
     }

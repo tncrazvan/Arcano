@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-import com.razshare.elkserver.Elk;
 import com.razshare.elkserver.WebSocket.WebSocketEvent;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,7 +37,6 @@ import java.util.regex.Pattern;
  * @author Razvan
  */
 public class HttpEventListener extends HttpRequestReader{
-    private final String sessionId;
     private Matcher matcher;
     private static final Pattern 
             upgradePattern = Pattern.compile("Upgrade"),
@@ -48,7 +45,6 @@ public class HttpEventListener extends HttpRequestReader{
             http2Pattern = Pattern.compile("h2c");
     public HttpEventListener(Socket client) throws IOException, NoSuchAlgorithmException{
         super(client);
-        sessionId = Elk.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());
     }
     
     @Override
@@ -60,15 +56,15 @@ public class HttpEventListener extends HttpRequestReader{
                 //WebSocket connection
                 if(matcher.find()){
                     try {
-                        new WebSocketEvent(reader, client, clientHeader, sessionId).execute();
+                        new WebSocketEvent(reader, client, clientHeader).execute();
                     }catch(IOException e){
                         try {
                             client.close();
                         } catch (IOException ex) {
-                            Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
+                            logger.log(Level.SEVERE,null,ex);
                         }
                     } catch (InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
-                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
+                        logger.log(Level.SEVERE,null,ex);
                     }
                 }else{
                     matcher = http2Pattern.matcher(clientHeader.get("Upgrade"));
@@ -83,7 +79,7 @@ public class HttpEventListener extends HttpRequestReader{
                     //default connection, assuming it's Http 1.x
                     new HttpEvent(output,clientHeader,client,content).execute();
                 } catch (IOException ex) {
-                    Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
+                    logger.log(Level.SEVERE,null,ex);
                 }
             } 
         }

@@ -33,7 +33,6 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.razshare.elkserver.Elk;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -120,11 +119,11 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
                 }
             }
             this.onRequest(clientHeader,outputString);
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             try {
                 client.close();
             } catch (IOException ex1) {
-                Logger.getLogger(HttpRequestReader.class.getName()).log(Level.SEVERE, null, ex1);
+                logger.log(Level.SEVERE,null,ex);
             }
         }
     }

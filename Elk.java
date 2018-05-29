@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.razshare.elkserver.Http.HttpEvent;
+import com.razshare.elkserver.Http.HttpEventManager;
 import com.razshare.elkserver.WebSocket.WebSocketEvent;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -74,7 +75,7 @@ public class Elk {
             wsControllerPackageName = "com.razshare.elkserver.Controller.WebSocket",
             httpControllerNotFound = "ControllerNotFound",
             wsControllerNotFound = "ControllerNotFound";
-    
+    protected static final Logger logger = Logger.getLogger(Elk.class.getName());
     //advanced settings
     protected static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();
     protected static final int 
@@ -255,7 +256,7 @@ public class Elk {
         try {
             return new String(Elk.BASE64_DECODER.decode(value.getBytes(charset)),charset);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.WARNING,null,ex);
         }
         return null;
     }
@@ -269,7 +270,7 @@ public class Elk {
         try {
             return Elk.BASE64_DECODER.decode(value.getBytes(charset));
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.WARNING,null,ex);
         }
         return null;
     }
@@ -294,7 +295,7 @@ public class Elk {
         try {
             return new String(BASE64_ENCODER.encode(value.getBytes(charset)),charset);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.WARNING,null,ex);
         }
         return null;
     }
@@ -308,7 +309,7 @@ public class Elk {
         try {
             return BASE64_ENCODER.encode(value.getBytes(charset));
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.WARNING,null,ex);
         }
         return null;
     }
@@ -335,7 +336,7 @@ public class Elk {
             
             return new BigInteger(1, crypt.digest()).toString(16);
         } catch (UnsupportedEncodingException | NoSuchAlgorithmException ex) {
-            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.WARNING,null,ex);
             return null;
         }
     }
@@ -558,7 +559,7 @@ public class Elk {
         } 
             catch (NoSuchAlgorithmException e){
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.WARNING,null,ex);
         }
         return result;
     }
@@ -573,7 +574,7 @@ public class Elk {
         try {
             return getSha512String(value, salt).getBytes(charset);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.WARNING,null,ex);
             return null;
         }
     }
@@ -647,7 +648,7 @@ public class Elk {
         try {
             return BCrypt.generateStorngPasswordHash(value);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
-            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.WARNING,null,ex);
             return null;
         }
     }
@@ -662,7 +663,7 @@ public class Elk {
         try {
             return BCrypt.validatePassword(originalString, cryptoString);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
-            Logger.getLogger(Elk.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.WARNING,null,ex);
             return false;
         }
     }

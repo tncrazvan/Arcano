@@ -35,7 +35,6 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Map;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.razshare.elkserver.Elk;
 import com.razshare.elkserver.EventManager;
 import java.io.DataOutputStream;
@@ -66,12 +65,13 @@ public abstract class HttpEventManager extends EventManager{
         try {
             client.close();
         } catch (IOException ex) {
-            Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.WARNING,null,ex);
         }
     }
     public Socket getClient(){
         return client;
     }
+    
     
     public void setHeaderField(String fieldName,String fieldContent){
         header.set(fieldName, fieldContent);
@@ -254,7 +254,7 @@ public abstract class HttpEventManager extends EventManager{
             try {
                 client.close();
             } catch (IOException ex1) {
-                Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex1);
+                logger.log(Level.SEVERE,null,ex);
             }
         }
     }
@@ -274,7 +274,7 @@ public abstract class HttpEventManager extends EventManager{
                 try {
                     client.close();
                 } catch (IOException ex1) {
-                    Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex1);
+                    logger.log(Level.SEVERE,null,ex);
                 }
             }
         }
@@ -291,7 +291,7 @@ public abstract class HttpEventManager extends EventManager{
         try {
             send(data.getBytes(Elk.charset));
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE,null,ex);
         }
     }
     
@@ -337,7 +337,7 @@ public abstract class HttpEventManager extends EventManager{
                 os.close();
             }
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.INFO,null,ex);
         } catch (IOException ex) {
             //ex.printStackTrace();
             System.out.println("Client "+client.getInetAddress().toString()+" disconnected before receiving the whole file ("+f.getName()+")");
@@ -345,7 +345,7 @@ public abstract class HttpEventManager extends EventManager{
             try {
                 fis.close();
             } catch (IOException ex) {
-                Logger.getLogger(HttpEventManager.class.getName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.WARNING,null,ex);
             }
         }
     }

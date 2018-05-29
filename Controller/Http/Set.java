@@ -66,7 +66,7 @@ public class Set extends HttpController{
             JsonObject groups = Settings.get("groups").getAsJsonObject();
             if(groups.has("allow")){
                 if(groups.get("allow").getAsBoolean()){
-                    HttpSession session = new HttpSession(e);
+                    HttpSession session = HttpSession.start(e);
                     WebSocketGroup group = new WebSocketGroup(session);
                     if(e.issetUrlQuery("visibility")){
                         group.setVisibility(Integer.parseInt(e.getUrlQuery("visibility")));

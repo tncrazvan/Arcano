@@ -31,7 +31,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -64,7 +63,7 @@ public class SmtpServer extends Elk implements Runnable{
                 EmailReader emailReader = new EmailReader(this,ss.accept(),listeners);
                 emailReader.parse();
             } catch (IOException ex) {
-                Logger.getLogger(SmtpServer.class.getName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.SEVERE,null,ex);
             }
         }
     }

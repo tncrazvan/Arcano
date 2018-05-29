@@ -65,17 +65,18 @@ public class WebSocketGroup {
     }
     
     public void addClient(WebSocketEvent e){
-        events.put(e.getSession().getSessionId(), e);
+        e.sessionStart();
+        events.put(e.session.getSessionId(), e);
     }
     
     public WebSocketEvent removeClient(WebSocketEvent e){
         if(matchCreator(e)){
             master = null;
         }
-        return events.remove(e.getSession().getSessionId());
+        return events.remove(e.session.getSessionId());
     }
     public boolean clientExists(WebSocketEvent e){
-        return events.containsKey(e.getSession().getSessionId());
+        return events.containsKey(e.session.getSessionId());
     }
     
     public Map<String,WebSocketEvent> getMap(){
@@ -103,6 +104,6 @@ public class WebSocketGroup {
     }
     
     public boolean matchCreator(WebSocketEvent e){
-        return Elk.validateBCryptString(e.getSession().getSessionId(), key);
+        return Elk.validateBCryptString(e.session.getSessionId(), key);
     }
 }
