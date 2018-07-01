@@ -50,7 +50,7 @@ public class WebSocketEvent extends WebSocketManager{
     private ArrayList<String> args = new ArrayList<>();
     private Class<?> c = null;
     private Object x = null;
-    protected HttpSession session;
+    public HttpSession session;
     
     public WebSocketEvent(BufferedReader reader,Socket client,HttpHeader clientHeader) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException {
         super(reader,client,clientHeader);
@@ -140,6 +140,10 @@ public class WebSocketEvent extends WebSocketManager{
                 logger.log(Level.SEVERE,null,ex);
             }
         }
+    }
+    
+    public boolean sessionIsset(){
+        return (issetCookie("sessionId") && HttpSession.isset(getCookie("sessionId")));
     }
     
     public void sessionStart(){

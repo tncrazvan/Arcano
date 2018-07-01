@@ -47,6 +47,10 @@ public class HttpEvent extends HttpEventManager{
         singleton = this;
     }
     
+    public boolean sessionIsset(){
+        return (issetCookie("sessionId") && HttpSession.isset(getCookie("sessionId")));
+    }
+    
     public void sessionStart(){
         session = HttpSession.start(this);
     }
