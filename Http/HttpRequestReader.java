@@ -99,7 +99,7 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
                 if(chunkSize > 0){
                     chain = new byte[chunkSize];
                     input.readFully(chain);
-                    outputString = new String(chain);
+                    outputString = new String(chain,charset);
                 }else{
                     int offset = 0;
                     chain = new byte[httpMtu];
@@ -108,13 +108,13 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
                             if(offset < httpMtu){
                                 offset++;
                             }else{
-                                outputString = new String(chain);
+                                outputString = new String(chain,charset);
                                 offset = 0;
                                 chain = new byte[httpMtu];
                             }
                         }
                     }catch(SocketTimeoutException e){
-                        outputString = new String(chain);
+                        outputString = new String(chain,charset);
                     }
                 }
             }
