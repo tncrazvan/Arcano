@@ -142,7 +142,7 @@ public class WebSocketEvent extends WebSocketManager{
         }
     }
     
-    public boolean sessionIsset(){
+    public boolean sessionIdIsset(){
         return (issetCookie("sessionId") && HttpSession.isset(getCookie("sessionId")));
     }
     

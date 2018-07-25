@@ -98,55 +98,68 @@ public abstract class ElkServer extends Elk{
         String logLineSeparator = "\n";
 
         Settings.parse(args[0]);
-        System.out.println(logLineSeparator+"\n###Reading port");
+        //System.out.println(logLineSeparator+"\n[Reading port]");
         if(Settings.isset("port"))
             port = Settings.getInt("port");
-        System.out.println("\t>>>port:"+port+" [OK]");
+        System.out.println("port => "+port);
         
-        System.out.println(logLineSeparator+"\n###Reading bindAddress");
+        //System.out.println(logLineSeparator+"\n[Reading bindAddress]");
         if(Settings.isset("bindAddress"))
             bindAddress = Settings.getString("bindAddress");
-        System.out.println("\t>>>bindAddress:"+bindAddress+" [OK]");
+        System.out.println("bindAddress => "+bindAddress);
         
-        System.out.println(logLineSeparator+"\n###Reading webRoot");
+        //System.out.println(logLineSeparator+"\n[Reading webRoot]");
         if(Settings.isset("webRoot"))
             webRoot = new File(args[0]).getParent()+"/"+Settings.getString("webRoot");
         else
             webRoot = new File(args[0]).getParent()+"/"+webRoot;
         
-        System.out.println("\t>>>webRoot:"+webRoot+" [OK]");
+        System.out.println("webRoot => "+webRoot);
         
-        System.out.println(logLineSeparator+"\n###Reading charset");
+        //System.out.println(logLineSeparator+"\n[Reading charset]");
         if(Settings.isset("charset"))
             charset = Settings.getString("charset");
-        System.out.println("\t>>>charset:"+charset+" [OK]");
+        System.out.println("charset => "+charset);
         
-        System.out.println(logLineSeparator+"\n###Reading timeout");
+        //System.out.println(logLineSeparator+"[Reading timeout]");
         if(Settings.isset("timeout"))
             timeout = Settings.getInt("timeout");
-        System.out.println("\t>>>timeout:"+timeout+" [OK]");
+        System.out.println("timeout => "+timeout);
         
-        System.out.println(logLineSeparator+"\n###Reading controllers");
-        JsonObject controllers = Settings.get("controllers").getAsJsonObject();
-        System.out.println("\t>>>controllers:[object] [OK]");
+        //System.out.println(logLineSeparator+"\n[Reading controllers]");
+        if(Settings.isset("controllers")){
+            JsonObject controllers = Settings.get("controllers").getAsJsonObject();
+            System.out.println("controllers => [object]");
+
+            System.out.println(logLineSeparator+"[Reading controllers.http]");
+            httpControllerPackageName = controllers.get("http").getAsString();
+            System.out.println("controllers.http => "+httpControllerPackageName);
+
+            System.out.println(logLineSeparator+"[Reading controllers.websocket]");
+            wsControllerPackageName = (
+                    controllers
+                    .has("websocket")?
+                        controllers
+                                .get("websocket")
+                                .getAsString():
+                        controllers
+                                .get("ws")
+                                .getAsString());
+            System.out.println("controllers.websocket => "+wsControllerPackageName);
+        }else{
+            System.out.println("Using default controllers");
+        }
         
-        System.out.println(logLineSeparator+"\n###Reading controllers.http");
-        httpControllerPackageName = controllers.get("http").getAsString();
-        System.out.println("\t>>>controllers.http:"+httpControllerPackageName+" [OK]");
-        
-        System.out.println(logLineSeparator+"\n###Reading controllers.websocket");
-        wsControllerPackageName = controllers.get("websocket").getAsString();
-        System.out.println("\t>>>controllers.websocket:"+wsControllerPackageName+" [OK]");
 
         //checking for SMTP server
         if(Settings.isset("smtp")){
-            System.out.println(logLineSeparator+"\n###Reading smtp");
+            //System.out.println(logLineSeparator+"\n[Reading smtp]");
             JsonObject smtp = Settings.get("smtp").getAsJsonObject();
-            System.out.println("\t>>>controllers:[object] [OK]");
+            System.out.println("smtp => [object]");
             if(smtp.has("allow")){
                 smtpAllowed = smtp.get("allow").getAsBoolean();
-                System.out.println(logLineSeparator+"\t\n###Reading smtp.allow");
-                System.out.println("\t\t>>>smtp.allow:"+smtpAllowed);
+                System.out.println(logLineSeparator+"\t[Reading smtp.allow]");
+                System.out.println("\tsmtp.allow => "+smtpAllowed);
                 if(smtpAllowed){
                     String smtpBindAddress = bindAddress;
                     if(smtp.has("bindAddress")){
@@ -155,7 +168,7 @@ public abstract class ElkServer extends Elk{
                     if(smtp.has("hostname")){
                         smtpServer = new SmtpServer(new ServerSocket(),smtpBindAddress,25,smtp.get("hostname").getAsString());
                         new Thread(smtpServer).start();
-                        System.out.println("###Smtp server started.");
+                        System.out.println("\t[Smtp server started.]");
                     }else{
                         System.err.println("[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
                     }
@@ -165,20 +178,20 @@ public abstract class ElkServer extends Elk{
         }
         
         if(port == 443){
-            System.out.println(logLineSeparator+"\n###Reading tls");
+            System.out.println(logLineSeparator+"\n[Reading tls]");
             JsonObject tls = Settings.get("tls").getAsJsonObject();
             
-            System.out.println(logLineSeparator+"\t\n###Reading tls.certificate");
+            System.out.println(logLineSeparator+"\t[Reading tls.certificate]");
             String tls_certificate = tls.get("certificate").getAsString();
-            System.out.println("\t\t>>>tls.certificate:"+tls_certificate+" [OK]");
+            System.out.println("\ttls.certificate => "+tls_certificate);
             
-            System.out.println(logLineSeparator+"\t\n###Reading tls.certificateType");
+            System.out.println(logLineSeparator+"\t\n[Reading tls.certificateType]");
             String certificate_type = tls.get("certificateType").getAsString();
-            System.out.println("\t\t>>>tls.certificate_type:"+certificate_type+" [OK]");
+            System.out.println("\ttls.certificate_type:"+certificate_type);
             
-            System.out.println(logLineSeparator+"\t\n###Reading tls.password");
+            System.out.println(logLineSeparator+"\t\n[Reading tls.password]");
             String password = tls.get("password").getAsString();
-            System.out.println("\t\t>>>tls.password:***[OK]");
+            System.out.println("\ttls.password:***[OK]");
             
             SSLContext sslContext = createSSLContext(settingsPath+"/"+tls_certificate,certificate_type,password);
             

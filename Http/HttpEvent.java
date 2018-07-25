@@ -47,7 +47,7 @@ public class HttpEvent extends HttpEventManager{
         singleton = this;
     }
     
-    public boolean sessionIsset(){
+    public boolean sessionIdIsset(){
         return (issetCookie("sessionId") && HttpSession.isset(getCookie("sessionId")));
     }
     

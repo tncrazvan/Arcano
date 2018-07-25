@@ -28,7 +28,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.razshare.elkserver.Http.HttpEvent;
-import com.razshare.elkserver.Http.HttpEventManager;
 import com.razshare.elkserver.WebSocket.WebSocketEvent;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -122,6 +121,8 @@ public class Elk {
     protected static com.razshare.elkserver.Controller.Http.Set set = new com.razshare.elkserver.Controller.Http.Set();
 
     protected static com.razshare.elkserver.Controller.Http.Isset isset = new com.razshare.elkserver.Controller.Http.Isset();
+    
+    protected static com.razshare.elkserver.Controller.Http.Unset unset = new com.razshare.elkserver.Controller.Http.Unset();
 
     
     /**
