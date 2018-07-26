@@ -129,7 +129,7 @@ public class HttpEvent extends HttpEventManager{
                 
                     
                 try {
-                    c = Class.forName(Elk.httpControllerPackageName+"."+Elk.httpControllerNotFound);
+                    c = Class.forName(Elk.httpControllerPackageName+"."+Elk.httpNotFoundName);
                     
                     x = c.newInstance();
                     m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),content.getClass());

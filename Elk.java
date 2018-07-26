@@ -72,8 +72,8 @@ public class Elk {
             bindAddress = "::",
             httpControllerPackageName = "com.razshare.elkserver.Controller.Http",
             wsControllerPackageName = "com.razshare.elkserver.Controller.WebSocket",
-            httpControllerNotFound = "ControllerNotFound",
-            wsControllerNotFound = "ControllerNotFound";
+            httpNotFoundName = "ControllerNotFound",
+            wsNotFoundName = "ControllerNotFound";
     protected static final Logger logger = Logger.getLogger(Elk.class.getName());
     //advanced settings
     protected static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();
@@ -104,15 +104,12 @@ public class Elk {
     private static final String patternRightStart1 = "(?<=\\&lt\\;script)\\s*>";
     private static final String patternRightStart2 = "(?<=\\&lt\\;script).*\\s*>";
     
-    private static com.razshare.elkserver.Controller.Http.ControllerNotFound 
-            httpcnf = new 
+    protected static com.razshare.elkserver.Controller.Http.ControllerNotFound 
+            httpControllerNotFound = new 
             com.razshare.elkserver.Controller.Http.ControllerNotFound();
-    protected static void httpNotFound(HttpEvent e, ArrayList<String> path, String content){
-        httpcnf.main(e, path, content);
-    }
     
     protected static com.razshare.elkserver.Controller.WebSocket.ControllerNotFound 
-            webSocketNotFound = new 
+            webSocketControllerNotFound = new 
             com.razshare.elkserver.Controller.WebSocket.ControllerNotFound();
 
     

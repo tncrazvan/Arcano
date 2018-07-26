@@ -203,7 +203,7 @@ public abstract class HttpEventManager extends EventManager{
                     Class.forName(httpControllerPackageName+"."+location.substring(1).split("[#?&/\\\\]")[0]);
                     sendFileContents(indexFile);
                 }catch(ClassNotFoundException ex){
-                    onControllerRequest("/@"+Elk.httpControllerNotFound);
+                    onControllerRequest("/@"+Elk.httpNotFoundName);
                 }
                 client.close();
             }
