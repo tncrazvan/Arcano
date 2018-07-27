@@ -115,16 +115,15 @@ public abstract class ElkServer extends Elk{
             timeout = Settings.getInt("timeout");
         
         AsciiTable st = new AsciiTable("Socket");
-        st.addColumn(15);
-        st.addColumn(10);
         st.addRow("Attribute","Value");
         st.addRow("port",""+port);
         st.addRow("bind address",bindAddress);
         st.addRow("web root",webRoot);
         st.addRow("charset",charset);
         st.addRow("timeout (ms)",""+timeout);
-        st.draw();
         System.out.println("\n");
+        st.draw();
+        
         if(Settings.isset("controllers")){
             JsonObject controllers = Settings.get("controllers").getAsJsonObject();
 
@@ -140,16 +139,15 @@ public abstract class ElkServer extends Elk{
                                 .get("ws")
                                 .getAsString());
             
-            
+            AsciiTable ct = new AsciiTable("Controllers");
+            ct.addRow("Type","Package Name");
+            ct.addRow("http",""+httpControllerPackageName);
+            ct.addRow("websocket",""+wsControllerPackageName);
+            ct.draw();
         }
         
-        AsciiTable ct = new AsciiTable("Controllers");
-        ct.addColumn(15);
-        ct.addColumn(10);
-        ct.addRow("type","Package Name");
-        ct.addRow("http",""+httpControllerPackageName);
-        ct.addRow("websocket",""+wsControllerPackageName);
-        ct.draw();
+        
+        
         
         //checking for SMTP server
         if(Settings.isset("smtp")){
@@ -220,14 +218,15 @@ public abstract class ElkServer extends Elk{
             SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
             ssl.bind(new InetSocketAddress(bindAddress, port));
             init();
+            System.out.println("\nServer started.\n");
             while(listen){
                 new Thread(new HttpEventListener(ssl.accept())).start();
             }
         }else{
             ServerSocket ss = new ServerSocket();
             ss.bind(new InetSocketAddress(bindAddress, port));
-            System.out.println("\nServer listening...");
             init();
+            System.out.println("\nServer started.\n");
             while(listen){
                 new Thread(new HttpEventListener(ss.accept())).start();
             }

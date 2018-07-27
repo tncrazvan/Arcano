@@ -17,6 +17,6 @@
     "certificate":{
         "name":"tls_certificate.jks",
         "type":"JKS",
-        "password":"yout password"
+        "password":"your password"
     }
 }
