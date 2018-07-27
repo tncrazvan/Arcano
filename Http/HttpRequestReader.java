@@ -88,37 +88,42 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
                     //ex.printStackTrace();
                 }
             }
-            HttpHeader clientHeader = HttpHeader.fromString(outputString);
-            outputString = "";
-            if((clientHeader.get("Method").equals("POST") || port == 25) && !EOFException){
-                int chunkSize = 0;
-                if(clientHeader.isDefined("Content-Length")){
-                    chunkSize = Integer.parseInt(clientHeader.get("Content-Length"));
-                }
-                
-                if(chunkSize > 0){
-                    chain = new byte[chunkSize];
-                    input.readFully(chain);
-                    outputString = new String(chain,charset);
-                }else{
-                    int offset = 0;
-                    chain = new byte[httpMtu];
-                    try{
-                        while(input.read(chain)>0){
-                            if(offset < httpMtu){
-                                offset++;
-                            }else{
-                                outputString = new String(chain,charset);
-                                offset = 0;
-                                chain = new byte[httpMtu];
-                            }
-                        }
-                    }catch(SocketTimeoutException e){
+            if(outputString.trim().length() == 0){
+                client.close();
+            }else{
+                HttpHeader clientHeader = HttpHeader.fromString(outputString);
+                outputString = "";
+                if((clientHeader.get("Method").equals("POST") || port == 25) && !EOFException){
+                    int chunkSize = 0;
+                    if(clientHeader.isDefined("Content-Length")){
+                        chunkSize = Integer.parseInt(clientHeader.get("Content-Length"));
+                    }
+
+                    if(chunkSize > 0){
+                        chain = new byte[chunkSize];
+                        input.readFully(chain);
                         outputString = new String(chain,charset);
+                    }else{
+                        int offset = 0;
+                        chain = new byte[httpMtu];
+                        try{
+                            while(input.read(chain)>0){
+                                if(offset < httpMtu){
+                                    offset++;
+                                }else{
+                                    outputString = new String(chain,charset);
+                                    offset = 0;
+                                    chain = new byte[httpMtu];
+                                }
+                            }
+                        }catch(SocketTimeoutException e){
+                            outputString = new String(chain,charset);
+                        }
                     }
                 }
+                this.onRequest(clientHeader,outputString);
             }
-            this.onRequest(clientHeader,outputString);
+            
         } catch (IOException ex) {
             try {
                 client.close();
