@@ -143,7 +143,7 @@ public abstract class ElkServer extends Elk{
             
         }
         
-        AsciiTable ct = new AsciiTable("Controllers Settings");
+        AsciiTable ct = new AsciiTable("Controllers");
         ct.addColumn(15);
         ct.addColumn(10);
         ct.addRow("Type","Package Name");
