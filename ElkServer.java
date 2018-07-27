@@ -94,48 +94,42 @@ public abstract class ElkServer extends Elk{
      * @throws NoSuchAlgorithmException 
      */
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
-        String settingsPath = new File(args[0]).getParent().toString();
-        String logLineSeparator = "\n";
-
+        final String settingsPath = new File(args[0]).getParent().toString();
+        
         Settings.parse(args[0]);
-        //System.out.println(logLineSeparator+"\n[Reading port]");
         if(Settings.isset("port"))
             port = Settings.getInt("port");
-        System.out.println("port => "+port);
         
-        //System.out.println(logLineSeparator+"\n[Reading bindAddress]");
         if(Settings.isset("bindAddress"))
             bindAddress = Settings.getString("bindAddress");
-        System.out.println("bindAddress => "+bindAddress);
         
-        //System.out.println(logLineSeparator+"\n[Reading webRoot]");
         if(Settings.isset("webRoot"))
             webRoot = new File(args[0]).getParent()+"/"+Settings.getString("webRoot");
         else
             webRoot = new File(args[0]).getParent()+"/"+webRoot;
         
-        System.out.println("webRoot => "+webRoot);
-        
-        //System.out.println(logLineSeparator+"\n[Reading charset]");
         if(Settings.isset("charset"))
             charset = Settings.getString("charset");
-        System.out.println("charset => "+charset);
         
-        //System.out.println(logLineSeparator+"[Reading timeout]");
         if(Settings.isset("timeout"))
             timeout = Settings.getInt("timeout");
-        System.out.println("timeout => "+timeout);
         
-        //System.out.println(logLineSeparator+"\n[Reading controllers]");
+        AsciiTable st = new AsciiTable("Socket");
+        st.addColumn(15);
+        st.addColumn(10);
+        st.addRow("Attribute","Value");
+        st.addRow("port",""+port);
+        st.addRow("bind address",bindAddress);
+        st.addRow("web root",webRoot);
+        st.addRow("charset",charset);
+        st.addRow("timeout (ms)",""+timeout);
+        st.draw();
+        System.out.println("\n");
         if(Settings.isset("controllers")){
             JsonObject controllers = Settings.get("controllers").getAsJsonObject();
-            System.out.println("controllers => [object]");
 
-            System.out.println(logLineSeparator+"[Reading controllers.http]");
             httpControllerPackageName = controllers.get("http").getAsString();
-            System.out.println("controllers.http => "+httpControllerPackageName);
 
-            System.out.println(logLineSeparator+"[Reading controllers.websocket]");
             wsControllerPackageName = (
                     controllers
                     .has("websocket")?
@@ -145,53 +139,76 @@ public abstract class ElkServer extends Elk{
                         controllers
                                 .get("ws")
                                 .getAsString());
-            System.out.println("controllers.websocket => "+wsControllerPackageName);
-        }else{
-            System.out.println("Using default controllers");
+            
+            
         }
         
-
+        AsciiTable ct = new AsciiTable("Controllers Settings");
+        ct.addColumn(15);
+        ct.addColumn(10);
+        ct.addRow("Type","Package Name");
+        ct.addRow("Http",""+httpControllerPackageName);
+        ct.addRow("Websocket",""+wsControllerPackageName);
+        ct.draw();
+        
         //checking for SMTP server
         if(Settings.isset("smtp")){
-            //System.out.println(logLineSeparator+"\n[Reading smtp]");
+            AsciiTable smtpt = new AsciiTable("SMTP");
+            smtpt.addRow("Attribute","Value");
             JsonObject smtp = Settings.get("smtp").getAsJsonObject();
-            System.out.println("smtp => [object]");
             if(smtp.has("allow")){
                 smtpAllowed = smtp.get("allow").getAsBoolean();
-                System.out.println(logLineSeparator+"\t[Reading smtp.allow]");
-                System.out.println("\tsmtp.allow => "+smtpAllowed);
+                smtpt.addRow("allow",smtp.get("allow").getAsString());
                 if(smtpAllowed){
                     String smtpBindAddress = bindAddress;
                     if(smtp.has("bindAddress")){
                         smtpBindAddress = smtp.get("bindAddress").getAsString();
                     }
+                    smtpt.addRow("bind address",smtpBindAddress);
                     if(smtp.has("hostname")){
-                        smtpServer = new SmtpServer(new ServerSocket(),smtpBindAddress,25,smtp.get("hostname").getAsString());
+                        String smtpHostname = smtp.get("hostname").getAsString();
+                        smtpt.addRow("hostname",smtpHostname);
+                        smtpServer = new SmtpServer(new ServerSocket(),smtpBindAddress,25,smtpHostname);
                         new Thread(smtpServer).start();
-                        System.out.println("\t[Smtp server started.]");
                     }else{
-                        System.err.println("[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
+                        System.err.println("\n[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
                     }
                     
                 }
             }
+            
+            System.out.println("\n");
+            smtpt.draw();
+        }
+        
+        if(Settings.isset("groups")){
+            JsonObject groups = (JsonObject) Settings.get("groups");
+            AsciiTable gt = new AsciiTable("Groups Settings");
+            gt.addRow("Attribute","Value");
+            gt.addRow("allowed",groups.get("allow").getAsString());
+            System.out.println("\n");
+            gt.draw();
         }
         
         if(port == 443){
-            System.out.println(logLineSeparator+"\n[Reading certificate]");
+            AsciiTable certt = new AsciiTable("Certificate");
+            
+            certt.addRow("Attribute","Value");
+            
             JsonObject certificate_obj = Settings.get("certificate").getAsJsonObject();
             
-            System.out.println(logLineSeparator+"\t[Reading certificate.name]");
             String certificate_name = certificate_obj.get("name").getAsString();
-            System.out.println("\tcertificate.name => "+certificate_name);
             
-            System.out.println(logLineSeparator+"\t\n[Reading certificate.type]");
             String certificate_type = certificate_obj.get("type").getAsString();
-            System.out.println("\tcertificate.type:"+certificate_type);
             
-            System.out.println(logLineSeparator+"\t\n[Reading certificate.password]");
             String certificate_password = certificate_obj.get("password").getAsString();
-            System.out.println("\tcertificate.password:***[OK]");
+            
+            certt.addRow("Name",certificate_name);
+            certt.addRow("Type",certificate_type);
+            certt.addRow("Password","[Password matches]");
+            
+            System.out.println("\n");
+            certt.draw();
             
             SSLContext sslContext = createSSLContext(settingsPath+"/"+certificate_name,certificate_type,certificate_password);
             
@@ -203,7 +220,6 @@ public abstract class ElkServer extends Elk{
             SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
             ssl.bind(new InetSocketAddress(bindAddress, port));
             init();
-            System.out.println("\nServer listening...");
             while(listen){
                 new Thread(new HttpEventListener(ssl.accept())).start();
             }
