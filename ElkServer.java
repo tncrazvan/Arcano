@@ -146,9 +146,9 @@ public abstract class ElkServer extends Elk{
         AsciiTable ct = new AsciiTable("Controllers");
         ct.addColumn(15);
         ct.addColumn(10);
-        ct.addRow("Type","Package Name");
-        ct.addRow("Http",""+httpControllerPackageName);
-        ct.addRow("Websocket",""+wsControllerPackageName);
+        ct.addRow("type","Package Name");
+        ct.addRow("http",""+httpControllerPackageName);
+        ct.addRow("websocket",""+wsControllerPackageName);
         ct.draw();
         
         //checking for SMTP server
@@ -185,7 +185,7 @@ public abstract class ElkServer extends Elk{
             JsonObject groups = (JsonObject) Settings.get("groups");
             AsciiTable gt = new AsciiTable("Groups Settings");
             gt.addRow("Attribute","Value");
-            gt.addRow("allowed",groups.get("allow").getAsString());
+            gt.addRow("allow",groups.get("allow").getAsString());
             System.out.println("\n");
             gt.draw();
         }
@@ -203,9 +203,9 @@ public abstract class ElkServer extends Elk{
             
             String certificate_password = certificate_obj.get("password").getAsString();
             
-            certt.addRow("Name",certificate_name);
-            certt.addRow("Type",certificate_type);
-            certt.addRow("Password","[Password matches]");
+            certt.addRow("name",certificate_name);
+            certt.addRow("type",certificate_type);
+            certt.addRow("password","[Password matches]");
             
             System.out.println("\n");
             certt.draw();
