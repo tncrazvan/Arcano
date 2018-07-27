@@ -14,9 +14,9 @@
         "allow":true,
         "hostname":"yourDomainName.com"
     },
-    "tls":{
-        "certificate":"tls_certificate.jks",
-        "certificateType":"JKS",
+    "certificate":{
+        "name":"tls_certificate.jks",
+        "type":"JKS",
         "password":"yout password"
     }
 }

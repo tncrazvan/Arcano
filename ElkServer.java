@@ -178,22 +178,22 @@ public abstract class ElkServer extends Elk{
         }
         
         if(port == 443){
-            System.out.println(logLineSeparator+"\n[Reading tls]");
-            JsonObject tls = Settings.get("tls").getAsJsonObject();
+            System.out.println(logLineSeparator+"\n[Reading certificate]");
+            JsonObject certificate_obj = Settings.get("certificate").getAsJsonObject();
             
-            System.out.println(logLineSeparator+"\t[Reading tls.certificate]");
-            String tls_certificate = tls.get("certificate").getAsString();
-            System.out.println("\ttls.certificate => "+tls_certificate);
+            System.out.println(logLineSeparator+"\t[Reading certificate.name]");
+            String certificate_name = certificate_obj.get("name").getAsString();
+            System.out.println("\tcertificate.name => "+certificate_name);
             
-            System.out.println(logLineSeparator+"\t\n[Reading tls.certificateType]");
-            String certificate_type = tls.get("certificateType").getAsString();
-            System.out.println("\ttls.certificate_type:"+certificate_type);
+            System.out.println(logLineSeparator+"\t\n[Reading certificate.type]");
+            String certificate_type = certificate_obj.get("type").getAsString();
+            System.out.println("\tcertificate.type:"+certificate_type);
             
-            System.out.println(logLineSeparator+"\t\n[Reading tls.password]");
-            String password = tls.get("password").getAsString();
-            System.out.println("\ttls.password:***[OK]");
+            System.out.println(logLineSeparator+"\t\n[Reading certificate.password]");
+            String certificate_password = certificate_obj.get("password").getAsString();
+            System.out.println("\tcertificate.password:***[OK]");
             
-            SSLContext sslContext = createSSLContext(settingsPath+"/"+tls_certificate,certificate_type,password);
+            SSLContext sslContext = createSSLContext(settingsPath+"/"+certificate_name,certificate_type,certificate_password);
             
             
             // Create server socket factory
