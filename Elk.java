@@ -27,7 +27,6 @@ package com.razshare.elkserver;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.razshare.elkserver.Http.HttpEvent;
 import com.razshare.elkserver.WebSocket.WebSocketEvent;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -44,6 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,6 +74,7 @@ public class Elk {
             wsControllerPackageName = "com.razshare.elkserver.Controller.WebSocket",
             httpNotFoundName = "ControllerNotFound",
             wsNotFoundName = "ControllerNotFound";
+    protected static SimpleDateFormat httpDateFormat= new SimpleDateFormat("EEE, d MMM y HH:mm:ss z");
     protected static final Logger logger = Logger.getLogger(Elk.class.getName());
     //advanced settings
     protected static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();

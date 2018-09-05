@@ -186,6 +186,8 @@ public abstract class HttpEventManager extends EventManager{
         header.set("Content-Type", Elk.processContentType(location));
         if(f.exists() /*&& !location.equals(ELK.INDEX_FILE)*/){
             if(!f.isDirectory()){
+                header.set("Last-Modified",httpDateFormat.format(f.lastModified()));
+                header.set("Last-Modified-Timestamp",f.lastModified()+"");
                 sendFileContents(f);
             }else{
                 header.set("Content-Type", "text/plain");
@@ -201,6 +203,8 @@ public abstract class HttpEventManager extends EventManager{
                 header.set("Content-Type", "text/html");
                 try{
                     Class.forName(httpControllerPackageName+"."+location.substring(1).split("[#?&/\\\\]")[0]);
+                    header.set("Last-Modified",httpDateFormat.format(f.lastModified()));
+                    header.set("Last-Modified-Timestamp",f.lastModified()+"");
                     sendFileContents(indexFile);
                 }catch(ClassNotFoundException ex){
                     onControllerRequest("/@"+Elk.httpNotFoundName);
