@@ -37,8 +37,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import com.razshare.elkserver.Elk;
 import com.razshare.elkserver.EventManager;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.util.logging.Logger;
 
 /**
  *
@@ -209,10 +212,9 @@ public abstract class HttpEventManager extends EventManager{
                 }catch(ClassNotFoundException ex){
                     onControllerRequest("/@"+Elk.httpNotFoundName);
                 }
-                client.close();
             }
         }
-        client.close();
+       close();
         return true;
     }
     
@@ -255,11 +257,7 @@ public abstract class HttpEventManager extends EventManager{
         } catch (IOException ex) {
             ex.printStackTrace();
             alive=false;
-            try {
-                client.close();
-            } catch (IOException ex1) {
-                logger.log(Level.SEVERE,null,ex);
-            }
+            close();
         }
     }
     
@@ -275,11 +273,7 @@ public abstract class HttpEventManager extends EventManager{
             } catch (IOException ex) {
                 ex.printStackTrace();
                 alive=false;
-                try {
-                    client.close();
-                } catch (IOException ex1) {
-                    logger.log(Level.SEVERE,null,ex);
-                }
+                close();
             }
         }
     }
@@ -307,7 +301,7 @@ public abstract class HttpEventManager extends EventManager{
     }
     
     public void sendFileContents(String filename) throws IOException{
-        sendFileContents(new File(Elk.webRoot+filename));
+        sendFileContents(new File(webRoot,filename));
     }
     
     public void disableDefaultHeaders(){
@@ -319,39 +313,117 @@ public abstract class HttpEventManager extends EventManager{
     }
     
     private void sendFileContents(File f){
-        FileInputStream fis = null;
         try {
-            int BUFF_SIZE = 65000;
-            byte[] buffer = new byte[BUFF_SIZE];
-            fis = new FileInputStream(f);
-            OutputStream os = client.getOutputStream();
-            if(os != null){
+            byte[] buffer;
+            RandomAccessFile raf = new RandomAccessFile(f, "r");
+            DataOutputStream dos = new DataOutputStream(client.getOutputStream());
+            
+            int fileLength = (int) raf.length();
+            
+            if(clientHeader.isDefined("Range")){
+                setStatus(HttpEvent.STATUS_PARTIAL_CONTENT);
+                String[] ranges = clientHeader.get("Range").split("=")[1].split(",");
+                int[] rangeStart = new int[ranges.length];
+                int[] rangeEnd = new int[ranges.length];
+                int lastIndex;
+                for (int i = 0; i < ranges.length; i++) {
+                    lastIndex = ranges[i].length() - 1;
+                    String[] tmp = ranges[i].split("-");
+                    if(!ranges[i].substring(0, 1).equals("-")){
+                        rangeStart[i] = Integer.parseInt(tmp[0]);
+                    }else{
+                        rangeStart[i] = 0;
+                    }
+                    if(!ranges[i].substring(lastIndex, lastIndex+1).equals("-")){
+                        rangeEnd[i] = Integer.parseInt(tmp[1]);
+                    }else{
+                        rangeEnd[i] = fileLength-1;
+                    }
+                }
+                String ctype = Elk.processContentType(f.getName());
+                int start,end;
+                if(rangeStart.length > 1){
+                    String body = "";
+                    String boundary = generateMultipartBoundary();
+                    if(firstMessage && defaultHeaders){
+                        firstMessage = false;
+                        //header.set("Content-Length", ""+clength);
+                        header.set("Content-Type", "multipart/byteranges; boundary="+boundary);
+                        dos.writeUTF(header.toString());
+                    }
+                    
+                    for (int i = 0; i < rangeStart.length; i++) {
+                        start = rangeStart[i];
+                        end = rangeEnd[i];
+                        dos.writeUTF("--"+boundary+"\r\n");
+                        dos.writeUTF("Content-Type: "+ctype+"\r\n");
+                        dos.writeUTF("Content-Range: bytes "+start+"-"+end+"/"+fileLength+"\r\n\r\n");
+                        if(end-start+1 > httpMtu){
+                            int remainingBytes = end-start+1;
+                            buffer = new byte[httpMtu];
+                            raf.seek(start);
+                            while(remainingBytes > 0){
+                                raf.read(buffer);
+                                dos.write(buffer);
+                                remainingBytes -= httpMtu;
+                                if(remainingBytes < 0){
+                                    buffer = new byte[remainingBytes+httpMtu];
+                                    dos.write(buffer);
+                                    remainingBytes = 0;
+                                }else{
+                                    buffer = new byte[httpMtu];
+                                }
+                            }
+
+                        }else{
+                            buffer = new byte[end-start+1];
+                            raf.seek(start);
+                            raf.read(buffer);
+                            dos.write(buffer);
+                        }
+                        if(i < rangeStart.length-1){
+                            dos.writeUTF("\r\n");
+                        }
+                    }
+                    if(rangeStart.length > 1){
+                        dos.writeUTF("\r\n--"+boundary+"--");
+                    }
+                }else{
+                    start = rangeStart[0];
+                    end = rangeEnd[0];
+                    int len = end-start+1;
+                    if(firstMessage && defaultHeaders){
+                        firstMessage = false;
+                        header.set("Content-Range", "bytes "+start+"-"+end+"/"+fileLength);
+                        header.set("Content-Length", ""+len);
+                        dos.write((header.toString()+"\r\n").getBytes());
+                    }
+                    buffer = new byte[end-start+1];
+                    raf.seek(start);
+                    raf.read(buffer);
+                    dos.write(buffer);
+                }
+            }else{
                 if(firstMessage && defaultHeaders){
                     firstMessage = false;
-                    header.set("Content-Length", ""+f.length());
-                    os.write((header.toString()+"\r\n").getBytes());
+                    header.set("Content-Length", ""+fileLength);
+                    dos.write((header.toString()+"\r\n").getBytes());
                 }
-                
-                int byteRead = 0;
-                int counter = 0;
-                while ((byteRead = fis.read(buffer)) != -1 && counter < f.length()) {
-                    counter += byteRead;
-                    os.write(buffer, 0, byteRead);
-                }
-                os.close();
+                buffer = new byte[fileLength];
+                raf.seek(0);
+                raf.read(buffer);
+                dos.write(buffer);
             }
+            dos.close();
+            raf.close();
         } catch (FileNotFoundException ex) {
             logger.log(Level.INFO,null,ex);
         } catch (IOException ex) {
             //ex.printStackTrace();
             System.out.println("Client "+client.getInetAddress().toString()+" disconnected before receiving the whole file ("+f.getName()+")");
-        }finally{
-            try {
-                fis.close();
-            } catch (IOException ex) {
-                logger.log(Level.WARNING,null,ex);
-            }
         }
+        
+        close();
     }
     
 }

@@ -126,18 +126,25 @@ public abstract class ElkServer extends Elk{
         
         if(Settings.isset("controllers")){
             JsonObject controllers = Settings.get("controllers").getAsJsonObject();
-
-            httpControllerPackageName = controllers.get("http").getAsString();
-
-            wsControllerPackageName = (
-                    controllers
-                    .has("websocket")?
-                        controllers
+            
+            if(controllers.has("http")){
+                httpControllerPackageName = 
+                                        controllers
+                                        .get("http")
+                                        .getAsString();
+            }
+            
+            if(controllers.has("websocket")){
+                wsControllerPackageName = controllers
                                 .get("websocket")
-                                .getAsString():
-                        controllers
-                                .get("ws")
-                                .getAsString());
+                                .getAsString();
+            }else if(controllers.has("ws")){
+                wsControllerPackageName = 
+                                        controllers
+                                        .get("ws")
+                                        .getAsString();
+            }
+            
             
             AsciiTable ct = new AsciiTable("Controllers");
             ct.addRow("Type","Package Name");

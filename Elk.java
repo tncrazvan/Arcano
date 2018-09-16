@@ -412,6 +412,7 @@ public class Elk {
             case "oga":return "audio/og";
             case "wav":return "audio/x-wav";
             case "weba":return "audio/webm";
+            case "mp3":return "audio/mpeg";
 
             case "ico":return "image/x-icon";
             case "jpeg": 
