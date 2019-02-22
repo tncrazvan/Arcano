@@ -15,17 +15,17 @@ public class AsciiTable {
     private ArrayList<Integer> columns = new ArrayList<>();
     private ArrayList<String[]> rows = new ArrayList<>();
     private String title;
-    private String rowSeparator;
+    private String titleFormat;
+    private String titleSeparatorFormat;
+    private String rowSeparatorFormat;
     private String rowFormat;
-    private String labelSeparator;
-    private String labelFormat;
-    private int rowCounter = 0, columnCounter = 0;
+    private int titlePush = 1;
     
     public AsciiTable(String title) {
         this.title=title;
-        labelSeparator = "";
-        labelFormat = "";
-        rowSeparator = "";
+        titleFormat = "";
+        titleSeparatorFormat = "";
+        rowSeparatorFormat = "";
         rowFormat = "";
     }
     
@@ -33,90 +33,78 @@ public class AsciiTable {
         this.title=title;
     }
     
-    public void addColumn(int width){
-        columns.add(width);
-        updateCollumnFormat();
-        columnCounter++;
-    }
-    
-    public void addRow(String... values){
-        int counter = 0;
-        for(String value : values){
-            if(columnCounter < values.length){
-                addColumn(15);
+    private void fixWidths(){
+        for(String[] values : rows){
+            for(int i = 0; i<values.length; i++){
+                int valueLength = values[i].length();
+                if(columns.size() < i+1){
+                    columns.add(valueLength);
+                    continue;
+                }
+                int columnLength = columns.get(i);
+                columnLength = valueLength > columnLength?valueLength:columnLength;
+                columns.set(i, columnLength);
             }
-            
-            int valueLength = value.length();
-            if(value.length() > columns.get(counter)){
-                columns.set(counter, valueLength);
-                updateCollumnFormat();
-            }
-            counter++;
         }
-        rows.add(values);
-        rowCounter++;
+    }
+    public void addRow(String... values){
+        String[] result = new String[values.length];
+        for(int i=0;i<result.length;i++){
+            result[i] = values[i].trim();
+        }
+        rows.add(result);
     }
     
-    private void extendToRight(int extension){
-        int lastColWidth = columns.get(columnCounter-1);
-        columns.set(columnCounter-1, lastColWidth+extension);
-        updateCollumnFormat();
-    }
     
     public void draw(){
-        int titleLength = title.length();
-        int labelLength = labelSeparator.length()-4;
-        if(titleLength > labelLength){
-           extendToRight(titleLength-labelLength+2);
-        }
-        
-        System.out.format(labelSeparator);
-        String centeredTitle = "";
-        
-        if(titleLength < labelLength){
-            int extra = (labelLength - titleLength)/2;
-            centeredTitle = new String(new char[extra-1]).replace("\0", " ")+title;
-        }else{
-            centeredTitle = title;
-        }
-        
-        System.out.format(labelFormat,centeredTitle);
-        
-        System.out.format(rowSeparator);
-        boolean first = true;
-        for(String[] row : rows){
-            System.out.format(rowFormat,row);
-            if(first){
-                first = false;
-                System.out.format(rowSeparator);
+        fixWidths();
+        buildFormat();
+        System.out.format(titleSeparatorFormat);
+        System.out.format(titleFormat," ",title);
+        int rowsCounter = rows.size();
+        for(int i = 0;i < rowsCounter; i++){
+            if(i <= 1){
+                System.out.format(rowSeparatorFormat);
             }
+            String[] row = rows.get(i);
+            System.out.format(rowFormat,row);
         }
-        
-        System.out.format(rowSeparator);
+        System.out.format(rowSeparatorFormat);
     }
     
-    private void updateCollumnFormat(){
-        labelSeparator  = "";
-        labelFormat     = "";
-        rowFormat       = "";
-        rowSeparator    = "";
+    private void buildFormat(){
+        int totalWidth = 0;
+        titleFormat                 = "";
+        titleSeparatorFormat        = "";
+        rowFormat                   = "";
+        rowSeparatorFormat          = "";
+        boolean first = true;
         for(int width : columns){
-            if(labelSeparator.equals("")) 
-                labelSeparator  += "+";
-            else
-                labelSeparator  += "-";
+            totalWidth += width+3;
+            if(first){
+                first = false;
+                titleSeparatorFormat    += "+";
+            }else{
+                titleSeparatorFormat    += "-";
+            }
+            rowSeparatorFormat      += "+";
+            rowFormat               += "|";
             
-            labelSeparator      += new String(new char[width+2]).replace("\0", "-");
-            
-            rowSeparator        += "+";
-            rowSeparator        += new String(new char[width+2]).replace("\0", "-");
-            
-            rowFormat           += "| %-"+width+"s ";
+            titleSeparatorFormat    += new String(new char[width+2]).replace("\0", "-");
+            rowSeparatorFormat      += new String(new char[width+2]).replace("\0", "-");
+            rowFormat               += " %-"+width+"s ";
         }
-        labelFormat     += "| %-"+(labelSeparator.length()-3)+"s |%n";
-        labelSeparator  += "+%n";
-        rowSeparator    += "+%n";
-        rowFormat       += "|%n";
+        titleSeparatorFormat        += "+%n";
+        rowSeparatorFormat          += "+%n";
+        rowFormat                   += "|%n";
+        totalWidth ++;
+        
+        totalWidth -= 2;
+        
+        titlePush += (int) Math.floor((totalWidth-title.length())/2);
+        totalWidth -= titlePush;
+        
+        titleFormat                 = "|%-"+titlePush+"s%-"+totalWidth+"s|%n";
     }
     
 }

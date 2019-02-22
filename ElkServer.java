@@ -76,7 +76,7 @@ public abstract class ElkServer extends Elk{
         
         
         server = new ConsoleWebServer();
-        server.listen(args);
+        server.listen(new String[]{"C:\\Users\\Razvan\\Documents\\HtmlProjects\\tncrazvan.github.io\\http.json"});
         
     }
     
