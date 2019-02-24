@@ -7,7 +7,7 @@
   <scm>
     <connection>scm:git:git://github.com/tncrazvan/ElkServer.git</connection>
     <developerConnection>scm:git:git@github.com:tncrazvan/tncrazvan.git</developerConnection>
-    <tag>RELEASE</tag>
+    <tag>ElkServer-1.0.0</tag>
     <url>https://github.com/tncrazvan/ElkServer</url>
   </scm>
   <build>
