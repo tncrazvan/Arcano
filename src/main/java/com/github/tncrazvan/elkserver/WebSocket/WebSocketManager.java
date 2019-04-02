@@ -2,24 +2,24 @@
  * ElkServer is a Java library that makes it easier
  * to program and manage a Java Web Server by providing different tools
  * such as:
- * 1) An MVC (Model-View-Controller) alike design pattern to manage 
+ * 1) An MVC (Model-View-Controller) alike design pattern to manage
  *    client requests without using any URL rewriting rules.
- * 2) A WebSocket Manager, allowing the server to accept and manage 
+ * 2) A WebSocket Manager, allowing the server to accept and manage
  *    incoming WebSocket connections.
  * 3) Direct access to every socket bound to every client application.
  * 4) Direct access to the headers of the incomming and outgoing Http messages.
  * Copyright (C) 2016-2018  Tanase Razvan Catalin
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -66,34 +66,34 @@ public abstract class WebSocketManager extends EventManager{
         this.outputStream = client.getOutputStream();
         //header = new HttpHeader();
     }
-    
+
     public HttpHeader getClientHeader(){
         return clientHeader;
     }
-    
+
     public Socket getClient(){
         return client;
     }
-    
+
     public Map<String,String> getUserLanguages(){
         return userLanguages;
     }
-    
+
     public String getUserDefaultLanguage(){
         return userLanguages.get("DEFAULT-LANGUAGE");
     }
-    
+
     public String getUserAgent(){
         return clientHeader.get("User-Agent");
     }
-    
+
     public void execute(){
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     String acceptKey = DatatypeConverter.printBase64Binary(Elk.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + Elk.wsAcceptKey));
-                    
+
                     header.set("Status", "HTTP/1.1 101 Switching Protocols");
                     header.set("Connection","Upgrade");
                     header.set("Upgrade","websocket");
@@ -114,14 +114,14 @@ public abstract class WebSocketManager extends EventManager{
             }
         }).start();
 
-        
+
     }
-    
-    
+
+
     /*
         WEBSOCKET FRAME:
-        
-        
+
+
               0                   1                   2                   3
               0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
              +-+-+-+-+-------+-+-------------+-------------------------------+
@@ -141,7 +141,7 @@ public abstract class WebSocketManager extends EventManager{
              |                     Payload Data continued ...                |
              +---------------------------------------------------------------+
         */
-    
+
     private final int FIRST_BYTE = 0, SECOND_BYTE = 1, LENGTH2 = 2, LENGTH8 = 3, MASK = 4, PAYLOAD = 5, DONE = 6;
     private int lengthKey = 0, reading = FIRST_BYTE, lengthIndex = 0, maskIndex = 0, payloadIndex = 0, payloadLength = 0;
     private boolean fin,rsv1,rsv2,rsv3;
@@ -176,7 +176,7 @@ public abstract class WebSocketManager extends EventManager{
                 }else if(lengthKey == 127){
                     reading = LENGTH8;
                     length = new byte[8];
-                }   
+                }
                 break;
             case LENGTH2:
                 length[lengthIndex] = b;
@@ -194,7 +194,7 @@ public abstract class WebSocketManager extends EventManager{
                         payloadLength = ((payloadLength) << 8)  | (length[i] & 0xff);
                     }
                     reading = MASK;
-                }   
+                }
                 break;
             case MASK:
                 mask[maskIndex] = b;
@@ -203,18 +203,18 @@ public abstract class WebSocketManager extends EventManager{
                     reading = PAYLOAD;
                     //int l = (int)ByteBuffer.wrap(length).getLong();
                     payload = new byte[payloadLength];
-                }   
+                }
                 break;
             case PAYLOAD:
                 try{
                     payload[payloadIndex] = (byte) (b ^ mask[payloadIndex%4]);
                 }catch(Exception e){
                     e.printStackTrace();
-                }   
+                }
                 payloadIndex++;
                 if(payloadIndex == payload.length){
                     reading = DONE;
-                    
+
                     onMessage(client, payload);
                     lengthKey = 0;
                     reading = FIRST_BYTE;
@@ -224,12 +224,12 @@ public abstract class WebSocketManager extends EventManager{
                     payload = null;
                     mask = null;
                     length = null;
-                }   
+                }
                 break;
         }
-        
+
     }
-    
+
     public void close(){
         try {
             connected = false;
@@ -265,7 +265,7 @@ public abstract class WebSocketManager extends EventManager{
             encodeAndSendBytes(data,binary);
         }
     }
-    
+
     private void encodeAndSendBytes(byte[] messageBytes, boolean binary){
         try {
             outputStream.flush();
@@ -297,41 +297,14 @@ public abstract class WebSocketManager extends EventManager{
         } catch (IOException ex) {
             close();
         }
-        
+
     }
-    
+
     public void send(int data){
         send(""+data);
     }
-    
-    /*public void send(String message) {
-        try {
-            byte messageBytes[] = message.getBytes();
 
-            //We need to set only FIN and Opcode.
-            outputStream.write(0x81);
 
-            //Prepare the payload length.
-            if(messageBytes.length <= 125) {
-                outputStream.write(messageBytes.length);
-            }
-
-            else { //We assume it is 16 but length. Not more than that.
-                outputStream.write(0x7E);
-                int b1 =( messageBytes.length >> 8) &0xff;
-                int b2 = messageBytes.length &0xff;
-                outputStream.write(b1);
-                outputStream.write(b2);
-            }
-
-            //Write the data.
-            outputStream.write(messageBytes);
-        } catch (IOException ex) {
-            close();
-        }
-
-    }*/
-    
     public void broadcast(String msg,Object o){
         try {
             broadcast(msg.getBytes(Elk.charset),o,false);
@@ -351,31 +324,32 @@ public abstract class WebSocketManager extends EventManager{
             }
         }
     }
-    
+
     public void send(byte[] data,WebSocketGroup group){
         send(data, group, true);
     }
     public void send(byte[] data, WebSocketGroup group,boolean binary){
+      WebSocketEvent client;
         group.getMap().keySet().forEach((key) -> {
-            WebSocketEvent client = group.getMap().get(key);
+            client = group.getMap().get(key);
             if((WebSocketManager)client != this){
                 client.send(data,binary);
             }
         });
     }
-    
+
     public void send(String data, WebSocketGroup group){
         try {
             send(data.getBytes(Elk.charset),group,false);
         } catch (UnsupportedEncodingException ex) {
             logger.log(Level.SEVERE,null,ex);
         }
-        
+
     }
-    
-    
-    
-    
+
+
+
+
     protected abstract void onOpen(Socket client);
     protected abstract void onMessage(Socket client, byte[] data);
     protected abstract void onClose(Socket client);
