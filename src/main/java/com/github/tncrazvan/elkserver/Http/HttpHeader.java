@@ -101,6 +101,9 @@ public class HttpHeader {
     }
     
     public String get(String key){
+        if(!header.containsKey(key)){
+            return null;
+        }
         switch(key){
             case "Status":
             case "Resource":

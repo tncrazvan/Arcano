@@ -84,6 +84,13 @@ public abstract class ElkServer extends Elk{
     }
     
     
+    
+    public void listen(File settings) throws IOException, NoSuchAlgorithmException{
+        listen(new String[]{
+            settings.getAbsolutePath()
+        });
+    }
+    
     /**
      * Starts the server listening.
      * @param args First argument must be the settings file. Check documentation to learn how to create a settings files.
