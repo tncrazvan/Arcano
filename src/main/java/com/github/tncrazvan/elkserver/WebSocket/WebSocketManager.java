@@ -329,9 +329,8 @@ public abstract class WebSocketManager extends EventManager{
         send(data, group, true);
     }
     public void send(byte[] data, WebSocketGroup group,boolean binary){
-      WebSocketEvent client;
         group.getMap().keySet().forEach((key) -> {
-            client = group.getMap().get(key);
+            final WebSocketEvent client = group.getMap().get(key);
             if((WebSocketManager)client != this){
                 client.send(data,binary);
             }
