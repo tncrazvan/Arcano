@@ -54,36 +54,6 @@ public class HttpEvent extends HttpEventManager{
         session = HttpSession.start(this);
     }
     
-    private int getClassnameIndex(String[] location) throws ClassNotFoundException{
-        String currentName = Elk.httpControllerPackageName;
-        for(int i=0;i<location.length;i++){
-            currentName +="."+location[i];
-            try{
-                Class.forName(currentName);
-                return i;
-            }catch(ClassNotFoundException ex){}
-        }
-        throw new ClassNotFoundException();
-    }
-    
-    private String resolveClassName(int classId, String[] location){
-        String classname = Elk.httpControllerPackageName;
-        for(int i=0;i<=classId;i++){
-            classname +="."+location[i];
-        }
-        
-        return classname;
-    }
-    
-    private String[] resolveMethodArgs(int offset, String[] location){
-        String[] args = new String[0];
-        if(location.length-1>offset-1){
-            int length = location.length-offset;
-            args = Arrays.copyOfRange(location,offset,offset+length);
-        }
-        return args;
-    }
-    
     private boolean serveController(String[] location) 
     throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException{
         String[] args = new String[0];

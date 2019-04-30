@@ -564,7 +564,37 @@ public class Elk {
     }
     
     
+    protected int getClassnameIndex(String[] location) throws ClassNotFoundException{
+        String currentName = httpControllerPackageName;
+        for(int i=0;i<location.length;i++){
+            currentName +="."+location[i];
+            try{
+                Class.forName(currentName);
+                return i;
+            }catch(ClassNotFoundException ex){}
+        }
+        throw new ClassNotFoundException();
+    }
+    
+    protected String resolveClassName(int classId, String[] location){
+        String classname = httpControllerPackageName;
+        for(int i=0;i<=classId;i++){
+            classname +="."+location[i];
+        }
+        
+        return classname;
+    }
+    
+    protected String[] resolveMethodArgs(int offset, String[] location){
+        String[] args = new String[0];
+        if(location.length-1>offset-1){
+            int length = location.length-offset;
+            args = Arrays.copyOfRange(location,offset,offset+length);
+        }
+        return args;
+    }
 
+    
     /**
      * Return a new byte array containing a sub-portion of the source array
      * 
