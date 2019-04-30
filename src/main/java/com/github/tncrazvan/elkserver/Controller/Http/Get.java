@@ -30,11 +30,11 @@ import com.google.gson.JsonObject;
 import com.github.tncrazvan.elkserver.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import com.github.tncrazvan.elkserver.Http.HttpEvent;
 import com.github.tncrazvan.elkserver.Elk;
 import com.github.tncrazvan.elkserver.Http.HttpController;
 import com.github.tncrazvan.elkserver.WebSocket.WebSocketGroup;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 /**
@@ -43,14 +43,15 @@ import java.util.Map;
  */
 public class Get extends HttpController{
     @Override
-    public void main(HttpEvent e, ArrayList<String> path, String content){}
+    public void main(HttpEvent e, String[] args, StringBuilder content){}
     
     @Override
     public void onClose() {}
     
-    public void file(HttpEvent e, ArrayList<String> path, String content) throws FileNotFoundException, IOException{
-        e.setContentType(getContentType(path.get(0)));
-        e.sendFileContents("/"+(path.get(0).equals("")?path.get(1):path.get(0)));
+    public void file(HttpEvent e, String[] args, StringBuilder content) throws FileNotFoundException, IOException{
+        String url = String.join("/", args);;
+        e.setContentType(getContentType(url));
+        e.sendFileContents(url);
     }
     
     class Cookie{
@@ -65,7 +66,7 @@ public class Get extends HttpController{
         
     }
     
-    public void allWebSocketGroups(HttpEvent e, ArrayList<String> path, String content){
+    public void allWebSocketGroups(HttpEvent e, String[] args, StringBuilder content){
         WebSocketGroup group;
         JsonArray arr = new JsonArray();
         for(String key : 
@@ -86,29 +87,15 @@ public class Get extends HttpController{
         e.send(arr.toString());
     }
     
-    public void cookie(HttpEvent e, ArrayList<String> path, String content){
-        Map<String,String> multipart = readAsMultipartFormData(content);
-        
-        if(e.getMethod().equals("POST")){
-            if(multipart.containsKey("name")){
-                String name = (String) multipart.get("name");
-                if(e.cookieIsset(name)){
-                    e.setContentType("application/json");
-                    String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
-                    e.send(jsonCookie);
-                }else{
-                    e.setContentType("text/plain");
-                    e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
-                    e.flush();
-                }
-            }else{
-                e.setContentType("text/plain");
-                e.setHeaderField("Status", "HTTP/1.1 404 Not Found");
-                e.flush();
-            }
-        }else{
-            String jsonCookie = Elk.JSON_PARSER.toJson(new com.github.tncrazvan.elkserver.Http.Cookie("Error", "-1"));
+    public void cookie(HttpEvent e, String[] args, StringBuilder content) throws UnsupportedEncodingException{
+        String name = String.join("/", args);
+        if(e.cookieIsset(name)){
+            e.setContentType("application/json");
+            String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
             e.send(jsonCookie);
+        }else{
+            e.setStatus(STATUS_NOT_FOUND);
+            e.flush();
         }
     }
 }

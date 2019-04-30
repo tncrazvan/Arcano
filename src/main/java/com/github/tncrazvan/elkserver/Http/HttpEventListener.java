@@ -48,7 +48,7 @@ public class HttpEventListener extends HttpRequestReader{
     }
     
     @Override
-    public void onRequest(HttpHeader clientHeader, String content) {
+    public void onRequest(HttpHeader clientHeader, StringBuilder content) {
         if(clientHeader != null && clientHeader.get("Connection")!=null){
             matcher = upgradePattern.matcher(clientHeader.get("Connection"));
             if(matcher.find()){

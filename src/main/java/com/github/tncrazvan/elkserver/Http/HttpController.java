@@ -26,13 +26,12 @@
 package com.github.tncrazvan.elkserver.Http;
 
 import com.github.tncrazvan.elkserver.Elk;
-import java.util.ArrayList;
 
 /**
  *
  * @author razvan
  */
 public abstract class HttpController extends Elk{
-    public abstract void main(HttpEvent e, ArrayList<String> path, String content);
+    public abstract void main(HttpEvent e, String[] args, StringBuilder content);
     public abstract void onClose();
 }

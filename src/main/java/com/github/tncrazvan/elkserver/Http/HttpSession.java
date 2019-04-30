@@ -27,6 +27,7 @@ package com.github.tncrazvan.elkserver.Http;
 
 import com.github.tncrazvan.elkserver.Elk;
 import com.github.tncrazvan.elkserver.WebSocket.WebSocketEvent;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,17 +39,18 @@ public class HttpSession{
     private static final Map<String,HttpSession> LIST = new HashMap<>();
     private final String id;
     private final Map<String,Object> STORAGE = new HashMap<>();
-    private HttpSession(HttpEvent e) {
+    
+    private HttpSession(HttpEvent e) throws UnsupportedEncodingException {
         id = Elk.getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random());
         e.setCookie("sessionId", id, "/");
     }
     
-    private HttpSession(WebSocketEvent e) {
+    private HttpSession(WebSocketEvent e) throws UnsupportedEncodingException {
         id = Elk.getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random());
         e.setCookie("sessionId", id, "/");
     }
     
-    public static HttpSession start(HttpEvent e){
+    public static HttpSession start(HttpEvent e) throws UnsupportedEncodingException, UnsupportedEncodingException{
         if(e.issetCookie("sessionId")){
             final String sessionId = e.getCookie("sessionId");
             if(LIST.containsKey(sessionId)){
@@ -59,7 +61,7 @@ public class HttpSession{
         set(session);
         return session;
     }
-    public static HttpSession start(WebSocketEvent e){
+    public static HttpSession start(WebSocketEvent e) throws UnsupportedEncodingException{
         if(e.issetCookie("sessionId")){
             final String sessionId = e.getCookie("sessionId");
             if(LIST.containsKey(sessionId)){

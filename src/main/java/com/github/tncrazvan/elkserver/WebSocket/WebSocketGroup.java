@@ -27,6 +27,7 @@ package com.github.tncrazvan.elkserver.WebSocket;
 
 import com.github.tncrazvan.elkserver.Elk;
 import com.github.tncrazvan.elkserver.Http.HttpSession;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -64,7 +65,7 @@ public class WebSocketGroup {
         return visibility;
     }
     
-    public void addClient(WebSocketEvent e){
+    public void addClient(WebSocketEvent e) throws UnsupportedEncodingException{
         e.sessionStart();
         events.put(e.session.getSessionId(), e);
     }

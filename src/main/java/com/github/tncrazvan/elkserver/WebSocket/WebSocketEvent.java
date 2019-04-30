@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import com.github.tncrazvan.elkserver.Http.HttpHeader;
 import com.github.tncrazvan.elkserver.Elk;
 import com.github.tncrazvan.elkserver.Http.HttpSession;
+import java.io.UnsupportedEncodingException;
 
 
 /**
@@ -55,7 +56,7 @@ public class WebSocketEvent extends WebSocketManager{
     public WebSocketEvent(BufferedReader reader,Socket client,HttpHeader clientHeader) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException {
         super(reader,client,clientHeader);
         singleton = this;
-        String[] uri = Elk.decodeUrl(location).split("/");
+        String[] uri = Elk.decodeUrl(location.toString()).split("/");
         if(uri.length>1){
             //System.out.println("Class defined");
             String[] classpath = uri[1].split("\\.");
@@ -142,11 +143,11 @@ public class WebSocketEvent extends WebSocketManager{
         }
     }
     
-    public boolean sessionIdIsset(){
+    public boolean sessionIdIsset() throws UnsupportedEncodingException{
         return (issetCookie("sessionId") && HttpSession.isset(getCookie("sessionId")));
     }
     
-    public void sessionStart(){
+    public void sessionStart() throws UnsupportedEncodingException{
         session = HttpSession.start(this);
     }
 

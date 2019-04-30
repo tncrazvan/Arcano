@@ -30,7 +30,9 @@ import com.github.tncrazvan.elkserver.Settings;
 import com.github.tncrazvan.elkserver.WebSocket.WebSocketController;
 import com.github.tncrazvan.elkserver.WebSocket.WebSocketEvent;
 import com.github.tncrazvan.elkserver.WebSocket.WebSocketGroup;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 /**
  *
@@ -66,8 +68,12 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
                             group = GROUP_MANAGER.getGroup(groupName);
                             //if the group is public
                             if(group.getVisibility() == WebSocketGroup.PUBLIC){
-                                //add this client to the group
-                                group.addClient(e);
+                                try {
+                                    //add this client to the group
+                                    group.addClient(e);
+                                } catch (UnsupportedEncodingException ex) {
+                                    logger.log(Level.WARNING,null,ex);
+                                }
                             }else{
                                 //if the group is not public, close the connection
                                 e.close();

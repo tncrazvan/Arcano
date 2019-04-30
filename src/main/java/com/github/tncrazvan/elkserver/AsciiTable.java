@@ -54,8 +54,6 @@ public class AsciiTable {
         }
         
         int titleLength = title.length()+6;
-        System.out.println("max:"+maxWidth);
-        System.out.println("title:"+titleLength);
         if(titleLength > maxWidth){
             int size = columns.size();
             columns.set(size-1, columns.get(size-1)+titleLength-maxWidth);

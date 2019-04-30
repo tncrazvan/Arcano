@@ -206,6 +206,10 @@ public abstract class WebSocketManager extends EventManager{
                 }
                 break;
             case PAYLOAD:
+                if(payload.length == 0){
+                    onMessage(client, payload);
+                    break;
+                }
                 try{
                     payload[payloadIndex] = (byte) (b ^ mask[payloadIndex%4]);
                 }catch(Exception e){

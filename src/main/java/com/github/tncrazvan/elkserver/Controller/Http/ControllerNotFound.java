@@ -27,7 +27,6 @@ package com.github.tncrazvan.elkserver.Controller.Http;
 
 import com.github.tncrazvan.elkserver.Http.HttpController;
 import com.github.tncrazvan.elkserver.Http.HttpEvent;
-import java.util.ArrayList;
 
 /**
  *
@@ -35,7 +34,7 @@ import java.util.ArrayList;
  */
 public class ControllerNotFound extends HttpController{
     @Override
-    public void main(HttpEvent e, ArrayList<String> path, String content) {
+    public void main(HttpEvent e, String[] args, StringBuilder content) {
         e.setStatus(HttpEvent.STATUS_NOT_FOUND);
         try{
             e.send("Page not found");

@@ -28,7 +28,6 @@ package com.github.tncrazvan.elkserver.Controller.Http;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import com.github.tncrazvan.elkserver.Http.Cookie;
 import com.github.tncrazvan.elkserver.Http.HttpEvent;
 import com.github.tncrazvan.elkserver.Elk;
@@ -41,40 +40,29 @@ import java.util.Map;
  */
 public class Isset extends HttpController{
     @Override
-    public void main(HttpEvent e, ArrayList<String> path, String content){}
+    public void main(HttpEvent e, String[] args, StringBuilder content){}
     
     @Override
     public void onClose() {}
     
-    public void file(HttpEvent e, ArrayList<String> path, String content) throws FileNotFoundException, IOException{
-        if(path.size() >= 0){
-            File f = new File(Elk.webRoot+"/"+path.get(0));
-            if(f.exists()){
-                e.send(0);
-            }else{
-                e.send(-2);
-            }
+    public void file(HttpEvent e, String[] args, StringBuilder content) throws FileNotFoundException, IOException{
+        String url = String.join("/", args);
+        File f = new File(Elk.webRoot,url);
+        if(f.exists()){
+            e.setStatus(STATUS_FOUND);
         }else{
-            e.send(-1);
+            e.setStatus(STATUS_NOT_FOUND);
         }
+        e.flush();
     }
     
-    public void cookie(HttpEvent e, ArrayList<String> path, String content){
-        if(e.getClientHeader().get("Method").equals("POST")){
-            Map<String,String> multipart = readAsMultipartFormData(content);
-           if(multipart.containsKey("name")){
-                String name = (String) multipart.get("name");
-                if(e.cookieIsset(name)){
-                    e.send(0);
-                }else{
-                    e.send(-2);
-                }
+    public void cookie(HttpEvent e, String[] args, StringBuilder content){
+            String name = String.join("/",args);
+            if(e.cookieIsset(name)){
+                e.setStatus(STATUS_FOUND);
             }else{
-                e.send(-1);
-            } 
-        }else{
-            String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Error", "-1"));
-            e.send(jsonCookie);
-        }
+                e.setStatus(STATUS_NOT_FOUND);
+            }
+           e.flush();
     }
 }

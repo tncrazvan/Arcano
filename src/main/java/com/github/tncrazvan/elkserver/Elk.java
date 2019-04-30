@@ -28,6 +28,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.github.tncrazvan.elkserver.WebSocket.WebSocketEvent;
+import com.google.gson.JsonArray;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -43,11 +44,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.crypto.SecretKeyFactory;
@@ -65,21 +71,24 @@ public class Elk {
             smtpAllowed = false;
     protected static int 
             port = 80,
-            timeout = 3000;
+            timeout = 30000;
     protected static String 
             webRoot = "www/",
             charset = "UTF-8",
             bindAddress = "::",
             httpControllerPackageName = "com.github.tncrazvan.elkserver.Controller.Http",
             wsControllerPackageName = "com.github.tncrazvan.elkserver.Controller.WebSocket",
+            httpDefaultName = "App",
             httpNotFoundName = "ControllerNotFound",
             wsNotFoundName = "ControllerNotFound";
-    protected static SimpleDateFormat httpDateFormat= new SimpleDateFormat("EEE, d MMM y HH:mm:ss z");
-    protected static final Logger logger = Logger.getLogger(Elk.class.getName());
+    protected static Locale locale = Locale.getDefault();
+    protected static ZoneId timezone = ZoneId.systemDefault();
+    protected static DateTimeFormatter httpDateFormat = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", locale).withZone(timezone);
+    protected static Logger logger = Logger.getLogger(Elk.class.getName());
     //advanced settings
     protected static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();
     protected static final int 
-            cookieTtl = 60*60,
+            cookieTtl = 60*60*24*30,
             wsGroupMaxClient = 10,
             wsMtu = 65536,
             httpMtu = 65536,
@@ -89,7 +98,7 @@ public class Elk {
 
     protected static JsonObject mainSettings;
     public static final Calendar calendar = Calendar.getInstance();
-    protected static String indexFile = "/index.html";
+    protected static String entryPoint = "/index.html";
     
     
     //other vars
@@ -104,6 +113,82 @@ public class Elk {
     private static final String patternRightEnd = "(?<=&lt;\\/script)>";
     private static final String patternRightStart1 = "(?<=\\&lt\\;script)\\s*>";
     private static final String patternRightStart2 = "(?<=\\&lt\\;script).*\\s*>";
+    
+    
+    public static final String 
+            //INFORMATINOAL RESPONSES
+            STATUS_CONTINUE = "100 Continue",
+            STATUS_SWITCHING_PROTOCOLS = "101 Switching Protocols",
+            STATUS_PROCESSING = "102 Processing",
+            
+            //SUCCESS
+            STATUS_SUCCESS = "200 OK",
+            STATUS_CREATED = "201 CREATED",
+            STATUS_ACCEPTED = "202 ACCEPTED",
+            STATUS_NON_AUTHORITATIVE_INFORMATION = "203 Non-Authoritative Information",
+            STATUS_NO_CONTENT = "204 No Content",
+            STATUS_RESET_CONTENT = "205 Reset Content",
+            STATUS_PARTIAL_CONTENT = "206 Partial Content",
+            STATUS_MULTI_STATUS = "207 Multi-Status",
+            STATUS_ALREADY_REPORTED = "208 Already Reported",
+            STATUS_IM_USED = "226 IM Used",
+            
+            //REDIRECTIONS
+            STATUS_MULTIPLE_CHOICES = "300 Multiple Choices",
+            STATUS_MOVED_PERMANENTLY = "301 Moved Permanently",
+            STATUS_FOUND = "302 Found",
+            STATUS_SEE_OTHER = "303 See Other",
+            STATUS_NOT_MODIFIED = "304 Not Modified",
+            STATUS_USE_PROXY = "305 Use Proxy",
+            STATUS_SWITCH_PROXY = "306 Switch Proxy",
+            STATUS_TEMPORARY_REDIRECT = "307 Temporary Redirect",
+            STATUS_PERMANENT_REDIRECT = "308 Permanent Redirect",
+            
+            //CLIENT ERRORS
+            STATUS_BAD_REQUEST = "400 Bad Request",
+            STATUS_UNAUTHORIZED = "401 Unauthorized",
+            STATUS_PAYMENT_REQUIRED = "402 Payment Required",
+            STATUS_FORBIDDEN = "403 Forbidden",
+            STATUS_NOT_FOUND = "404 Not Found",
+            STATUS_METHOD_NOT_ALLOWED = "405 Method Not Allowed",
+            STATUS_NOT_ACCEPTABLE = "406 Not Acceptable",
+            STATUS_PROXY_AUTHENTICATION_REQUIRED = "407 Proxy Authentication Required",
+            STATUS_REQUEST_TIMEOUT = "408 Request Timeout",
+            STATUS_CONFLICT = "409 Conflict",
+            STATUS_GONE = "410 Gone",
+            STATUS_LENGTH_REQUIRED = "411 Length Required",
+            STATUS_PRECONDITION_FAILED = "412 Precondition Failed",
+            STATUS_PAYLOAD_TOO_LARGE = "413 Payload Too Large",
+            STATUS_URI_TOO_LONG = "414 URI Too Long",
+            STATUS_UNSUPPORTED_MEDIA_TYPE = "415 Unsupported Media Type",
+            STATUS_RANGE_NOT_SATISFIABLE = "416 Range Not Satisfiable",
+            STATUS_EXPECTATION_FAILED = "417 Expectation Failed",
+            STATUS_IM_A_TEAPOT = "418 I'm a teapot",
+            STATUS_MISDIRECTED_REQUEST = "421 Misdirected Request",
+            STATUS_UNPROCESSABLE_ENTITY = "422 Unprocessable Entity",
+            STATUS_LOCKED = "423 Locked",
+            STATUS_FAILED_DEPENDENCY = "426 Failed Dependency",
+            STATUS_UPGRADE_REQUIRED = "428 Upgrade Required",
+            STATUS_PRECONDITION_REQUIRED = "429 Precondition Required",
+            STATUS_TOO_MANY_REQUESTS = "429 Too Many Requests",
+            STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE = "431 Request Header Fields Too Large",
+            STATUS_UNAVAILABLE_FOR_LEGAL_REASONS = "451 Unavailable For Legal Reasons",
+            
+            //SERVER ERRORS
+            STATUS_INTERNAL_SERVER_ERROR = "500 Internal Server Error",
+            STATUS_NOT_IMPLEMENTED = "501 Not Implemented",
+            STATUS_BAD_GATEWAY = "502 Bad Gateway",
+            STATUS_SERVICE_UNAVAILABLE = "503 Service Unavailable",
+            STATUS_GATEWAY_TIMEOUT = "504 Gateway Timeout",
+            STATUS_HTTP_VERSION_NOT_SUPPORTED = "505 HTTP Version Not Supported",
+            STATUS_VARIANT_ALSO_NEGOTATIES = "506 Variant Also Negotiates",
+            STATUS_INSUFFICIENT_STORAGE = "507 Insufficient Storage",
+            STATUS_LOOP_DETECTED = "508 Loop Detected",
+            STATUS_NOT_EXTENDED = "510 Not Extended",
+            STATUS_NETWORK_AUTHENTICATION_REQUIRED = "511 Network Authentication Required";
+    
+    
+    
     
     protected static com.github.tncrazvan.elkserver.Controller.Http.ControllerNotFound 
             httpControllerNotFound = new 
@@ -122,6 +207,23 @@ public class Elk {
     
     protected static com.github.tncrazvan.elkserver.Controller.Http.Unset unset = new com.github.tncrazvan.elkserver.Controller.Http.Unset();
 
+    public static LocalDateTime time(String value){
+        return time(Integer.parseInt(value));
+    }
+    public static LocalDateTime time(long value){
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(value),TimeZone.getDefault().toZoneId());
+    }
+    public static LocalDateTime time(){
+        return LocalDateTime.now();
+    }
+    
+    public static JsonObject readAsJsonObject(StringBuilder string){
+        return Elk.JSONPARSER.parse(string.toString()).getAsJsonObject();
+    }
+    
+    public static JsonArray readAsJsonArray(StringBuilder string){
+        return Elk.JSONPARSER.parse(string.toString()).getAsJsonArray();
+    }
     
     /**
      * Reads and input string and returns a Map<String, String> 
@@ -201,15 +303,6 @@ public class Elk {
                 .replaceAll(patternRightStart1, "&gt;")
                 .replaceAll(patternRightStart2, "&gt;");
         
-    }
-    
-    
-    /**
-     * Gets the current time in milliseconds.
-     * @return current time in milliseconds.
-     */
-    public static long time(){
-        return System.currentTimeMillis() / 1000L;
     }
     
     /**
@@ -370,7 +463,7 @@ public class Elk {
    }
     
     public static String getContentType(String location){
-        return processContentType(location);
+        return resolveContentType(location);
     }
     /**
      * Returns the mime type of the given resource.
@@ -379,9 +472,9 @@ public class Elk {
      * @param location resource name.
      * @return the mime type of the given resource as a String.
      */
-    public static String processContentType(String location){
+    public static String resolveContentType(String location){
         String tmp_type = "";
-        String[] tmp_type0 = location.split("/");
+        String[] tmp_type0 = location.toString().split("/");
 
         
         if(tmp_type0.length > 0){
@@ -394,7 +487,6 @@ public class Elk {
         }else{
             tmp_type = "";
         }
-        
         switch(tmp_type){
             case "html":return "text/html";
             case "css": return "text/css";

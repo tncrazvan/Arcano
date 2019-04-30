@@ -40,6 +40,8 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.time.ZoneId;
+import java.util.Locale;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -74,7 +76,7 @@ public abstract class ElkServer extends Elk{
             }
         }
         server = new ConsoleWebServer();
-        server.listen(args);
+        server.listen(new String[]{"C:\\Users\\Razvan\\Documents\\HtmlProjects\\tncrazvan.github.io\\http.json"});
     }
     
     public abstract void init();
@@ -82,8 +84,6 @@ public abstract class ElkServer extends Elk{
     public SmtpServer getSmtpServer(){
         return smtpServer;
     }
-    
-    
     
     public void listen(File settings) throws IOException, NoSuchAlgorithmException{
         listen(new String[]{
@@ -98,9 +98,18 @@ public abstract class ElkServer extends Elk{
      * @throws NoSuchAlgorithmException 
      */
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException {
-        final String settingsPath = new File(args[0]).getParent().toString();
+        final String settingsPath = new File(args[0]).getParent();
         
         Settings.parse(args[0]);
+        
+        if(Settings.isset("locale")){
+            String[] localeTmpString = Settings.getString("locale").split("-");
+            locale = new Locale(localeTmpString[0],localeTmpString[1]);
+        }
+        
+        if(Settings.isset("timezone"))
+            timezone = ZoneId.of(Settings.getString("timezone"));
+        
         if(Settings.isset("port"))
             port = Settings.getInt("port");
         
@@ -118,13 +127,41 @@ public abstract class ElkServer extends Elk{
         if(Settings.isset("timeout"))
             timeout = Settings.getInt("timeout");
         
+        if(Settings.isset("cookieTtl"))
+            timeout = Settings.getInt("cookieTtl");
+        
+        if(Settings.isset("wsMtu"))
+            timeout = Settings.getInt("wsMtu");
+        
+        if(Settings.isset("httpMtu"))
+            timeout = Settings.getInt("httpMtu");
+        
+        if(Settings.isset("cacheMaxAge"))
+            timeout = Settings.getInt("cacheMaxAge");
+        
+        if(Settings.isset("cacheMaxAge"))
+            timeout = Settings.getInt("cacheMaxAge");
+        
+        if(Settings.isset("cacheMaxAge"))
+            timeout = Settings.getInt("cacheMaxAge");
+        
+        if(Settings.isset("entryPoint"))
+            timeout = Settings.getInt("entryPoint");
+        
         AsciiTable st = new AsciiTable("Socket");
         st.addRow("Attribute","Value");
+        st.addRow("locale",""+locale.toString());
+        st.addRow("timezone",""+timezone.toString());
         st.addRow("port",""+port);
-        st.addRow("bind address",bindAddress);
-        st.addRow("web root",webRoot);
+        st.addRow("bindAddress",bindAddress);
+        st.addRow("webRoot",webRoot);
         st.addRow("charset",charset);
-        st.addRow("timeout (ms)",""+timeout);
+        st.addRow("timeout",""+timeout+" milliseconds");
+        st.addRow("wsMtu",""+wsMtu+" bytes");
+        st.addRow("httpMtu",""+httpMtu+" bytes");
+        st.addRow("cookieTtl",""+cookieTtl+" seconds");
+        st.addRow("cacheMaxAge",""+cacheMaxAge+" seconds");
+        st.addRow("entryPoint",""+entryPoint);
         System.out.println("\n");
         st.draw();
         

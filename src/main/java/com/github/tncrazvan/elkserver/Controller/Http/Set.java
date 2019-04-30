@@ -27,40 +27,28 @@ package com.github.tncrazvan.elkserver.Controller.Http;
 
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.elkserver.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
-import java.util.ArrayList;
-import com.github.tncrazvan.elkserver.Http.Cookie;
 import com.github.tncrazvan.elkserver.Http.HttpEvent;
 import com.github.tncrazvan.elkserver.Http.HttpController;
 import com.github.tncrazvan.elkserver.Http.HttpSession;
 import com.github.tncrazvan.elkserver.Settings;
 import com.github.tncrazvan.elkserver.WebSocket.WebSocketGroup;
-import java.util.Map;
+import java.io.UnsupportedEncodingException;
 
 /**
  *
  * @author Razvan
  */
 public class Set extends HttpController{
-    private boolean 
-            readAsBase64=false,
-            writeAsBase64=false;
     private static final String 
             GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.",
             GROUPS_POLICY_NOT_DEFINED = "WebSocket groups policy is not defined by the server therefore by default it is disabled.";
     @Override
-    public void main(HttpEvent e, ArrayList<String> path, String content) {}
+    public void main(HttpEvent e, String[] args, StringBuilder content) {}
     
     @Override
     public void onClose() {}
     
-    public void readAsBase64(boolean val){
-        readAsBase64 = val;
-    }
-    public void writeAsBase64(boolean val){
-        writeAsBase64 = val;
-    }
-    
-    public void webSocketGroup(HttpEvent e, ArrayList<String> path, String content){
+    public void webSocketGroup(HttpEvent e, String[] args, StringBuilder content) throws UnsupportedEncodingException{
         
         if(Settings.isset("groups")){
             JsonObject groups = Settings.get("groups").getAsJsonObject();
@@ -91,36 +79,18 @@ public class Set extends HttpController{
         
     }
     
-    public void cookie(HttpEvent e, ArrayList<String> path, String content){
+    public void cookie(HttpEvent e, String[] args, StringBuilder content) throws UnsupportedEncodingException{
         if(e.getMethod().equals("POST")){
-            Map<String,String> multipart = readAsMultipartFormData(content);
-            if(multipart.containsKey("name") 
-                && multipart.containsKey("value") 
-                && multipart.containsKey("path") 
-                && multipart.containsKey("domain") 
-                && multipart.containsKey("expire")){
-                e.setContentType("application/json");
-                String 
-                    name = (String) multipart.get("name"),
-                    value = (String) multipart.get("value"),
-                    cpath = (String) multipart.get("path"),
-                    domain = (String) multipart.get("domain"),
-                    expire = (String) multipart.get("expire");
-                
-                e.setCookie(name, value, cpath, domain, expire);
-
-                JsonObject cookie = new JsonObject();
-                cookie.addProperty("type", "cookie");
-                cookie.addProperty("value", value);
-                e.send(cookie.toString());
-                
-            }else{
-                String jsonCookie = JSON_PARSER.toJson(new Cookie("Error", "-1"));
-                e.send(jsonCookie);
+            String name = String.join("/", args);
+            JsonObject data = readAsJsonObject(content);
+            try{
+                e.setCookie(name, data.get("value").getAsString(), e.getUrlQuery("path"), e.getUrlQuery("path"), Integer.parseInt(e.getUrlQuery("expire")));
+            }catch(NumberFormatException ex){
+                e.setCookie(name, data.get("value").getAsString(), e.getUrlQuery("path"), e.getUrlQuery("path"), e.getUrlQuery("expire"));
             }
         }else{
-            String jsonCookie = JSON_PARSER.toJson(new Cookie("Error", "-2"));
-            e.send(jsonCookie);
+            e.setStatus(STATUS_METHOD_NOT_ALLOWED);
+            e.flush();
         }
     }
 }

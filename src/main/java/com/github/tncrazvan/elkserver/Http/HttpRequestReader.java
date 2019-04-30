@@ -51,7 +51,7 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
     protected BufferedWriter writer=null;
     protected final DataOutputStream output;
     protected final DataInputStream input;
-    private String outputString = "";
+    private StringBuilder outputString = new StringBuilder();
     public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
         this.client=client;
         reader = new BufferedReader(
@@ -78,7 +78,7 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
                     chain[2] = chain[1];
                     chain[1] = chain[0];
                     chain[0] = input.readByte();
-                    outputString += (char)chain[0];
+                    outputString.append((char)chain[0]);
                     if((char)chain[3] == '\r' && (char)chain[2] == '\n' && (char)chain[1] == '\r' && (char)chain[0] == '\n'){
                         keepReading = false;
                     }
@@ -88,11 +88,11 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
                     //ex.printStackTrace();
                 }
             }
-            if(outputString.trim().length() == 0){
+            if(outputString.length() == 0){
                 client.close();
             }else{
-                HttpHeader clientHeader = HttpHeader.fromString(outputString);
-                outputString = "";
+                HttpHeader clientHeader = HttpHeader.fromString(outputString.toString().trim());
+                outputString = new StringBuilder();
                 if((clientHeader.get("Method").equals("POST") || port == 25) && !EOFException){
                     int chunkSize = 0;
                     if(clientHeader.isDefined("Content-Length")){
@@ -102,7 +102,7 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
                     if(chunkSize > 0){
                         chain = new byte[chunkSize];
                         input.readFully(chain);
-                        outputString = new String(chain,charset);
+                        outputString.append(new String(chain,charset));
                     }else{
                         int offset = 0;
                         chain = new byte[httpMtu];
@@ -111,13 +111,13 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
                                 if(offset < httpMtu){
                                     offset++;
                                 }else{
-                                    outputString = new String(chain,charset);
+                                    outputString.append(new String(chain,charset));
                                     offset = 0;
                                     chain = new byte[httpMtu];
                                 }
                             }
                         }catch(SocketTimeoutException e){
-                            outputString = new String(chain,charset);
+                            outputString.append(new String(chain,charset));
                         }
                     }
                 }
@@ -134,6 +134,6 @@ public abstract class HttpRequestReader extends Elk implements Runnable{
     }
     
     
-    public abstract void onRequest(HttpHeader clientHeader, String content);
+    public abstract void onRequest(HttpHeader clientHeader, StringBuilder content);
     
 }

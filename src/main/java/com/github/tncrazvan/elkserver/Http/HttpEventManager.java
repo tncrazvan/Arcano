@@ -25,8 +25,6 @@
  */
 package com.github.tncrazvan.elkserver.Http;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -49,8 +47,9 @@ public abstract class HttpEventManager extends EventManager{
     private boolean defaultHeaders=true;
     private boolean alive=true;
     protected final Socket client;
-    protected final String content;
-    public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client,String content) throws UnsupportedEncodingException {
+    protected final StringBuilder content;
+    protected boolean isDir = false;
+    public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client,StringBuilder content) throws UnsupportedEncodingException {
         super(clientHeader);
         this.client=client;
         this.output = output;
@@ -71,82 +70,13 @@ public abstract class HttpEventManager extends EventManager{
         return client;
     }
     
+    public boolean isDirectory(){
+        return isDir;
+    }
     
     public void setHeaderField(String fieldName,String fieldContent){
         header.set(fieldName, fieldContent);
     }
-    
-    public static final String 
-            //INFORMATINOAL RESPONSES
-            STATUS_CONTINUE = "100 Continue",
-            STATUS_SWITCHING_PROTOCOLS = "101 Switching Protocols",
-            STATUS_PROCESSING = "102 Processing",
-            
-            //SUCCESS
-            STATUS_SUCCESS = "200 OK",
-            STATUS_CREATED = "201 CREATED",
-            STATUS_ACCEPTED = "202 ACCEPTED",
-            STATUS_NON_AUTHORITATIVE_INFORMATION = "203 Non-Authoritative Information",
-            STATUS_NO_CONTENT = "204 No Content",
-            STATUS_RESET_CONTENT = "205 Reset Content",
-            STATUS_PARTIAL_CONTENT = "206 Partial Content",
-            STATUS_MULTI_STATUS = "207 Multi-Status",
-            STATUS_ALREADY_REPORTED = "208 Already Reported",
-            STATUS_IM_USED = "226 IM Used",
-            
-            //REDIRECTIONS
-            STATUS_MULTIPLE_CHOICES = "300 Multiple Choices",
-            STATUS_MOVED_PERMANENTLY = "301 Moved Permanently",
-            STATUS_FOUND = "302 Found",
-            STATUS_SEE_OTHER = "303 See Other",
-            STATUS_NOT_MODIFIED = "304 Not Modified",
-            STATUS_USE_PROXY = "305 Use Proxy",
-            STATUS_SWITCH_PROXY = "306 Switch Proxy",
-            STATUS_TEMPORARY_REDIRECT = "307 Temporary Redirect",
-            STATUS_PERMANENT_REDIRECT = "308 Permanent Redirect",
-            
-            //CLIENT ERRORS
-            STATUS_BAD_REQUEST = "400 Bad Request",
-            STATUS_UNAUTHORIZED = "401 Unauthorized",
-            STATUS_PAYMENT_REQUIRED = "402 Payment Required",
-            STATUS_FORBIDDEN = "403 Forbidden",
-            STATUS_NOT_FOUND = "404 Not Found",
-            STATUS_METHOD_NOT_ALLOWED = "405 Method Not Allowed",
-            STATUS_NOT_ACCEPTABLE = "406 Not Acceptable",
-            STATUS_PROXY_AUTHENTICATION_REQUIRED = "407 Proxy Authentication Required",
-            STATUS_REQUEST_TIMEOUT = "408 Request Timeout",
-            STATUS_CONFLICT = "409 Conflict",
-            STATUS_GONE = "410 Gone",
-            STATUS_LENGTH_REQUIRED = "411 Length Required",
-            STATUS_PRECONDITION_FAILED = "412 Precondition Failed",
-            STATUS_PAYLOAD_TOO_LARGE = "413 Payload Too Large",
-            STATUS_URI_TOO_LONG = "414 URI Too Long",
-            STATUS_UNSUPPORTED_MEDIA_TYPE = "415 Unsupported Media Type",
-            STATUS_RANGE_NOT_SATISFIABLE = "416 Range Not Satisfiable",
-            STATUS_EXPECTATION_FAILED = "417 Expectation Failed",
-            STATUS_IM_A_TEAPOT = "418 I'm a teapot",
-            STATUS_MISDIRECTED_REQUEST = "421 Misdirected Request",
-            STATUS_UNPROCESSABLE_ENTITY = "422 Unprocessable Entity",
-            STATUS_LOCKED = "423 Locked",
-            STATUS_FAILED_DEPENDENCY = "426 Failed Dependency",
-            STATUS_UPGRADE_REQUIRED = "428 Upgrade Required",
-            STATUS_PRECONDITION_REQUIRED = "429 Precondition Required",
-            STATUS_TOO_MANY_REQUESTS = "429 Too Many Requests",
-            STATUS_REQUEST_HEADER_FIELDS_TOO_LARGE = "431 Request Header Fields Too Large",
-            STATUS_UNAVAILABLE_FOR_LEGAL_REASONS = "451 Unavailable For Legal Reasons",
-            
-            //SERVER ERRORS
-            STATUS_INTERNAL_SERVER_ERROR = "500 Internal Server Error",
-            STATUS_NOT_IMPLEMENTED = "501 Not Implemented",
-            STATUS_BAD_GATEWAY = "502 Bad Gateway",
-            STATUS_SERVICE_UNAVAILABLE = "503 Service Unavailable",
-            STATUS_GATEWAY_TIMEOUT = "504 Gateway Timeout",
-            STATUS_HTTP_VERSION_NOT_SUPPORTED = "505 HTTP Version Not Supported",
-            STATUS_VARIANT_ALSO_NEGOTATIES = "506 Variant Also Negotiates",
-            STATUS_INSUFFICIENT_STORAGE = "507 Insufficient Storage",
-            STATUS_LOOP_DETECTED = "508 Loop Detected",
-            STATUS_NOT_EXTENDED = "510 Not Extended",
-            STATUS_NETWORK_AUTHENTICATION_REQUIRED = "511 Network Authentication Required";
     
     
     public void setStatus(String status){
@@ -171,52 +101,31 @@ public abstract class HttpEventManager extends EventManager{
         return alive;
     }
     
-    /*public boolean issetUrlQuery(String key){
-        return queryString.containsKey(key);
-    }
-    
-    public String getUrlQuery(String key){
-        return queryString.get(key);
-    }*/
-    
     public boolean execute() throws IOException{
         findUserLanguages();
         File f = new File(Elk.webRoot+location);
-        header.set("Content-Type", Elk.processContentType(location));
         if(f.exists() /*&& !location.equals(ELK.INDEX_FILE)*/){
             if(!f.isDirectory()){
-                header.set("Last-Modified",httpDateFormat.format(f.lastModified()));
+                header.set("Content-Type", Elk.resolveContentType(location.toString()));
+                header.set("Last-Modified",httpDateFormat.format(time(f.lastModified())));
                 header.set("Last-Modified-Timestamp",f.lastModified()+"");
                 sendFileContents(f);
             }else{
-                header.set("Content-Type", "text/plain");
+                isDir = true;
+                header.set("Content-Type", "text/html");
                 onControllerRequest(location);
             }
         }else{
-            if(location.substring(1,2).equals("@")){
-                if(header.get("Content-Type").equals("")){
-                    header.set("Content-Type", "text/html");
-                }
-                onControllerRequest(location);
-            }else{
-                header.set("Content-Type", "text/html");
-                try{
-                    Class.forName(httpControllerPackageName+"."+location.substring(1).split("[#?&/\\\\]")[0]);
-                    header.set("Last-Modified",httpDateFormat.format(f.lastModified()));
-                    header.set("Last-Modified-Timestamp",f.lastModified()+"");
-                    sendFileContents(indexFile);
-                }catch(ClassNotFoundException ex){
-                    onControllerRequest("/@"+Elk.httpNotFoundName);
-                }
-            }
+            header.set("Content-Type", "text/html");
+            onControllerRequest(location);
         }
-       close();
+        close();
         return true;
     }
     
     
     
-    abstract void onControllerRequest(String location);
+    abstract void onControllerRequest(StringBuilder location);
     
     public Map<String,String> getUserLanguages(){
         return userLanguages;
@@ -228,18 +137,6 @@ public abstract class HttpEventManager extends EventManager{
     
     public String getUserAgent(){
         return clientHeader.get("User-Agent");
-    }
-    
-    public void setUserObject(String name, Object o) throws IOException{
-        send("<script>window."+name+"="+Elk.JSON_PARSER.toJson(o)+";</script>\n");
-    }
-    
-    public void setUserObject(String name, JsonObject o){
-        send("<script>window."+name+"="+o.toString()+";</script>\n");
-    }
-    
-    public void setUserArray(String name, JsonArray a){
-        send("<script>window."+name+"="+a.toString()+";</script>\n");
     }
     
     private boolean firstMessage = true;
@@ -336,7 +233,7 @@ public abstract class HttpEventManager extends EventManager{
                         rangeEnd[i] = fileLength-1;
                     }
                 }
-                String ctype = Elk.processContentType(f.getName());
+                String ctype = Elk.resolveContentType(f.getName());
                 int start,end;
                 if(rangeStart.length > 1){
                     String body = "";

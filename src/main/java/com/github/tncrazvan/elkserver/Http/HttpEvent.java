@@ -25,154 +25,108 @@
  */
 package com.github.tncrazvan.elkserver.Http;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import com.github.tncrazvan.elkserver.Elk;
 import java.io.DataOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+
 
 /**
  *
  * @author Razvan
  */
 public class HttpEvent extends HttpEventManager{
-    private final HttpEvent singleton;
+    private final String BEAN_ROOT_REGEX = "\\s*^\\/?@|^\\/";
     public HttpSession session;
-    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, String content) throws UnsupportedEncodingException {
+    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, StringBuilder content) throws UnsupportedEncodingException {
         super(output,clientHeader,client,content);
-        singleton = this;
     }
     
-    public boolean sessionIdIsset(){
+    public boolean sessionIdIsset() throws UnsupportedEncodingException{
         return (issetCookie("sessionId") && HttpSession.isset(getCookie("sessionId")));
     }
     
-    public void sessionStart(){
+    public void sessionStart() throws UnsupportedEncodingException{
         session = HttpSession.start(this);
     }
     
-    @Override
-    void onControllerRequest(String location) {
-        ArrayList<String> args = new ArrayList<>();
-        Class<?> c;
-        Object x;
-        Method m;
-        Method onCloseMethod;
+    private int getClassnameIndex(String[] location) throws ClassNotFoundException{
+        String currentName = Elk.httpControllerPackageName;
+        for(int i=0;i<location.length;i++){
+            currentName +="."+location[i];
+            try{
+                Class.forName(currentName);
+                return i;
+            }catch(ClassNotFoundException ex){}
+        }
+        throw new ClassNotFoundException();
+    }
+    
+    private String resolveClassName(int classId, String[] location){
+        String classname = Elk.httpControllerPackageName;
+        for(int i=0;i<=classId;i++){
+            classname +="."+location[i];
+        }
         
-        
-        String[] uri = Elk.decodeUrl(location).split("/");
-        if(uri.length>1){
-            //System.out.println("Class defined");
-            String[] classpath = uri[1].split("\\.");
-            String classname =Elk.httpControllerPackageName;
-            String tmp = "";
-            for(int i =0;i<classpath.length;i++){
-                tmp = classpath[i].substring(0, 1);
-                if(tmp.equals("@")){
-                    classname +="."+(classpath[i].substring(1).substring(0,1).toUpperCase()+classpath[i].substring(2));
-                }else{
-                    classname +="."+classpath[i];
-                }
-            }
+        return classname;
+    }
+    
+    private String[] resolveMethodArgs(int offset, String[] location){
+        String[] args = new String[0];
+        if(location.length-1>offset-1){
+            int length = location.length-offset;
+            args = Arrays.copyOfRange(location,offset,offset+length);
+        }
+        return args;
+    }
+    
+    private boolean serveController(String[] location) 
+    throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException{
+        String[] args = new String[0];
+        if(location.length == 0 || location.length == 1 && location[0].equals("")){
+            location = new String[]{"App"};
+        }
+        try{
+            int classId = getClassnameIndex(location);
+            Class<?> c = Class.forName(resolveClassName(classId, location));
+            Object controller = c.newInstance();
             
-            try {
-                Class.forName(classname);
-                if(!tmp.equals("@")){
-                    setContentType("text/html");
-                    sendFileContents(Elk.indexFile);
-                    client.close();
-                }else{
-                    c = Class.forName(classname);
-                    
-                    x = c.newInstance();
-                    
-                    if(uri.length>2){
-                        //System.out.println("Method defined");
-                        if(uri.length > 3){
-                            //System.out.println("Parameters defined");
-                            for(int i = 3;i<uri.length;i++){
-                                args.add(uri[i]);
-                            }
-                            m = x.getClass().getDeclaredMethod(uri[2],this.getClass(),args.getClass(),content.getClass());
-                        }else{
-                            //System.out.println("Parameters not defined");
-                            m = x.getClass().getDeclaredMethod(uri[2],this.getClass(),args.getClass(),content.getClass());
-                        }
-                    }else{
-                        //System.out.println("Method not defined");
-                        m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),content.getClass());
-                    }
-                    onCloseMethod = x.getClass().getDeclaredMethod("onClose");
-                    try {
-                        m.invoke(x,singleton,args,content);
-                        onCloseMethod.invoke(x);
-                        client.close();
-                    } catch (IllegalAccessException | 
-                            IllegalArgumentException | 
-                            InvocationTargetException | 
-                            IOException ex) {
-                        logger.log(Level.SEVERE,null,ex);
-                        try {
-                            onCloseMethod.invoke(x);
-                            client.close();
-                        } catch (IOException | InvocationTargetException ex2) {
-                            logger.log(Level.SEVERE,null,ex);
-                        }
-                    }
-                }
-            } catch (ClassNotFoundException ex) {
-                //Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
-                
-                    
-                try {
-                    c = Class.forName(Elk.httpControllerPackageName+"."+Elk.httpNotFoundName);
-                    
-                    x = c.newInstance();
-                    m = x.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),content.getClass());
-                    onCloseMethod = x.getClass().getDeclaredMethod("onClose");
-                    m.invoke(x,singleton,args,content);
-                    onCloseMethod.invoke(x);
-                    client.close();
-                } catch (ClassNotFoundException | IOException | IllegalAccessException | 
-                        IllegalArgumentException | InvocationTargetException | NoSuchMethodException | 
-                        SecurityException ex1) {
-                    logger.log(Level.SEVERE,null,ex);
-                    try {
-                        client.close();
-                    } catch (IOException ex2) {
-                        logger.log(Level.SEVERE,null,ex);
-                    }
-                } catch (InstantiationException ex1) {
-                    logger.log(Level.SEVERE,null,ex);
-                }
-            } catch (InstantiationException | 
-                    IllegalAccessException | 
-                    NoSuchMethodException | 
-                    SecurityException | 
-                    IllegalArgumentException | IOException ex) {
-                logger.log(Level.SEVERE,null,ex);
-                try {
-                    client.close();
-                } catch (IOException ex2) {
-                    logger.log(Level.SEVERE,null,ex);
-                }
+            String methodname = location.length-1>classId?location[classId+1]:"main";
+            args = resolveMethodArgs(classId+2, location);
+            Method method;
+            try{
+                method = controller.getClass().getDeclaredMethod(methodname,this.getClass(),args.getClass(),content.getClass());
+            }catch(NoSuchMethodException ex){
+                args = resolveMethodArgs(classId+1, location);
+                method = controller.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),content.getClass());
             }
-        }else{
-            try {
-                setContentType("text/html");
-                sendFileContents(Elk.indexFile);
-            } catch (IOException ex) {
-                logger.log(Level.SEVERE,null,ex);
-            }
-            try {
-                client.close();
-            } catch (IOException ex) {
-                logger.log(Level.SEVERE,null,ex);
-            }
+            Method onClose = controller.getClass().getDeclaredMethod("onClose");
+            method.invoke(controller,this,args,content);
+            onClose.invoke(controller);
+        }catch(ClassNotFoundException ex){
+            Class<?> c = Class.forName(Elk.httpControllerPackageName+"."+Elk.httpNotFoundName);
+            Object controller = c.newInstance();
+            Method main = controller.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),content.getClass());
+            Method onClose = controller.getClass().getDeclaredMethod("onClose");
+            main.invoke(controller,this,args,content);
+            onClose.invoke(controller);
+        }
+        return true;
+    }
+    
+    @Override
+    void onControllerRequest(StringBuilder url) {
+        try {
+            serveController(url.toString().split("/"));
+            close();
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
+            logger.log(Level.WARNING, null, ex);
+        } catch (IllegalArgumentException | InvocationTargetException ex) {
+            logger.log(Level.SEVERE, null, ex);
         }
     } 
 }

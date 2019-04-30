@@ -25,11 +25,11 @@
  */
 package com.github.tncrazvan.elkserver.Controller.Http;
 
-import java.util.ArrayList;
 import com.github.tncrazvan.elkserver.Http.Cookie;
 import com.github.tncrazvan.elkserver.Http.HttpEvent;
 import com.github.tncrazvan.elkserver.Elk;
 import com.github.tncrazvan.elkserver.Http.HttpController;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 /**
@@ -39,32 +39,18 @@ import java.util.Map;
 public class Unset extends HttpController{
 
     @Override
-    public void main(HttpEvent e, ArrayList<String> path, String content) {}
+    public void main(HttpEvent e, String[] args, StringBuilder content) {}
     
     @Override
     public void onClose() {}
     
-    public void cookie(HttpEvent e, ArrayList<String> path, String content){
-        Map<String,String> multipart = readAsMultipartFormData(content);
-        
-        if(e.getMethod().equals("POST")){
-            if(multipart.containsKey("name") 
-                    && multipart.containsKey("domain") 
-                    && multipart.containsKey("path")){
-                String name = (String) multipart.get("name");
-                if(e.cookieIsset(name)){
-                    e.unsetCookie(name, (String) multipart.get("path"), (String) multipart.get("domain"));
-                    e.send(0);
-                }else{
-                    e.send(0);
-                }
-            }else{
-                e.setStatus(HttpEvent.STATUS_NOT_FOUND);
-                e.flushHeaders();
-            }
+    public void cookie(HttpEvent e, String[] args, StringBuilder content) throws UnsupportedEncodingException{
+        String name = String.join("/", args);
+        if(e.cookieIsset(name)){
+            e.unsetCookie(name, e.getUrlQuery("path"), e.getUrlQuery("domain"));
+            e.send(0);
         }else{
-            String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Error", "-1"));
-            e.send(jsonCookie);
+            e.send(0);
         }
     }
     
