@@ -30,6 +30,8 @@ import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import com.github.tncrazvan.elkserver.WebSocket.WebSocketEvent;
+import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 /**
@@ -65,6 +67,12 @@ public class HttpEventListener extends HttpRequestReader{
                         }
                     } catch (InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
                         logger.log(Level.SEVERE,null,ex);
+                    } catch (ClassNotFoundException ex) {
+                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IllegalArgumentException ex) {
+                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (InvocationTargetException ex) {
+                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }else{
                     matcher = http2Pattern.matcher(clientHeader.get("Upgrade"));

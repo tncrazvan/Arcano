@@ -26,7 +26,6 @@
 package com.github.tncrazvan.elkserver.WebSocket;
 
 import com.github.tncrazvan.elkserver.Elk;
-import java.util.ArrayList;
 
 /**
  *
@@ -34,7 +33,7 @@ import java.util.ArrayList;
  */
 public abstract class WebSocketController extends Elk{
     public static final WebSocketGroupManager GROUP_MANAGER = new WebSocketGroupManager();
-    public abstract void onOpen(WebSocketEvent e, ArrayList<String> get_data);
-    public abstract  void onMessage(WebSocketEvent e, byte[] data, ArrayList<String> get_data);
-    public abstract  void onClose(WebSocketEvent e, ArrayList<String> get_data);
+    public abstract void onOpen(WebSocketEvent e, String[] args);
+    public abstract  void onMessage(WebSocketEvent e, byte[] data, String[] args);
+    public abstract  void onClose(WebSocketEvent e, String[] args);
 }

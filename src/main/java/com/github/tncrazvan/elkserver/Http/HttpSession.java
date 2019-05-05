@@ -26,7 +26,7 @@
 package com.github.tncrazvan.elkserver.Http;
 
 import com.github.tncrazvan.elkserver.Elk;
-import com.github.tncrazvan.elkserver.WebSocket.WebSocketEvent;
+import com.github.tncrazvan.elkserver.EventManager;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,76 +35,46 @@ import java.util.Map;
  *
  * @author razvan
  */
-public class HttpSession{
-    private static final Map<String,HttpSession> LIST = new HashMap<>();
+public class HttpSession extends Elk{
+    public static final Map<String,HttpSession> LIST = new HashMap<>();
+    private long time;
     private final String id;
     private final Map<String,Object> STORAGE = new HashMap<>();
     
-    private HttpSession(HttpEvent e) throws UnsupportedEncodingException {
+    
+    protected HttpSession(EventManager e) throws UnsupportedEncodingException {
         id = Elk.getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random());
         e.setCookie("sessionId", id, "/");
+        this.time = System.currentTimeMillis();
     }
     
-    private HttpSession(WebSocketEvent e) throws UnsupportedEncodingException {
-        id = Elk.getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random());
-        e.setCookie("sessionId", id, "/");
+    protected long getTime(){
+        return time;
     }
     
-    public static HttpSession start(HttpEvent e) throws UnsupportedEncodingException, UnsupportedEncodingException{
-        if(e.issetCookie("sessionId")){
-            final String sessionId = e.getCookie("sessionId");
-            if(LIST.containsKey(sessionId)){
-                return LIST.get(sessionId);
-            }
-        }
-        final HttpSession session = new HttpSession(e);
-        set(session);
-        return session;
-    }
-    public static HttpSession start(WebSocketEvent e) throws UnsupportedEncodingException{
-        if(e.issetCookie("sessionId")){
-            final String sessionId = e.getCookie("sessionId");
-            if(LIST.containsKey(sessionId)){
-                return LIST.get(sessionId);
-            }
-        }
-        final HttpSession session = new HttpSession(e);
-        set(session);
-        return session;
+    protected void setTime(long time){
+        this.time=time;
     }
     
-    public static HttpSession get(String sessionId){
-        return LIST.get(sessionId);
-    }
-    
-    public static void set(HttpSession session){
-        LIST.put(session.getSessionId(), session);
-    }
-    
-    public static boolean isset(String sessionId){
-        return LIST.containsKey(sessionId);
-    }
-    
-    public static void unset(HttpSession session){
-        LIST.remove(session.getSessionId());
-    }
-    
-    public String getSessionId(){
+    public String id(){
         return id;
     }
-    public void setProperty(String key, Object o){
+    
+    public Map<String,Object> storage(){
+        return STORAGE;
+    }
+    public void set(String key, Object o){
         STORAGE.put(key, o);
     }
-    public void unsetProperty(String key){
+    public void unset(String key){
         STORAGE.remove(key);
     }
     
-    public boolean issetProperty(String key){
+    public boolean isset(String key){
         return STORAGE.containsKey(key);
     }
     
-    public Object getProperty(String key){
+    public Object get(String key){
         return STORAGE.get(key);
     }
-    
 }

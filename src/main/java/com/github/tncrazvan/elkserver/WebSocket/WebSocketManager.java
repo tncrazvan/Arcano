@@ -52,17 +52,17 @@ public abstract class WebSocketManager extends EventManager{
     protected final Socket client;
     protected final HttpHeader clientHeader;
     protected final BufferedReader reader;
-    protected final String requesteId;
+    protected final String requestId;
     protected final OutputStream outputStream;
     private Map<String,String> userLanguages = new HashMap<>();
     private boolean connected = true;
     //private final HttpHeader header;
     public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader) throws IOException {
-        super(clientHeader);
+        super(client,clientHeader);
         this.client=client;
         this.clientHeader=clientHeader;
         this.reader=reader;
-        this.requesteId = Elk.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());;
+        this.requestId = Elk.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());
         this.outputStream = client.getOutputStream();
         //header = new HttpHeader();
     }
@@ -100,7 +100,7 @@ public abstract class WebSocketManager extends EventManager{
                     header.set("Sec-WebSocket-Accept",acceptKey);
                     outputStream.write((header.toString()+"\r\n").getBytes());
                     outputStream.flush();
-                    onOpen(client);
+                    onOpen();
                     byte[] data = new byte[1];
                     InputStream read = client.getInputStream();
                     while(connected){
@@ -184,7 +184,8 @@ public abstract class WebSocketManager extends EventManager{
                 if(lengthIndex == 2){
                     payloadLength = ((length[0] & 0xff) << 8) | (length[1] & 0xff);
                     reading = MASK;
-                }   break;
+                }
+                break;
             case LENGTH8:
                 length[lengthIndex] = b;
                 lengthIndex++;
@@ -207,7 +208,7 @@ public abstract class WebSocketManager extends EventManager{
                 break;
             case PAYLOAD:
                 if(payload.length == 0){
-                    onMessage(client, payload);
+                    onMessage(payload);
                     break;
                 }
                 try{
@@ -219,7 +220,7 @@ public abstract class WebSocketManager extends EventManager{
                 if(payloadIndex == payload.length){
                     reading = DONE;
 
-                    onMessage(client, payload);
+                    onMessage(payload);
                     lengthKey = 0;
                     reading = FIRST_BYTE;
                     lengthIndex = 0;
@@ -238,7 +239,7 @@ public abstract class WebSocketManager extends EventManager{
         try {
             connected = false;
             client.close();
-            onClose(client);
+            onClose();
         } catch (IOException ex) {
             logger.log(Level.SEVERE,null,ex);
         }
@@ -353,7 +354,7 @@ public abstract class WebSocketManager extends EventManager{
 
 
 
-    protected abstract void onOpen(Socket client);
-    protected abstract void onMessage(Socket client, byte[] data);
-    protected abstract void onClose(Socket client);
+    protected abstract void onOpen();
+    protected abstract void onMessage(byte[] data);
+    protected abstract void onClose();
 }

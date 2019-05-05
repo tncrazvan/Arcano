@@ -46,7 +46,7 @@ public class WebSocketGroup {
     private String name;
 
     public WebSocketGroup(HttpSession session) {
-        this.key = Elk.getBCryptString(session.getSessionId());
+        this.key = Elk.getBCryptString(session.id());
     }
     
     public void setGroupName(String name){
@@ -66,18 +66,18 @@ public class WebSocketGroup {
     }
     
     public void addClient(WebSocketEvent e) throws UnsupportedEncodingException{
-        e.sessionStart();
-        events.put(e.session.getSessionId(), e);
+        e.startSession();
+        events.put(e.session.id(), e);
     }
     
     public WebSocketEvent removeClient(WebSocketEvent e){
         if(matchCreator(e)){
             master = null;
         }
-        return events.remove(e.session.getSessionId());
+        return events.remove(e.session.id());
     }
     public boolean clientExists(WebSocketEvent e){
-        return events.containsKey(e.session.getSessionId());
+        return events.containsKey(e.session.id());
     }
     
     public Map<String,WebSocketEvent> getMap(){
@@ -105,6 +105,6 @@ public class WebSocketGroup {
     }
     
     public boolean matchCreator(WebSocketEvent e){
-        return Elk.validateBCryptString(e.session.getSessionId(), key);
+        return Elk.validateBCryptString(e.session.id(), key);
     }
 }

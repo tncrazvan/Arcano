@@ -35,7 +35,6 @@ import com.github.tncrazvan.elkserver.Elk;
 import com.github.tncrazvan.elkserver.Http.HttpController;
 import com.github.tncrazvan.elkserver.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
-import java.util.Map;
 
 /**
  *
@@ -89,7 +88,7 @@ public class Get extends HttpController{
     
     public void cookie(HttpEvent e, String[] args, StringBuilder content) throws UnsupportedEncodingException{
         String name = String.join("/", args);
-        if(e.cookieIsset(name)){
+        if(e.issetCookie(name)){
             e.setContentType("application/json");
             String jsonCookie = Elk.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
             e.send(jsonCookie);

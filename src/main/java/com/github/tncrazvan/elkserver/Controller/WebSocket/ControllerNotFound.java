@@ -27,7 +27,6 @@ package com.github.tncrazvan.elkserver.Controller.WebSocket;
 
 import com.github.tncrazvan.elkserver.WebSocket.WebSocketController;
 import com.github.tncrazvan.elkserver.WebSocket.WebSocketEvent;
-import java.util.ArrayList;
 
 /**
  *
@@ -36,15 +35,14 @@ import java.util.ArrayList;
 public class ControllerNotFound extends WebSocketController{
 
     @Override
-    public void onOpen(WebSocketEvent e, ArrayList<String> args) {
-        e.send("Elk server error: Controller not found");
+    public void onOpen(WebSocketEvent e, String[] args) {
         e.close();
     }
 
     @Override
-    public void onMessage(WebSocketEvent e, byte[] data, ArrayList<String> args) {}
+    public void onMessage(WebSocketEvent e, byte[] data, String[] args) {}
 
     @Override
-    public void onClose(WebSocketEvent e, ArrayList<String> args) {}
+    public void onClose(WebSocketEvent e, String[] args) {}
     
 }

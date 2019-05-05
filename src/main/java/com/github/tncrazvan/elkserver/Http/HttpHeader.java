@@ -30,7 +30,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -41,7 +40,7 @@ import java.util.Map;
  */
 public class HttpHeader extends Elk{
     private final Map<String, String> header = new HashMap();
-    private final Map<String, String[]> cookies = new HashMap();
+    public Map<String, String[]> cookies = new HashMap();
     public HttpHeader(boolean createSuccessHeader) {
         if(createSuccessHeader){
             header.put("Status", "HTTP/1.1 200 OK");
@@ -100,19 +99,7 @@ public class HttpHeader extends Elk{
         if(!header.containsKey(key)){
             return null;
         }
-        switch(key){
-            case "Status":
-            case "Resource":
-                return header
-                        .get(key)
-                        .split(" ")[1].trim();
-            case "Method":
-                return header
-                        .get(key)
-                        .split(" ")[0].trim();
-            default:
-                return header.get(key).trim();
-        }
+        return header.get(key).trim();
     }
     
     public boolean issetCookie(String key){
@@ -168,12 +155,11 @@ public class HttpHeader extends Elk{
     
     public static HttpHeader fromString(String string){
         HttpHeader header = new HttpHeader(false);
-        String[] tmp = string.split("\\r\\n");
+        String[] lines = string.split("\\r\\n");
         boolean end = false;
-        for(int i=0;i<tmp.length;i++){
-            if(tmp[i].equals("")) continue;
-            
-            String[] item = tmp[i].split(":(?=\\s)");
+        for(int i=0;i<lines.length;i++){
+            if(lines[i].equals("")) continue;
+            String[] item = lines[i].split(":\\s*",2);
             if(item.length>1){
                 if(item[0].equals("Cookie")){
                     String[] c = item[1].split(";");
@@ -196,14 +182,13 @@ public class HttpHeader extends Elk{
                     header.set(item[0],item[1]);
                 }
             }else{
-                if(tmp[i].substring(0,3).equals("GET")){
-                    header.set("Resource",tmp[i]);
-                    header.set("Method","GET");
-                }else if(tmp[i].substring(0,4).equals("POST")){
-                    header.set("Resource",tmp[i]);
-                    header.set("Method","POST");
+                if(lines[i].matches("^.+(?=\\s\\/).*HTTPS?\\/.*$")){
+                    String[] parts = lines[i].split("\\s+");
+                    header.set("Method",parts[0]);
+                    header.set("Resource",parts[1]);
+                    header.set("Version",parts[2]);
                 }else{
-                    header.set(tmp[i],tmp[i]);
+                    header.set(lines[i],null);
                 }
             }
         }

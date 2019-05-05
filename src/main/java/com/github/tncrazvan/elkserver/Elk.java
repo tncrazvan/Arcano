@@ -69,6 +69,8 @@ public class Elk {
             listen = true,
             groupsAllowed = false,
             smtpAllowed = false;
+    protected static long 
+            sessionTtl = 1440; //24 minutes
     protected static int 
             port = 80,
             timeout = 30000;
@@ -76,18 +78,24 @@ public class Elk {
             webRoot = "www/",
             charset = "UTF-8",
             bindAddress = "::",
-            httpControllerPackageName = "com.github.tncrazvan.elkserver.Controller.Http",
-            wsControllerPackageName = "com.github.tncrazvan.elkserver.Controller.WebSocket",
-            httpDefaultName = "App",
-            httpNotFoundName = "ControllerNotFound",
-            wsNotFoundName = "ControllerNotFound";
+            httpControllerPackageNameOriginal = "com.github.tncrazvan.elkserver.Controller.Http",
+            wsControllerPackageNameOriginal = "com.github.tncrazvan.elkserver.Controller.WebSocket",
+            httpDefaultNameOriginal = "App",
+            httpNotFoundNameOriginal = "ControllerNotFound",
+            wsNotFoundNameOriginal = "ControllerNotFound",
+            httpControllerPackageName = httpControllerPackageNameOriginal,
+            wsControllerPackageName = wsControllerPackageNameOriginal,
+            httpDefaultName = httpDefaultNameOriginal,
+            httpNotFoundName = httpNotFoundNameOriginal,
+            wsNotFoundName = wsNotFoundNameOriginal,
+            entryPoint = "/index.html";
     protected static Locale locale = Locale.getDefault();
     protected static ZoneId timezone = ZoneId.systemDefault();
     protected static DateTimeFormatter httpDateFormat = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", locale).withZone(timezone);
     protected static Logger logger = Logger.getLogger(Elk.class.getName());
     //advanced settings
     protected static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();
-    protected static final int 
+    protected static int 
             cookieTtl = 60*60*24*30,
             wsGroupMaxClient = 10,
             wsMtu = 65536,
@@ -98,7 +106,6 @@ public class Elk {
 
     protected static JsonObject mainSettings;
     public static final Calendar calendar = Calendar.getInstance();
-    protected static String entryPoint = "/index.html";
     
     
     //other vars
@@ -561,37 +568,6 @@ public class Elk {
             
             default: return "";
         }
-    }
-    
-    
-    protected int getClassnameIndex(String[] location) throws ClassNotFoundException{
-        String currentName = httpControllerPackageName;
-        for(int i=0;i<location.length;i++){
-            currentName +="."+location[i];
-            try{
-                Class.forName(currentName);
-                return i;
-            }catch(ClassNotFoundException ex){}
-        }
-        throw new ClassNotFoundException();
-    }
-    
-    protected String resolveClassName(int classId, String[] location){
-        String classname = httpControllerPackageName;
-        for(int i=0;i<=classId;i++){
-            classname +="."+location[i];
-        }
-        
-        return classname;
-    }
-    
-    protected String[] resolveMethodArgs(int offset, String[] location){
-        String[] args = new String[0];
-        if(location.length-1>offset-1){
-            int length = location.length-offset;
-            args = Arrays.copyOfRange(location,offset,offset+length);
-        }
-        return args;
     }
 
     

@@ -127,26 +127,23 @@ public abstract class ElkServer extends Elk{
         if(Settings.isset("timeout"))
             timeout = Settings.getInt("timeout");
         
+        if(Settings.isset("sessionTtl"))
+            sessionTtl = Settings.getInt("sessionTtl");
+        
         if(Settings.isset("cookieTtl"))
-            timeout = Settings.getInt("cookieTtl");
+            cookieTtl = Settings.getInt("cookieTtl");
         
         if(Settings.isset("wsMtu"))
-            timeout = Settings.getInt("wsMtu");
+            wsMtu = Settings.getInt("wsMtu");
         
         if(Settings.isset("httpMtu"))
-            timeout = Settings.getInt("httpMtu");
+            httpMtu = Settings.getInt("httpMtu");
         
         if(Settings.isset("cacheMaxAge"))
-            timeout = Settings.getInt("cacheMaxAge");
-        
-        if(Settings.isset("cacheMaxAge"))
-            timeout = Settings.getInt("cacheMaxAge");
-        
-        if(Settings.isset("cacheMaxAge"))
-            timeout = Settings.getInt("cacheMaxAge");
+            cacheMaxAge = Settings.getInt("cacheMaxAge");
         
         if(Settings.isset("entryPoint"))
-            timeout = Settings.getInt("entryPoint");
+            entryPoint = Settings.getString("entryPoint");
         
         AsciiTable st = new AsciiTable("Socket");
         st.addRow("Attribute","Value");
@@ -157,10 +154,11 @@ public abstract class ElkServer extends Elk{
         st.addRow("webRoot",webRoot);
         st.addRow("charset",charset);
         st.addRow("timeout",""+timeout+" milliseconds");
-        st.addRow("wsMtu",""+wsMtu+" bytes");
-        st.addRow("httpMtu",""+httpMtu+" bytes");
+        st.addRow("sessionTtl",""+sessionTtl+" seconds");
         st.addRow("cookieTtl",""+cookieTtl+" seconds");
         st.addRow("cacheMaxAge",""+cacheMaxAge+" seconds");
+        st.addRow("wsMtu",""+wsMtu+" bytes");
+        st.addRow("httpMtu",""+httpMtu+" bytes");
         st.addRow("entryPoint",""+entryPoint);
         System.out.println("\n");
         st.draw();

@@ -28,11 +28,9 @@ package com.github.tncrazvan.elkserver.Controller.Http;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import com.github.tncrazvan.elkserver.Http.Cookie;
 import com.github.tncrazvan.elkserver.Http.HttpEvent;
 import com.github.tncrazvan.elkserver.Elk;
 import com.github.tncrazvan.elkserver.Http.HttpController;
-import java.util.Map;
 
 /**
  *
@@ -58,7 +56,7 @@ public class Isset extends HttpController{
     
     public void cookie(HttpEvent e, String[] args, StringBuilder content){
             String name = String.join("/",args);
-            if(e.cookieIsset(name)){
+            if(e.issetCookie(name)){
                 e.setStatus(STATUS_FOUND);
             }else{
                 e.setStatus(STATUS_NOT_FOUND);

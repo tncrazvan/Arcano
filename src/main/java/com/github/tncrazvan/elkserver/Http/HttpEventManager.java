@@ -46,12 +46,10 @@ public abstract class HttpEventManager extends EventManager{
     //private HttpHeader header;
     private boolean defaultHeaders=true;
     private boolean alive=true;
-    protected final Socket client;
     protected final StringBuilder content;
     protected boolean isDir = false;
     public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client,StringBuilder content) throws UnsupportedEncodingException {
-        super(clientHeader);
-        this.client=client;
+        super(client,clientHeader);
         this.output = output;
         this.content=content;
     }
@@ -66,9 +64,6 @@ public abstract class HttpEventManager extends EventManager{
             logger.log(Level.WARNING,null,ex);
         }
     }
-    public Socket getClient(){
-        return client;
-    }
     
     public boolean isDirectory(){
         return isDir;
@@ -77,7 +72,6 @@ public abstract class HttpEventManager extends EventManager{
     public void setHeaderField(String fieldName,String fieldContent){
         header.set(fieldName, fieldContent);
     }
-    
     
     public void setStatus(String status){
         setHeaderField("Status", "HTTP/1.1 "+status);

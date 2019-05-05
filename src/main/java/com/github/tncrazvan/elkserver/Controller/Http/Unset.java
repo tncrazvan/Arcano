@@ -46,7 +46,7 @@ public class Unset extends HttpController{
     
     public void cookie(HttpEvent e, String[] args, StringBuilder content) throws UnsupportedEncodingException{
         String name = String.join("/", args);
-        if(e.cookieIsset(name)){
+        if(e.issetCookie(name)){
             e.unsetCookie(name, e.getUrlQuery("path"), e.getUrlQuery("domain"));
             e.send(0);
         }else{

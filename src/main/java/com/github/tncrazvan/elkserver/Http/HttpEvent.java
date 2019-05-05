@@ -27,12 +27,11 @@ package com.github.tncrazvan.elkserver.Http;
 
 import java.net.Socket;
 import java.util.logging.Level;
-import com.github.tncrazvan.elkserver.Elk;
 import java.io.DataOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
+import java.util.Map;
 
 
 /**
@@ -40,30 +39,20 @@ import java.util.Arrays;
  * @author Razvan
  */
 public class HttpEvent extends HttpEventManager{
-    private final String BEAN_ROOT_REGEX = "\\s*^\\/?@|^\\/";
-    public HttpSession session;
     public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, StringBuilder content) throws UnsupportedEncodingException {
         super(output,clientHeader,client,content);
     }
     
-    public boolean sessionIdIsset() throws UnsupportedEncodingException{
-        return (issetCookie("sessionId") && HttpSession.isset(getCookie("sessionId")));
-    }
-    
-    public void sessionStart() throws UnsupportedEncodingException{
-        session = HttpSession.start(this);
-    }
-    
-    private boolean serveController(String[] location) 
+    private void serveController(String[] location) 
     throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException{
         String[] args = new String[0];
         if(location.length == 0 || location.length == 1 && location[0].equals("")){
-            location = new String[]{"App"};
+            location = new String[]{httpDefaultName};
         }
         try{
-            int classId = getClassnameIndex(location);
-            Class<?> c = Class.forName(resolveClassName(classId, location));
-            Object controller = c.newInstance();
+            int classId = getClassnameIndex(httpControllerPackageName,location);
+            Class<?> cls = Class.forName(resolveClassName(classId,httpControllerPackageName,location));
+            Object controller = cls.newInstance();
             
             String methodname = location.length-1>classId?location[classId+1]:"main";
             args = resolveMethodArgs(classId+2, location);
@@ -78,14 +67,22 @@ public class HttpEvent extends HttpEventManager{
             method.invoke(controller,this,args,content);
             onClose.invoke(controller);
         }catch(ClassNotFoundException ex){
-            Class<?> c = Class.forName(Elk.httpControllerPackageName+"."+Elk.httpNotFoundName);
-            Object controller = c.newInstance();
+            Class<?> cls;
+            if(location[0].equals(httpDefaultName)){
+                cls = Class.forName(httpControllerPackageNameOriginal+"."+httpDefaultNameOriginal);
+            }else{
+                try{
+                    cls = Class.forName(httpControllerPackageName+"."+httpNotFoundName);
+                }catch(ClassNotFoundException eex){
+                    cls = Class.forName(httpControllerPackageNameOriginal+"."+httpNotFoundNameOriginal);
+                }
+            }
+            Object controller = cls.newInstance();
             Method main = controller.getClass().getDeclaredMethod("main",this.getClass(),args.getClass(),content.getClass());
             Method onClose = controller.getClass().getDeclaredMethod("onClose");
             main.invoke(controller,this,args,content);
             onClose.invoke(controller);
         }
-        return true;
     }
     
     @Override

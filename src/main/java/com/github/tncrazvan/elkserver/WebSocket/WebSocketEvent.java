@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import com.github.tncrazvan.elkserver.Http.HttpHeader;
 import com.github.tncrazvan.elkserver.Elk;
 import com.github.tncrazvan.elkserver.Http.HttpSession;
+import com.github.tncrazvan.elkserver.Http.HttpSessionManager;
 import java.io.UnsupportedEncodingException;
 
 
@@ -44,151 +45,77 @@ import java.io.UnsupportedEncodingException;
  */
 public class WebSocketEvent extends WebSocketManager{
     
-    private Method onCloseMethod = null;
-    private Method onOpenMethod = null;
-    private Method onMessageMethod = null;
-    private WebSocketEvent singleton = null;
-    private ArrayList<String> args = new ArrayList<>();
-    private Class<?> c = null;
-    private Object x = null;
+    private Method onCloseMethod;
+    private Method onOpenMethod;
+    private Method onMessageMethod;
+    private String[] args;
+    private Class<?> cls;
+    private Object controller;
     public HttpSession session;
     
-    public WebSocketEvent(BufferedReader reader,Socket client,HttpHeader clientHeader) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException {
-        super(reader,client,clientHeader);
-        singleton = this;
-        String[] uri = Elk.decodeUrl(location.toString()).split("/");
-        if(uri.length>1){
-            //System.out.println("Class defined");
-            String[] classpath = uri[1].split("\\.");
-            String classname =Elk.wsControllerPackageName;
-            String tmp = "";
-            for(int i =0;i<classpath.length;i++){
-                tmp = classpath[i].substring(0, 1);
-                if(tmp.equals("@")){
-                    classname +="."+(classpath[i].substring(1).substring(0,1).toUpperCase()+classpath[i].substring(2));
-                }else{
-                    classname +="."+classpath[i];
-                }
+    private void serveController(String[] location) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException{
+        args = new String[0];
+        try{
+            int classId = getClassnameIndex(wsControllerPackageName,location);
+            cls = Class.forName(resolveClassName(classId,wsControllerPackageName,location));
+            controller = cls.newInstance();
+            args = resolveMethodArgs(classId+1, location);
+        }catch(ClassNotFoundException ex){
+            try{
+                cls = Class.forName(wsControllerPackageName+"."+wsNotFoundName);
+            }catch(ClassNotFoundException eex){
+                cls = Class.forName(wsControllerPackageNameOriginal+"."+wsNotFoundNameOriginal);
             }
-            
-            if(tmp.equals("@")){
-                try {
-                    c = Class.forName(classname);
-                    x = c.newInstance();
-                    if(uri.length > 2){
-                        //System.out.println("Parameters defined");
-                        for(int i = 2;i<uri.length;i++){
-                            args.add(uri[i]);
-                        }
-                    }
-                    
-                    onOpenMethod = x.getClass().getMethod("onOpen",this.getClass(),args.getClass());
-                    onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
-                    onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
-                } catch (ClassNotFoundException ex) {
-                    //Logger.getLogger(WebSocketEvent.class.getName()).log(Level.SEVERE, null, ex);
-                    //System.out.println("HERE");
-                    try {
-                        c = Class.forName(Elk.wsControllerPackageName+".ControllerNotFound");
-                        x = c.newInstance();
-                        if(uri.length > 2){
-                            //System.out.println("Parameters defined");
-                            for(int i = 2;i<uri.length;i++){
-                                args.add(uri[i]);
-                            }
-                        }
-
-                        onOpenMethod = x.getClass().getMethod("onOpen",this.getClass(),args.getClass());
-                        onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
-                        onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
-                    } catch (ClassNotFoundException ex1) {
-                        logger.log(Level.SEVERE,null,ex);
-                    }
-                }
-            }else{
-                try {
-                    c = Class.forName(Elk.wsControllerPackageName+".ControllerNotFound");
-                    x = c.newInstance();
-                    if(uri.length > 2){
-                        //System.out.println("Parameters defined");
-                        for(int i = 2;i<uri.length;i++){
-                            args.add(uri[i]);
-                        }
-                    }
-
-                    onOpenMethod = x.getClass().getMethod("onOpen",this.getClass(),args.getClass());
-                    onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
-                    onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
-                } catch (ClassNotFoundException ex) {
-                    logger.log(Level.SEVERE,null,ex);
-                }
-            }
-        }else{
-            try {
-                c = Class.forName(Elk.wsControllerPackageName+".ControllerNotFound");
-                x = c.newInstance();
-                if(uri.length > 2){
-                    //System.out.println("Parameters defined");
-                    for(int i = 2;i<uri.length;i++){
-                        args.add(uri[i]);
-                    }
-                }
-
-                onOpenMethod = x.getClass().getMethod("onOpen",this.getClass(),args.getClass());
-                onMessageMethod = x.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
-                onCloseMethod = x.getClass().getMethod("onClose",this.getClass(),args.getClass());
-            } catch (ClassNotFoundException ex) {
-                logger.log(Level.SEVERE,null,ex);
-            }
+            controller = cls.newInstance();
         }
+        onOpenMethod = controller.getClass().getMethod("onOpen",this.getClass(),args.getClass());
+        onMessageMethod = controller.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
+        onCloseMethod = controller.getClass().getMethod("onClose",this.getClass(),args.getClass());
     }
     
-    public boolean sessionIdIsset() throws UnsupportedEncodingException{
-        return (issetCookie("sessionId") && HttpSession.isset(getCookie("sessionId")));
-    }
-    
-    public void sessionStart() throws UnsupportedEncodingException{
-        session = HttpSession.start(this);
+    public WebSocketEvent(BufferedReader reader,Socket client,HttpHeader clientHeader) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
+        super(reader,client,clientHeader);
+        serveController(location.toString().split("/"));
     }
 
 
     @Override
-    protected void onClose(Socket client) {
+    protected void onOpen() {        
+        try {
+            
+            
+            if(Elk.WS_EVENTS.get(cls.getCanonicalName()) == null){
+                ArrayList<WebSocketEvent> tmp = new ArrayList<>();
+                tmp.add(this);
+                Elk.WS_EVENTS.put(cls.getCanonicalName(), tmp);
+            }else{
+                Elk.WS_EVENTS.get(cls.getCanonicalName()).add(this);
+            }
+            onOpenMethod.invoke(controller,this,args);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+            logger.log(Level.SEVERE,null,ex);
+        }
+    }
+
+    @Override
+    protected void onMessage(byte[] data) {
+        try {
+            onMessageMethod.invoke(controller,this,data,args);
+        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+            logger.log(Level.SEVERE,null,ex);
+        }
+
+    }
+    
+    @Override
+    protected void onClose() {
         
         try {
-            Elk.WS_EVENTS.get(c.getCanonicalName()).remove(singleton);
-            onCloseMethod.invoke(x,this.singleton,args);
+            Elk.WS_EVENTS.get(cls.getCanonicalName()).remove(this);
+            onCloseMethod.invoke(controller,this,args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             logger.log(Level.SEVERE,null,ex);
         }
-    }
-
-    @Override
-    protected void onOpen(Socket client) {        
-        try {
-            
-            
-            if(Elk.WS_EVENTS.get(c.getCanonicalName()) == null){
-                ArrayList<WebSocketEvent> tmp = new ArrayList<>();
-                tmp.add(singleton);
-                Elk.WS_EVENTS.put(c.getCanonicalName(), tmp);
-            }else{
-                Elk.WS_EVENTS.get(c.getCanonicalName()).add(singleton);
-            }
-            onOpenMethod.invoke(x,this.singleton,args);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            logger.log(Level.SEVERE,null,ex);
-        }
-    }
-
-    @Override
-    protected void onMessage(Socket client, byte[] data) {
-        try {
-            onMessageMethod.invoke(x,this.singleton,data,args);
-        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            logger.log(Level.SEVERE,null,ex);
-        }
-
     }
     
 }

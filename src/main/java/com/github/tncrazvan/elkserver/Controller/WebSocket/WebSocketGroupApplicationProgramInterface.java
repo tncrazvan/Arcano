@@ -42,7 +42,7 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
     private String groupName;
     private WebSocketGroup group;
     @Override
-    public void onOpen(WebSocketEvent e, ArrayList<String> get_data) {
+    public void onOpen(WebSocketEvent e, String[] args) {
         //if the settings.json file contains "ALLOW_WS_GROUPS"..
         if(Settings.isset("groups")){
             JsonObject groups = Settings.get("groups").getAsJsonObject();
@@ -95,7 +95,7 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
         }
     }
     @Override
-    public void onMessage(WebSocketEvent e, byte[] data, ArrayList<String> get_data) {
+    public void onMessage(WebSocketEvent e, byte[] data, String[] args) {
         //send data to everyone inside the group except for this client (obviously)
         e.send(data, group, false);
         /**
@@ -107,7 +107,7 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
     }
 
     @Override
-    public void onClose(WebSocketEvent e, ArrayList<String> get_data) {
+    public void onClose(WebSocketEvent e, String[] args) {
         //if the client exists in the group...
         if(group.clientExists(e)){
             //remove the client from group

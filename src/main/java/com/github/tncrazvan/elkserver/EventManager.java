@@ -26,8 +26,12 @@
 package com.github.tncrazvan.elkserver;
 
 import com.github.tncrazvan.elkserver.Http.HttpHeader;
+import com.github.tncrazvan.elkserver.Http.HttpSession;
+import com.github.tncrazvan.elkserver.Http.HttpSessionManager;
 import java.io.UnsupportedEncodingException;
+import java.net.Socket;
 import java.net.URLDecoder;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,7 +48,10 @@ public abstract class EventManager extends Elk{
     protected final StringBuilder location = new StringBuilder();
     protected final Map<String,String> userLanguages = new HashMap<>();
     protected final HttpHeader header;
-    public EventManager(HttpHeader clientHeader) throws UnsupportedEncodingException {
+    protected final Socket client;
+    protected HttpSession session = null;
+    public EventManager(Socket client, HttpHeader clientHeader) throws UnsupportedEncodingException {
+        this.client=client;
         header = new HttpHeader();
         this.clientHeader=clientHeader;
         String uri = clientHeader.get("Resource");
@@ -68,6 +75,55 @@ public abstract class EventManager extends Elk{
                 }
             }
         }
+    }
+    
+    public boolean issetSession() throws UnsupportedEncodingException{
+        return (issetCookie("sessionId") && HttpSessionManager.issetSession(getCookie("sessionId")));
+    }
+    
+    public HttpSession startSession() throws UnsupportedEncodingException{
+        session = HttpSessionManager.startSession(this);
+        return session;
+    }
+    
+    public void stopSession() throws UnsupportedEncodingException{
+        if(session == null) session = startSession();
+        if(issetSession())
+            HttpSessionManager.stopSession(session);
+    }
+    
+    public Socket getClient(){
+        return client;
+    }
+    
+    protected int getClassnameIndex(String root, String[] location) throws ClassNotFoundException{
+        String currentName = root;
+        for(int i=0;i<location.length;i++){
+            currentName +="."+location[i];
+            try{
+                Class.forName(currentName);
+                return i;
+            }catch(ClassNotFoundException ex){}
+        }
+        throw new ClassNotFoundException();
+    }
+    
+    protected String resolveClassName(int classId,String root,String[] location){
+        String classname = root;
+        for(int i=0;i<=classId;i++){
+            classname +="."+location[i];
+        }
+        
+        return classname;
+    }
+    
+    protected String[] resolveMethodArgs(int offset, String[] location){
+        String[] args = new String[0];
+        if(location.length-1>offset-1){
+            int length = location.length-offset;
+            args = Arrays.copyOfRange(location,offset,offset+length);
+        }
+        return args;
     }
     
     /**
@@ -111,6 +167,7 @@ public abstract class EventManager extends Elk{
      * @param key name of the cookie
      * @param path path of the cookie
      * @param domain domain of the cookie
+     * @throws java.io.UnsupportedEncodingException
      */
     public void unsetCookie(String key, String path, String domain) throws UnsupportedEncodingException{
         header.setCookie(key,"deleted",path,domain,"0");
@@ -120,6 +177,7 @@ public abstract class EventManager extends Elk{
      * Notices the client to unset the given cookie.
      * @param key name of the cookie
      * @param path path of the cookie
+     * @throws java.io.UnsupportedEncodingException
      */
     public void unsetCookie(String key, String path) throws UnsupportedEncodingException{
         unsetCookie(key, path, clientHeader.get("Host"));
@@ -128,8 +186,9 @@ public abstract class EventManager extends Elk{
     /**
      * Notices the client to unset the given cookie.
      * @param key name of the cookie
+     * @throws java.io.UnsupportedEncodingException
      */
-    public void unsetCookie(String key) throws UnsupportedEncodingException, UnsupportedEncodingException{
+    public void unsetCookie(String key) throws UnsupportedEncodingException{
         unsetCookie(key, "/", clientHeader.get("Host"));
     }
     
@@ -140,6 +199,7 @@ public abstract class EventManager extends Elk{
      * @param path path of the cookie.
      * @param domain domain of the cooke.
      * @param expire time to live of the cookie.
+     * @throws java.io.UnsupportedEncodingException
      */
     public void setCookie(String name,String value, String path, String domain, int expire) throws UnsupportedEncodingException{
         header.setCookie(name, value, path, domain, expire);
@@ -154,6 +214,7 @@ public abstract class EventManager extends Elk{
      * @param value value of the cookie.
      * @param path path of the cookie.
      * @param domain domain of the cooke.
+     * @throws java.io.UnsupportedEncodingException
      */
     public void setCookie(String name,String value, String path, String domain) throws UnsupportedEncodingException{
         header.setCookie(name, value, path, domain);
@@ -164,6 +225,7 @@ public abstract class EventManager extends Elk{
      * @param name name of the cookie.
      * @param value value of the cookie.
      * @param path path of the cookie.
+     * @throws java.io.UnsupportedEncodingException
      */
     public void setCookie(String name,String value, String path) throws UnsupportedEncodingException{
         header.setCookie(name, value, path);
@@ -173,6 +235,7 @@ public abstract class EventManager extends Elk{
      * Notices the client to set the given cookie.
      * @param name name of the cookie.
      * @param value value of the cookie.
+     * @throws java.io.UnsupportedEncodingException
      */
     public void setCookie(String name,String value) throws UnsupportedEncodingException{
         header.setCookie(name, value);
@@ -183,6 +246,7 @@ public abstract class EventManager extends Elk{
      * Gets the value of the cookie.
      * @param name name of the cookie.
      * @return value of the cookie.
+     * @throws java.io.UnsupportedEncodingException
      */
     public String getCookie(String name) throws UnsupportedEncodingException{
         return clientHeader.getCookie(name);
@@ -191,11 +255,9 @@ public abstract class EventManager extends Elk{
     /**
      * Checks if the cookie is set.
      * @param key name of the cookie.
+     * @return true if cookie is set, otherwise false.
      */
     public boolean issetCookie(String key){
         return clientHeader.issetCookie(key);
-    }
-    public boolean cookieIsset(String key){
-        return issetCookie(key);
     }
 }
