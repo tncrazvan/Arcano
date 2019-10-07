@@ -1,12 +1,18 @@
 {
-    "port":443,
-    "webRoot":"www/",
+    "minify": 1,
+	"port":443,
+    "webRoot": "../webapp",
     "charset":"UTF-8",
-    "bindAddress":"::",
-    "controllers":{
-        "http":"com.razshare.catpaw.Controller.Http",
-        "websocket":"com.razshare.catpaw.Controller.WebSocket"
+    "bindAddress": "::",
+    "controllers": {
+        "http": "com.github.tncrazvan.catpaw.Controller.Http",
+        "ws": "com.github.tncrazvan.catpaw.Controller.WebSocket"
     },
+    "compress": ["deflate"],
+    "header": {
+        "Cache-Control": "no-store"
+    }
+	
     "groups":{
         "allow":true
     },

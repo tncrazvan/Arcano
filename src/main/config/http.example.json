@@ -1,17 +1,14 @@
 {
-    "port":80,
-    "webRoot":"www/",
-    "charset":"UTF-8",
-    "bindAddress":"::",
-    "controllers":{
-        "http":"com.razshare.catpaw.Controller.Http",
-        "websocket":"com.razshare.catpaw.Controller.WebSocket"
+    "minify": 1,
+    "port": 80,
+    "webRoot": "../webapp",
+    "bindAddress": "::",
+    "controllers": {
+        "http": "com.github.tncrazvan.catpaw.Controller.Http",
+        "ws": "com.github.tncrazvan.catpaw.Controller.WebSocket"
     },
-    "groups":{
-        "allow":true
-    },
-    "smtp":{
-        "allow":true,
-        "hostname":"yourDomainName.com"
+    "compress": ["deflate"],
+    "header": {
+        "Cache-Control": "no-store"
     }
 }
