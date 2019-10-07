@@ -25,26 +25,26 @@
  */
 package com.github.tncrazvan.catpaw.Controller.Http;
 
-import com.github.tncrazvan.catpaw.Beans.Http;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.catpaw.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import com.github.tncrazvan.catpaw.Http.HttpEvent;
 import com.github.tncrazvan.catpaw.Server;
 import com.github.tncrazvan.catpaw.Http.HttpController;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.logging.Level;
+import com.github.tncrazvan.catpaw.Beans.Route;
 /**
  *
  * @author Razvan
  */
+
 public class Get extends HttpController{
     
-    @Http(route="/")
+    @Route(path="/")
     public void entry() {
         try {
             e.sendFileContents(entryPoint);
@@ -53,12 +53,12 @@ public class Get extends HttpController{
         }
     }
     
-    @Http(route="/get")
+    @Route(path="/get")
     public void main(){
         e.send(Arrays.toString(args));
     }
     
-    @Http(route="/get/file")
+    @Route(path="/get/file")
     public void file() throws FileNotFoundException, IOException{
         String url = String.join("/", args);;
         e.setContentType(getContentType(url));
@@ -77,7 +77,7 @@ public class Get extends HttpController{
         
     }
     
-    @Http(route="/get/allWebSocketGroups")
+    @Route(path="/get/allWebSocketGroups")
     public void allWebSocketGroups(){
         WebSocketGroup group;
         JsonArray arr = new JsonArray();
@@ -99,7 +99,7 @@ public class Get extends HttpController{
         e.send(arr.toString());
     }
     
-    @Http(route="/get/cookie")
+    @Route(path="/get/cookie")
     public void cookie() throws UnsupportedEncodingException{
         String name = String.join("/", args);
         if(e.issetCookie(name)){

@@ -25,10 +25,10 @@
  */
 package com.github.tncrazvan.catpaw.Http;
 
-import com.github.tncrazvan.catpaw.Beans.Http;
 import com.github.tncrazvan.catpaw.Server;
 import com.github.tncrazvan.catpaw.WebMethod;
 import java.lang.reflect.Method;
+import com.github.tncrazvan.catpaw.Beans.Route;
 
 /**
  *
@@ -41,9 +41,9 @@ public abstract class HttpController extends Server{
     public HttpController() {
         Method[] methods = this.getClass().getDeclaredMethods();
         for(Method method : methods){
-            Http http = method.getAnnotation(Http.class);
+            Route http = method.getAnnotation(Route.class);
             if(http != null){
-                String[] routes = http.route();
+                String[] routes = http.path();
                 if(routes.length > 0){
                     for(String route : routes){
                         WebMethod wm = new WebMethod(this.getClass().getCanonicalName(),method.getName());

@@ -25,9 +25,9 @@
  */
 package com.github.tncrazvan.catpaw.Controller.Http;
 
-import com.github.tncrazvan.catpaw.Beans.Http;
 import com.github.tncrazvan.catpaw.Http.HttpController;
 import java.io.UnsupportedEncodingException;
+import com.github.tncrazvan.catpaw.Beans.Route;
 
 /**
  *
@@ -35,10 +35,10 @@ import java.io.UnsupportedEncodingException;
  */
 public class Unset extends HttpController{
     
-    @Http(route="/unset")
+    @Route(path="/unset")
     public void main() {}
     
-    @Http(route="/unset/cookie")
+    @Route(path="/unset/cookie")
     public void cookie() throws UnsupportedEncodingException{
         String name = String.join("/", args);
         if(e.issetCookie(name)){

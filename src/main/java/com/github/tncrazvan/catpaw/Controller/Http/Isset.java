@@ -25,11 +25,11 @@
  */
 package com.github.tncrazvan.catpaw.Controller.Http;
 
-import com.github.tncrazvan.catpaw.Beans.Http;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import com.github.tncrazvan.catpaw.Http.HttpController;
+import com.github.tncrazvan.catpaw.Beans.Route;
 
 /**
  *
@@ -37,10 +37,10 @@ import com.github.tncrazvan.catpaw.Http.HttpController;
  */
 public class Isset extends HttpController{
     
-    @Http(route="/isset")
+    @Route(path="/isset")
     public void main(){}
     
-    @Http(route="/isset/file")
+    @Route(path="/isset/file")
     public void file() throws FileNotFoundException, IOException{
         String url = String.join("/", args);
         File f = new File(webRoot,url);
@@ -52,7 +52,7 @@ public class Isset extends HttpController{
         e.flush();
     }
     
-    @Http(route="/isset/cookie")
+    @Route(path="/isset/cookie")
     public void cookie(){
             String name = String.join("/",args);
             if(e.issetCookie(name)){
