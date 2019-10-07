@@ -45,10 +45,8 @@ public abstract class HttpController extends Server{
             if(http != null){
                 String[] routes = http.path();
                 if(routes.length > 0){
-                    for(String route : routes){
-                        WebMethod wm = new WebMethod(this.getClass().getCanonicalName(),method.getName());
-                        this.routes.put(route, wm);
-                    }
+                    WebMethod wm = new WebMethod(this.getClass().getCanonicalName(), method.getName(), http.method()[0]);
+                    this.routes.put(routes[0], wm);
                 }
             }
         }

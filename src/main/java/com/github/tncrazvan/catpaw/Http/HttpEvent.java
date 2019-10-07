@@ -31,6 +31,9 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import com.github.tncrazvan.catpaw.WebMethod;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 
 
@@ -43,6 +46,29 @@ public class HttpEvent extends HttpEventManager{
         super(output,clientHeader,client,content);
     }
     
+    private void invoke(Object controller,Method method) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvocationTargetException{
+        Class<?> type = method.getReturnType();
+        if(type == HttpResponse.class){
+            HttpResponse response = (HttpResponse) method.invoke(controller);
+            HashMap<String,String> headers = response.getHeaders();
+            if(headers != null){
+                Iterator it = headers.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry pair = (Map.Entry)it.next();
+                    setHeaderField((String) pair.getKey(), (String) pair.getValue());
+                    it.remove(); // avoids a ConcurrentModificationException
+                }
+            }
+            send(response.getContent());
+        }else if(type == String.class || type == int.class || type == float.class
+                || type == double.class || type == boolean.class || type == float.class
+                || type == byte.class || type == char.class || type == short.class
+                || type == long.class){
+            send(String.valueOf(method.invoke(controller)));
+        }
+        
+    }
+    
     private void serveController(String[] location) 
     throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException{
         String[] args = new String[0];
@@ -50,7 +76,7 @@ public class HttpEvent extends HttpEventManager{
             location = new String[]{""};
         }
         try{
-            int classId = getClassnameIndex(location);
+            int classId = getClassnameIndex(location,getMethod());
             WebMethod wm = resolveClassName(classId,location);
             Class<?> cls = Class.forName(wm.getClassname());
             Object controller = cls.getDeclaredConstructor().newInstance();
@@ -69,9 +95,7 @@ public class HttpEvent extends HttpEventManager{
             ((HttpController)controller).setArgs(args);
             ((HttpController)controller).setContent(content);
             
-            //Method onClose = controller.getClass().getDeclaredMethod("onClose");
-            method.invoke(controller);
-            //onClose.invoke(controller);
+            invoke(controller,method);
         }catch(ClassNotFoundException ex){
             Class<?> cls;
             
@@ -88,8 +112,7 @@ public class HttpEvent extends HttpEventManager{
             ((HttpController)controller).setArgs(args);
             ((HttpController)controller).setContent(content);
             
-            main.invoke(controller);
-            //onClose.invoke(controller);
+            invoke(controller, main);
         }
     }
     

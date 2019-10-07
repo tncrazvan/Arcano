@@ -38,7 +38,7 @@ public class ControllerNotFound extends HttpController{
         try{
             e.send("Page not found");
         }catch(Exception ex){
-            System.err.println("\n\nException on location: "+e.getClientHeader().get("Resource"));
+            System.err.println("\n\nException on location: "+e.getClientHeader().get("@Resource"));
             ex.printStackTrace();
         }
     }

@@ -37,6 +37,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import com.github.tncrazvan.catpaw.Beans.Route;
+import com.github.tncrazvan.catpaw.Http.HttpResponse;
+import static com.github.tncrazvan.catpaw.Server.STATUS_SUCCESS;
+import java.util.HashMap;
 /**
  *
  * @author Razvan
@@ -60,9 +63,16 @@ public class Get extends HttpController{
     
     @Route(path="/get/file")
     public void file() throws FileNotFoundException, IOException{
-        String url = String.join("/", args);;
+        String url = String.join("/", args);
         e.setContentType(getContentType(url));
         e.sendFileContents(url);
+    }
+    
+    @Route(path="/get/player-info",method="GET")
+    public boolean test(){
+        //your code here
+        
+        return false;
     }
     
     class Cookie{

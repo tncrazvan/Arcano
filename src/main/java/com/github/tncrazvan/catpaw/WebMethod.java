@@ -12,10 +12,12 @@ package com.github.tncrazvan.catpaw;
 public class WebMethod {
     private String classname;
     private String methodname;
+    private String httpMethod;
     
-    public WebMethod(String classname, String methodname) {
+    public WebMethod(String classname, String methodname, String httpMethod) {
         this.classname = classname;
         this.methodname = methodname;
+        this.httpMethod = httpMethod;
     }
     public String getClassname(){
         return classname;
@@ -23,5 +25,9 @@ public class WebMethod {
     
     public String getMethodname(){
         return methodname;
+    }
+    
+    public String getHttpMethod(){
+        return httpMethod;
     }
 }

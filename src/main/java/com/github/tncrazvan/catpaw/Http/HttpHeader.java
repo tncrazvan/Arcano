@@ -43,7 +43,7 @@ public class HttpHeader extends Server{
     public Map<String, String[]> cookies = new HashMap();
     public HttpHeader(boolean createSuccessHeader) {
         if(createSuccessHeader){
-            header.put("Status", "HTTP/1.1 200 OK");
+            header.put("@Status", "HTTP/1.1 200 OK");
             header.put("Date",httpDateFormat.format(time()));
             header.put("Cache-Control","no-store");
         }
@@ -55,7 +55,7 @@ public class HttpHeader extends Server{
     public String fieldToString(String key){
         String value = header.get(key);
         
-        if(key.equals("Resource") || key.equals("Status") || value.equalsIgnoreCase(key)){
+        if(key.equals("@Resource") || key.equals("@Status") || value.equalsIgnoreCase(key)){
             return value+"\r\n";
         }
         return key+": "+value+"\r\n";
@@ -92,6 +92,8 @@ public class HttpHeader extends Server{
     }
     
     public void set(String a, String b){
+        if(a.equals("@Status"))
+            b = "HTTP/1.1 "+b;
         header.put(a, b);
     }
     
@@ -185,7 +187,7 @@ public class HttpHeader extends Server{
                 if(lines[i].matches("^.+(?=\\s\\/).*HTTPS?\\/.*$")){
                     String[] parts = lines[i].split("\\s+");
                     header.set("Method",parts[0]);
-                    header.set("Resource",parts[1]);
+                    header.set("@Resource",parts[1]);
                     header.set("Version",parts[2]);
                 }else{
                     header.set(lines[i],null);

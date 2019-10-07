@@ -31,6 +31,7 @@ import com.github.tncrazvan.catpaw.Http.HttpSessionManager;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,7 +55,7 @@ public abstract class EventManager extends Server{
         this.client=client;
         header = new HttpHeader();
         this.clientHeader=clientHeader;
-        String uri = clientHeader.get("Resource");
+        String uri = clientHeader.get("@Resource");
         try{
             uri = URLDecoder.decode(uri,charset);
         }catch(IllegalArgumentException ex){}
@@ -98,12 +99,12 @@ public abstract class EventManager extends Server{
     
     
     //FOR HTTP
-    protected int getClassnameIndex(String[] location) throws ClassNotFoundException{
-        String currentName = "";
-        for(int i=0;i<location.length;i++){
-            currentName +="/"+location[i];
-            if(Server.routes.containsKey(currentName)){
-                return i;
+    protected int getClassnameIndex(String[] location,String httpMethod) throws ClassNotFoundException{
+        String tmp;
+        for(int i=location.length;i>0;i--){
+            tmp = "/"+String.join("/", Arrays.copyOf(location, i));
+            if(Server.routes.containsKey(tmp) && Server.routes.get(tmp).getHttpMethod().equals(httpMethod)){
+                return i-1;
             }
                 
         }
