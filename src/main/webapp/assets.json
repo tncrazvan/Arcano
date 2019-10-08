@@ -1,7 +1,6 @@
 [
     "/css/fonts/meterial.css",
     "/css/materialize.css",
-    "/js/Konva/Konva.min.js",
     "/js/Materialize/materialize.js",
     "/js/Elk/Main.js",
     "/Component/Wrapper/Nav.js",
