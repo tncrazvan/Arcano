@@ -60,6 +60,7 @@ import javax.net.ssl.TrustManagerFactory;
 public abstract class CatPaw extends Server{
     private static SmtpServer smtpServer;
     public static void main (String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException{
+        args = new String[]{"C:\\Users\\Administrator\\Projects\\JavaProjects\\CatPaw\\src\\main\\config\\http.json"};
         listen(args);
     }
     

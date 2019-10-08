@@ -65,6 +65,8 @@ public class HttpEvent extends HttpEventManager{
                 || type == byte.class || type == char.class || type == short.class
                 || type == long.class){
             send(String.valueOf(method.invoke(controller)));
+        }else{
+            method.invoke(controller);
         }
         
     }

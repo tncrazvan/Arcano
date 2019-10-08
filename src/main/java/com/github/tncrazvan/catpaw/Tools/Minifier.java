@@ -129,7 +129,11 @@ public class Minifier {
     }
     
     private File minified;
+    private File dir;
     private void save(byte[] contents,String type) throws IOException{
+        dir = new File(inputDirName+outputDirectoryname);
+        if(!dir.exists())
+            dir.mkdir();
         minified = new File(inputDirName+outputDirectoryname+"/"+outputFilename+"."+type);
         if(minified.exists())
             minified.delete();
