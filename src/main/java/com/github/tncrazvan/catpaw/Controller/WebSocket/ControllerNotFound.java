@@ -26,23 +26,21 @@
 package com.github.tncrazvan.catpaw.Controller.WebSocket;
 
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketController;
-import com.github.tncrazvan.catpaw.WebSocket.WebSocketEvent;
 
 /**
  *
  * @author razvan
  */
 public class ControllerNotFound extends WebSocketController{
-
     @Override
-    public void onOpen(WebSocketEvent e, String[] args) {
+    public void onOpen() {
         e.close();
     }
 
     @Override
-    public void onMessage(WebSocketEvent e, byte[] data, String[] args) {}
+    public void onMessage(byte[] data) {}
 
     @Override
-    public void onClose(WebSocketEvent e, String[] args) {}
-    
+    public void onClose() {}
+
 }

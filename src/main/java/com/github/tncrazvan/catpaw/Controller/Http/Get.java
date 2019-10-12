@@ -28,36 +28,23 @@ package com.github.tncrazvan.catpaw.Controller.Http;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.catpaw.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import com.github.tncrazvan.catpaw.Server;
 import com.github.tncrazvan.catpaw.Http.HttpController;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.logging.Level;
-import com.github.tncrazvan.catpaw.Beans.Route;
+import com.github.tncrazvan.catpaw.Http.HttpResponse;
+import java.io.File;
+import com.github.tncrazvan.catpaw.Beans.Web;
 /**
  *
  * @author Razvan
  */
-
+@Web(path = "/get")
 public class Get extends HttpController{
-    
-    @Route(path="/")
-    public void entry() {
-        try {
-            e.sendFileContents(entryPoint);
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    @Route(path="/get/file")
-    public void file() throws FileNotFoundException, IOException{
-        String url = String.join("/", args);
-        e.setContentType(getContentType(url));
-        e.sendFileContents(url);
+    @Web(path="/file")
+    public HttpResponse file() throws IOException {
+        return new HttpResponse(null,new File(webRoot+String.join("/", args)));
     }
     
     class Cookie{
@@ -72,7 +59,7 @@ public class Get extends HttpController{
         
     }
     
-    @Route(path="/get/allWebSocketGroups")
+    @Web(path="/allWebSocketGroups")
     public void allWebSocketGroups(){
         WebSocketGroup group;
         JsonArray arr = new JsonArray();
@@ -94,7 +81,7 @@ public class Get extends HttpController{
         e.send(arr.toString());
     }
     
-    @Route(path="/get/cookie")
+    @Web(path="/cookie")
     public void cookie() throws UnsupportedEncodingException{
         String name = String.join("/", args);
         if(e.issetCookie(name)){

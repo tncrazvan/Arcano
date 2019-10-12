@@ -7,6 +7,7 @@ package com.github.tncrazvan.catpaw.Tools;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -26,7 +27,7 @@ public class PackageExplorer {
      * @throws IOException
      */
     public static Class[] getClasses(String packageName)
-            throws ClassNotFoundException, IOException {
+            throws ClassNotFoundException, IOException, URISyntaxException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         assert classLoader != null;
         String path = packageName.replace('.', '/');
@@ -34,7 +35,8 @@ public class PackageExplorer {
         ArrayList<File> dirs = new ArrayList<>();
         while (resources.hasMoreElements()) {
             URL resource = (URL) resources.nextElement();
-            dirs.add(new File(resource.getFile()));
+            String filename = resource.toURI().getPath();
+            dirs.add(new File(filename));
         }
         ArrayList classes = new ArrayList();
         for (File directory : dirs) {

@@ -28,11 +28,10 @@ package com.github.tncrazvan.catpaw.Controller.WebSocket;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.catpaw.Settings;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketController;
-import com.github.tncrazvan.catpaw.WebSocket.WebSocketEvent;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -41,8 +40,9 @@ import java.util.logging.Level;
 public class WebSocketGroupApplicationProgramInterface extends WebSocketController{
     private String groupName;
     private WebSocketGroup group;
+    
     @Override
-    public void onOpen(WebSocketEvent e, String[] args) {
+    public void onOpen() {
         //if the settings.json file contains "ALLOW_WS_GROUPS"..
         if(Settings.isset("groups")){
             JsonObject groups = Settings.get("groups").getAsJsonObject();
@@ -72,7 +72,7 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
                                     //add this client to the group
                                     group.addClient(e);
                                 } catch (UnsupportedEncodingException ex) {
-                                    logger.log(Level.WARNING,null,ex);
+                                    Logger.getLogger(WebSocketGroupApplicationProgramInterface.class.getName()).log(Level.SEVERE, null, ex);
                                 }
                             }else{
                                 //if the group is not public, close the connection
@@ -95,7 +95,7 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
         }
     }
     @Override
-    public void onMessage(WebSocketEvent e, byte[] data, String[] args) {
+    public void onMessage(byte[] data) {
         //send data to everyone inside the group except for this client (obviously)
         e.send(data, group, false);
         /**
@@ -107,7 +107,7 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
     }
 
     @Override
-    public void onClose(WebSocketEvent e, String[] args) {
+    public void onClose() {
         //if the client exists in the group...
         if(group.clientExists(e)){
             //remove the client from group

@@ -30,7 +30,7 @@ import java.io.DataOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import com.github.tncrazvan.catpaw.WebMethod;
+import com.github.tncrazvan.catpaw.WebObject;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -42,6 +42,13 @@ import java.util.logging.Level;
  * @author Razvan
  */
 public class HttpEvent extends HttpEventManager{
+    private Method method;
+    private String[] args;
+    private Class<?> cls;
+    private Object controller;
+    private WebObject wo;
+    private int classId;
+    
     public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, StringBuilder content) throws UnsupportedEncodingException {
         super(output,clientHeader,client,content);
     }
@@ -73,19 +80,18 @@ public class HttpEvent extends HttpEventManager{
     
     private void serveController(String[] location) 
     throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException{
-        String[] args = new String[0];
+        args = new String[0];
         if(location.length == 0 || location.length == 1 && location[0].equals("")){
             location = new String[]{""};
         }
         try{
-            int classId = getClassnameIndex(location,getMethod());
-            WebMethod wm = resolveClassName(classId,location);
-            Class<?> cls = Class.forName(wm.getClassname());
-            Object controller = cls.getDeclaredConstructor().newInstance();
+            classId = getClassnameIndex(location,getMethod());
+            wo = resolveClassName(classId,location);
+            cls = Class.forName(wo.getClassname());
+            controller = cls.getDeclaredConstructor().newInstance();
             
-            String methodname = location.length>classId?wm.getMethodname():"main";
+            String methodname = location.length>classId?wo.getMethodname():"main";
             args = resolveMethodArgs(classId+1, location);
-            Method method;
             try{
                 method = controller.getClass().getDeclaredMethod(methodname);
             }catch(NoSuchMethodException ex){
@@ -99,14 +105,12 @@ public class HttpEvent extends HttpEventManager{
             
             invoke(controller,method);
         }catch(ClassNotFoundException ex){
-            Class<?> cls;
-            
             try{
                 cls = Class.forName(httpControllerPackageName+"."+httpNotFoundName);
             }catch(ClassNotFoundException eex){
                 cls = Class.forName(httpControllerPackageNameOriginal+"."+httpNotFoundNameOriginal);
             }
-            Object controller = cls.getDeclaredConstructor().newInstance();
+            controller = cls.getDeclaredConstructor().newInstance();
             Method main = controller.getClass().getDeclaredMethod("main");
             //Method onClose = controller.getClass().getDeclaredMethod("onClose");
             

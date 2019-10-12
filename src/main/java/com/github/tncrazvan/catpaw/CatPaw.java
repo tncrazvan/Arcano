@@ -37,6 +37,7 @@ import com.github.tncrazvan.catpaw.SmtpServer.SmtpServer;
 import com.github.tncrazvan.catpaw.Tools.Minifier;
 import java.io.File;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.UnrecoverableKeyException;
@@ -59,11 +60,11 @@ import javax.net.ssl.TrustManagerFactory;
  */
 public abstract class CatPaw extends Server{
     private static SmtpServer smtpServer;
-    public static void main (String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException{
+    public static void main (String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException{
         listen(args);
     }
     
-    public static void listen(File settings) throws IOException, NoSuchAlgorithmException, ClassNotFoundException{
+    public static void listen(File settings) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException{
         listen(new String[]{
             settings.getAbsolutePath()
         });
@@ -74,8 +75,10 @@ public abstract class CatPaw extends Server{
      * @param args First argument must be the settings file. Check documentation to learn how to create a settings files.
      * @throws IOException
      * @throws NoSuchAlgorithmException 
+     * @throws java.lang.ClassNotFoundException 
      */
-    public static void listen(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
+    public static void listen(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
+        
         final String settingsPath = new File(args[0]).getParent();
         
         Settings.parse(args[0]);
@@ -109,7 +112,19 @@ public abstract class CatPaw extends Server{
             webRoot +="/";
         }
         
-        minifier = new Minifier(webRoot,"minified", System.out::println);
+        if(Settings.isset("assets"))
+            assets = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+Settings.getString("assets");
+        else
+            assets = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+assets;
+        
+        endchar = assets.charAt(assets.length()-1);
+        
+        if(endchar != '/'){
+            assets +="/";
+        }
+        File assetsFile = new File(assets);
+        if(assetsFile.exists())
+            minifier = new Minifier(assetsFile,webRoot,"minified", System.out::println);
             
         if(Settings.isset("charset"))
             charset = Settings.getString("charset");
@@ -253,11 +268,11 @@ public abstract class CatPaw extends Server{
             SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
             ssl.bind(new InetSocketAddress(bindAddress, port));
             System.out.println("\nServer started.");
-            if(minify >= 0) {
+            if(minify >= 0 && minifier != null) {
                 minifier.minify();
                 System.out.println("Files minified.");
             }
-            if(minify >= 1) {
+            if(minify >= 1 && minifier != null) {
                 System.out.println("Server will minify files in background once every "+minify+"ms.");
                 new Thread(() -> {
                     while(true){
@@ -270,6 +285,8 @@ public abstract class CatPaw extends Server{
                     }
                 }).start();
             }
+            
+            Server.mapRoutes();
             
             while(listen){
                 new Thread(new HttpEventListener(ssl.accept())).start();
@@ -278,11 +295,11 @@ public abstract class CatPaw extends Server{
             ServerSocket ss = new ServerSocket();
             ss.bind(new InetSocketAddress(bindAddress, port));
             System.out.println("\nServer started.");
-            if(minify >= 0) {
+            if(minify >= 0 && minifier != null) {
                 minifier.minify();
                 System.out.println("Files minified.");
             }
-            if(minify >= 1) {
+            if(minify >= 1 && minifier != null) {
                 System.out.println("Server will minify files in background once every "+minify+"ms.");
                 new Thread(() -> {
                     while(true){
@@ -296,16 +313,7 @@ public abstract class CatPaw extends Server{
                 }).start();
             }
             
-            /*Package[] packages = Package.getPackages();
-            for (Package p : packages) {
-                if(p.getName().toString().matches(httpControllerPackageName)){
-                    System.out.println("here");  
-                }
-                Http annotation = p.getAnnotation(Http.class);
-                if (annotation != null) {
-                    
-                }
-            }*/
+            Server.mapRoutes();
             
             while(listen){
                 new Thread(new HttpEventListener(ss.accept())).start();

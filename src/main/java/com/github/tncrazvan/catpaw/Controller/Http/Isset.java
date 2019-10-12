@@ -29,18 +29,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import com.github.tncrazvan.catpaw.Http.HttpController;
-import com.github.tncrazvan.catpaw.Beans.Route;
+import com.github.tncrazvan.catpaw.Beans.Web;
 
 /**
  *
  * @author Razvan
  */
+
+@Web(path="/isset")
 public class Isset extends HttpController{
-    
-    @Route(path="/isset")
-    public void main(){}
-    
-    @Route(path="/isset/file")
+    @Web(path="/file")
     public void file() throws FileNotFoundException, IOException{
         String url = String.join("/", args);
         File f = new File(webRoot,url);
@@ -52,7 +50,7 @@ public class Isset extends HttpController{
         e.flush();
     }
     
-    @Route(path="/isset/cookie")
+    @Web(path="/cookie")
     public void cookie(){
             String name = String.join("/",args);
             if(e.issetCookie(name)){

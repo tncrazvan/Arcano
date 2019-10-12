@@ -20,8 +20,7 @@ import java.lang.annotation.Target;
 @Target(value = {ElementType.TYPE, ElementType.METHOD, ElementType.PACKAGE})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
-public @interface Route {
-    public String[] path() default {};
-    public String[] method() default {"GET"};
-    public Class<?>[] pack() default {Route.class};
+public @interface Web {
+    public String path() default "/";
+    public String method() default "GET";
 }

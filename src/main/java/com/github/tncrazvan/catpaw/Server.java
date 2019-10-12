@@ -25,15 +25,18 @@
  */
 package com.github.tncrazvan.catpaw;
 import com.github.tncrazvan.catpaw.Tools.Minifier;
+import com.github.tncrazvan.catpaw.Tools.PackageExplorer;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketEvent;
 import com.google.gson.JsonArray;
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
+import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -60,6 +63,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import com.github.tncrazvan.catpaw.Beans.Web;
 
 /**
  * 
@@ -67,7 +71,7 @@ import javax.crypto.spec.PBEKeySpec;
  */
 public class Server {
     //settings
-    protected static HashMap<String, WebMethod> routes = new HashMap<>();
+    protected static HashMap<String, WebObject> routes = new HashMap<>();
     protected static Minifier minifier;
     protected static boolean 
             listen = true,
@@ -79,7 +83,8 @@ public class Server {
             port = 80,
             timeout = 30000;
     protected static String 
-            webRoot = "www/",
+            assets = "../webapp/assets.json",
+            webRoot = "../webapp",
             charset = "UTF-8",
             bindAddress = "::",
             httpControllerPackageNameOriginal = "com.github.tncrazvan.catpaw.Controller.Http",
@@ -199,8 +204,54 @@ public class Server {
             STATUS_NOT_EXTENDED = "510 Not Extended",
             STATUS_NETWORK_AUTHENTICATION_REQUIRED = "511 Network Authentication Required";
     
+    private static String normalizePathSlashes(String path){
+        int classPathLength = path.length();
+        if(classPathLength >= 1 && path.charAt(0)!='/'){
+            path = '/'+path;
+        }
+        if(classPathLength > 1 && path.charAt(classPathLength-1)=='/'){
+            path = path.substring(0, classPathLength-1);
+        }
+        
+        return path;
+    }
     
-    
+    public static void mapRoutes() throws ClassNotFoundException, IOException, URISyntaxException{
+        Package[] packages = Package.getPackages();
+        for (Package p : packages) {
+            if(p.getName().matches(httpControllerPackageName)){
+                Class[] classes = PackageExplorer.getClasses(p.getName());
+                for(Class cls : classes){
+                    Web classRoute = (Web) cls.getAnnotation(Web.class);
+                    Method[] methods = cls.getDeclaredMethods();
+                    for(Method method : methods){
+                        Web methodRoute = method.getAnnotation(Web.class);
+                        if(methodRoute != null){
+                            String classPath = normalizePathSlashes(classRoute.path().trim());
+                            String methodPath = normalizePathSlashes(methodRoute.path().trim());
+                            String path = classPath.toLowerCase()+methodPath.toLowerCase();
+                            path = normalizePathSlashes(path);
+                            WebObject wo = new WebObject(cls.getCanonicalName(), method.getName(), methodRoute.method().toUpperCase());
+                            if(!Server.routes.containsKey(path))
+                                Server.routes.put(path, wo);
+                        }
+                    }
+                    
+                }
+            }else if(p.getName().matches(wsControllerPackageName)){
+                Class[] classes = PackageExplorer.getClasses(p.getName());
+                for(Class cls : classes){
+                    Web route = (Web) cls.getAnnotation(Web.class);
+                    if(route != null){
+                        String path = normalizePathSlashes(route.path().toLowerCase());
+                        WebObject wo = new WebObject(cls.getCanonicalName(), null, route.method().toUpperCase());
+                        if(!Server.routes.containsKey(path))
+                            Server.routes.put(path, wo);
+                    }
+                }
+            }
+        }
+    }
     
     protected static com.github.tncrazvan.catpaw.Controller.Http.ControllerNotFound 
             httpControllerNotFound = new 

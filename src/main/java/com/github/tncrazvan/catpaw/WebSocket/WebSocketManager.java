@@ -94,14 +94,13 @@ public abstract class WebSocketManager extends EventManager{
                 try {
                     String acceptKey = DatatypeConverter.printBase64Binary(Server.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + Server.wsAcceptKey));
 
-                    header.set("Status", "HTTP/1.1 101 Switching Protocols");
+                    header.set("@Status", Server.STATUS_SWITCHING_PROTOCOLS);
                     header.set("Connection","Upgrade");
                     header.set("Upgrade","websocket");
                     header.set("Sec-WebSocket-Accept",acceptKey);
                     outputStream.write((header.toString()+"\r\n").getBytes());
                     outputStream.flush();
                     onOpen();
-                    byte[] data = new byte[1];
                     InputStream read = client.getInputStream();
                     while(connected){
                         unmask((byte) read.read());

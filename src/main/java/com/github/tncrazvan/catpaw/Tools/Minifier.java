@@ -19,22 +19,21 @@ import java.util.function.Consumer;
  * @author Administrator
  */
 public class Minifier {
-    private HashMap<String,Long> updatesMap;
-    private String inputDirName;
-    private String outputSubDirName;
-    private boolean isWindows;
-    private Consumer<String> consumer;
-    private File root;
+    private final HashMap<String,Long> updatesMap;
+    private final String inputDirName;
+    private final String outputSubDirName;
+    private final boolean isWindows;
+    private final Consumer<String> consumer;
+    private final File root;
     private final String JS_PATTERN = "^.+\\.js$";
     private final String CSS_PATTERN = "^.+\\.css$";
-    private JsonArray assets;
-    private File assetsFile;
-    private final String inputFilename = "assets.json";
+    private final JsonArray assets;
+    private final File assetsFile;
     private final String outputDirectoryname = "minified";
     private final String outputFilename = "minified";
-    public Minifier(String inputDirName,String outputSubDirName, Consumer<String> consumer) throws IOException {
+    public Minifier(File assetsFile,String inputDirName,String outputSubDirName, Consumer<String> consumer) throws IOException {
         this.updatesMap = new HashMap<>();
-        assetsFile = new File(inputDirName+inputFilename);
+        this.assetsFile = assetsFile;
         FileInputStream fis = new FileInputStream(assetsFile);
         this.assets = Server.JSONPARSER.parse(new String(fis.readAllBytes())).getAsJsonArray();
         fis.close();

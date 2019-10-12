@@ -33,22 +33,19 @@ import com.github.tncrazvan.catpaw.Http.HttpSession;
 import com.github.tncrazvan.catpaw.Settings;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
-import com.github.tncrazvan.catpaw.Beans.Route;
+import com.github.tncrazvan.catpaw.Beans.Web;
 
 /**
  *
  * @author Razvan
  */
+@Web(path="/set")
 public class Set extends HttpController{
     private static final String 
             GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.",
             GROUPS_POLICY_NOT_DEFINED = "WebSocket groups policy is not defined by the server therefore by default it is disabled.";
-    
-    
-    @Route(path="/set")
-    public void main() {}
-    
-    @Route(path="/set/webSocketGroup")
+
+    @Web(path="/webSocketGroup")
     public void webSocketGroup() throws UnsupportedEncodingException{
         if(Settings.isset("groups")){
             JsonObject groups = Settings.get("groups").getAsJsonObject();
@@ -78,7 +75,7 @@ public class Set extends HttpController{
         }
     }
     
-    @Route(path="/set/cookie")
+    @Web(path="/cookie")
     public void cookie() throws UnsupportedEncodingException{
         if(e.getMethod().equals("POST")){
             String name = String.join("/", args);

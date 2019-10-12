@@ -1,4 +1,4 @@
 target/
 src/main/config/http.json
-src/main/webapp/minified/
+src/main/webapp
 tmp/

@@ -9,16 +9,29 @@ package com.github.tncrazvan.catpaw;
  *
  * @author Administrator
  */
-public class WebMethod {
-    private String classname;
-    private String methodname;
-    private String httpMethod;
+public class WebObject {
+    private String classname=null;
+    private String methodname=null;
+    private String httpMethod="GET";
     
-    public WebMethod(String classname, String methodname, String httpMethod) {
+    public WebObject(String classname, String methodname, String httpMethod) {
         this.classname = classname;
         this.methodname = methodname;
         this.httpMethod = httpMethod;
     }
+    
+    public void setClassname(String classname) {
+        this.classname = classname;
+    }
+
+    public void setMethodname(String methodname) {
+        this.methodname = methodname;
+    }
+
+    public void setHttpMethod(String httpMethod) {
+        this.httpMethod = httpMethod;
+    }
+    
     public String getClassname(){
         return classname;
     }

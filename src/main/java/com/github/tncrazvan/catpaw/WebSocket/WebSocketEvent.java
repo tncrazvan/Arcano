@@ -35,6 +35,7 @@ import java.util.logging.Level;
 import com.github.tncrazvan.catpaw.Http.HttpHeader;
 import com.github.tncrazvan.catpaw.Server;
 import com.github.tncrazvan.catpaw.Http.HttpSession;
+import com.github.tncrazvan.catpaw.WebObject;
 
 
 /**
@@ -49,15 +50,17 @@ public class WebSocketEvent extends WebSocketManager{
     private String[] args;
     private Class<?> cls;
     private Object controller;
+    private WebObject wo;
+    private int classId;
     public HttpSession session;
     
     private void serveController(String[] location) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException{
         args = new String[0];
         try{
-            int classId = getClassnameIndex(wsControllerPackageName,location);
-            cls = Class.forName(resolveClassName(classId,wsControllerPackageName,location));
+            classId = getClassnameIndex(wsControllerPackageName,location);
+            wo = resolveClassName(classId,location);
+            cls = Class.forName(wo.getClassname());
             controller = cls.getDeclaredConstructor().newInstance();
-            args = resolveMethodArgs(classId+1, location);
         }catch(ClassNotFoundException ex){
             try{
                 cls = Class.forName(wsControllerPackageName+"."+wsNotFoundName);
@@ -66,9 +69,13 @@ public class WebSocketEvent extends WebSocketManager{
             }
             controller = cls.getDeclaredConstructor().newInstance();
         }
-        onOpenMethod = controller.getClass().getMethod("onOpen",this.getClass(),args.getClass());
-        onMessageMethod = controller.getClass().getMethod("onMessage",this.getClass(),byte[].class,args.getClass());
-        onCloseMethod = controller.getClass().getMethod("onClose",this.getClass(),args.getClass());
+        
+        ((WebSocketController)controller).setEvent(this);
+        ((WebSocketController)controller).setArgs(args);
+        
+        onOpenMethod = controller.getClass().getMethod("onOpen");
+        onMessageMethod = controller.getClass().getMethod("onMessage",byte[].class);
+        onCloseMethod = controller.getClass().getMethod("onClose");
     }
     
     public WebSocketEvent(BufferedReader reader,Socket client,HttpHeader clientHeader) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
@@ -89,7 +96,7 @@ public class WebSocketEvent extends WebSocketManager{
             }else{
                 Server.WS_EVENTS.get(cls.getCanonicalName()).add(this);
             }
-            onOpenMethod.invoke(controller,this,args);
+            onOpenMethod.invoke(controller);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             logger.log(Level.SEVERE,null,ex);
         }
@@ -98,7 +105,7 @@ public class WebSocketEvent extends WebSocketManager{
     @Override
     protected void onMessage(byte[] data) {
         try {
-            onMessageMethod.invoke(controller,this,data,args);
+            onMessageMethod.invoke(controller,data);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             logger.log(Level.SEVERE,null,ex);
         }
@@ -110,7 +117,7 @@ public class WebSocketEvent extends WebSocketManager{
         
         try {
             Server.WS_EVENTS.get(cls.getCanonicalName()).remove(this);
-            onCloseMethod.invoke(controller,this,args);
+            onCloseMethod.invoke(controller);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             logger.log(Level.SEVERE,null,ex);
         }

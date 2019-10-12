@@ -32,9 +32,21 @@ import com.github.tncrazvan.catpaw.Server;
  * @author razvan
  */
 public abstract class WebSocketController extends Server{
+    protected WebSocketEvent event,e;
+    protected String[] args;
+    
+    public void setEvent(WebSocketEvent event){
+        this.event=event;
+        this.e=this.event;
+    }
+    
+    public void setArgs(String[] args){
+        this.args=args;
+    }
+    
     public static final WebSocketGroupManager GROUP_MANAGER = new WebSocketGroupManager();
-    public abstract void onOpen(WebSocketEvent e, String[] args);
-    public abstract  void onMessage(WebSocketEvent e, byte[] data, String[] args);
-    public abstract  void onClose(WebSocketEvent e, String[] args);
+    public abstract void onOpen();
+    public abstract void onMessage(byte[] data);
+    public abstract void onClose();
     
 }

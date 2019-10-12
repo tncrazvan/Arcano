@@ -5,7 +5,14 @@
  */
 package com.github.tncrazvan.catpaw.Http;
 
+import com.github.tncrazvan.catpaw.Server;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  *
@@ -18,6 +25,19 @@ public class HttpResponse {
     public HttpResponse(HashMap<String,String> headers, String content) {
         this.headers = headers;
         this.content = content;
+    }
+    
+    public HttpResponse(HashMap<String,String> headers, File file) throws FileNotFoundException, IOException {
+        FileInputStream fis = new FileInputStream(file);
+        if(headers != null && !headers.containsKey("Content-Type")){
+            headers.put("Content-Type", Server.resolveContentType(file.getName()));
+        }
+        if(headers != null && !headers.containsKey("Content-Length")){
+            headers.put("Content-Length", String.valueOf(file.length()));
+        }
+        
+        this.headers = headers;
+        this.content = new String(fis.readAllBytes());
     }
 
     public HashMap<String, String> getHeaders() {

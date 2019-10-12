@@ -31,7 +31,6 @@ import com.github.tncrazvan.catpaw.Http.HttpSessionManager;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -102,7 +101,7 @@ public abstract class EventManager extends Server{
     protected int getClassnameIndex(String[] location,String httpMethod) throws ClassNotFoundException{
         String tmp;
         for(int i=location.length;i>0;i--){
-            tmp = "/"+String.join("/", Arrays.copyOf(location, i));
+            tmp = "/"+String.join("/", Arrays.copyOf(location, i)).toLowerCase();
             if(Server.routes.containsKey(tmp) && Server.routes.get(tmp).getHttpMethod().equals(httpMethod)){
                 return i-1;
             }
@@ -111,13 +110,13 @@ public abstract class EventManager extends Server{
         throw new ClassNotFoundException();
     }
     
-    protected WebMethod resolveClassName(int classId,String[] location){
+    protected WebObject resolveClassName(int classId,String[] location){
         String classname = "";
         for(int i=0;i<=classId;i++){
             classname +="/"+location[i];
         }
         
-        return Server.routes.get(classname);
+        return Server.routes.get(classname.toLowerCase());
     }
     
     
