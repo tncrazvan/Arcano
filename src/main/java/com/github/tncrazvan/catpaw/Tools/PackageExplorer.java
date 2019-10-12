@@ -26,7 +26,7 @@ public class PackageExplorer {
      * @throws ClassNotFoundException
      * @throws IOException
      */
-    public static Class[] getClasses(String packageName)
+    public static ArrayList<String> getClasses(String packageName)
             throws ClassNotFoundException, IOException, URISyntaxException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         assert classLoader != null;
@@ -38,11 +38,11 @@ public class PackageExplorer {
             String filename = resource.toURI().getPath();
             dirs.add(new File(filename));
         }
-        ArrayList classes = new ArrayList();
+        ArrayList<String> classes = new ArrayList<String>();
         for (File directory : dirs) {
             classes.addAll(findClasses(directory, packageName));
         }
-        return (Class[]) classes.toArray(new Class[classes.size()]);
+        return classes;
     }
     /**
      * Recursive method used to find all classes in a given directory and subdirs.
@@ -52,8 +52,8 @@ public class PackageExplorer {
      * @return The classes
      * @throws ClassNotFoundException
      */
-    public static List findClasses(File directory, String packageName) throws ClassNotFoundException {
-        List classes = new ArrayList();
+    public static ArrayList<String> findClasses(File directory, String packageName) throws ClassNotFoundException {
+        ArrayList<String> classes = new ArrayList();
         if (!directory.exists()) {
             return classes;
         }
@@ -63,7 +63,8 @@ public class PackageExplorer {
                 assert !file.getName().contains(".");
                 classes.addAll(findClasses(file, packageName + "." + file.getName()));
             } else if (file.getName().endsWith(".class")) {
-                classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
+                String name = packageName + '.' + file.getName().substring(0, file.getName().length() - 6);
+                classes.add(name);
             }
         }
         return classes;

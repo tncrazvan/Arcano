@@ -35,6 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import com.github.tncrazvan.catpaw.Http.HttpEventListener;
 import com.github.tncrazvan.catpaw.SmtpServer.SmtpServer;
 import com.github.tncrazvan.catpaw.Tools.Minifier;
+import com.github.tncrazvan.catpaw.Tools.PackageExplorer;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -43,6 +44,7 @@ import java.security.KeyStoreException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,23 +63,34 @@ import javax.net.ssl.TrustManagerFactory;
 public abstract class CatPaw extends Server{
     private static SmtpServer smtpServer;
     public static void main (String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException{
-        listen(args);
+        listen(Package.getPackages(),args);
     }
     
     public static void listen(File settings) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException{
-        listen(new String[]{
+        listen(Package.getPackages(),new String[]{
             settings.getAbsolutePath()
         });
     }
     
+    public static void listen(Package[] packages,File settings) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException{
+        listen(packages,new String[]{
+            settings.getAbsolutePath()
+        });
+    }
+    
+    public static void listen(String[] args) throws IOException, NoSuchAlgorithmException, NoSuchAlgorithmException, ClassNotFoundException, ClassNotFoundException, URISyntaxException{
+        listen(Package.getPackages(), args);
+    }
+    
     /**
      * Starts the server listening.
+     * @param packages
      * @param args First argument must be the settings file. Check documentation to learn how to create a settings files.
      * @throws IOException
      * @throws NoSuchAlgorithmException 
      * @throws java.lang.ClassNotFoundException 
      */
-    public static void listen(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
+    public static void listen(Package[] packages,String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
         
         final String settingsPath = new File(args[0]).getParent();
         

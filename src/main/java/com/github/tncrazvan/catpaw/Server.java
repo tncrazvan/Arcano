@@ -217,36 +217,33 @@ public class Server {
     }
     
     public static void mapRoutes(String httpControllerPackageName,String wsControllerPackageName) throws ClassNotFoundException, IOException, URISyntaxException{
-        Package[] packages = Package.getPackages();
-        for (Package p : packages) {
-            if(p.getName().matches(httpControllerPackageName)){
-                Class[] classes = PackageExplorer.getClasses(p.getName());
-                for(Class cls : classes){
-                    Web classRoute = (Web) cls.getAnnotation(Web.class);
-                    Method[] methods = cls.getDeclaredMethods();
-                    for(Method method : methods){
-                        Web methodRoute = method.getAnnotation(Web.class);
-                        if(methodRoute != null){
-                            String classPath = normalizePathSlashes(classRoute.path().trim());
-                            String methodPath = normalizePathSlashes(methodRoute.path().trim());
-                            String path = classPath.toLowerCase()+methodPath.toLowerCase();
-                            path = normalizePathSlashes(path);
-                            WebObject wo = new WebObject(cls.getCanonicalName(), method.getName(), methodRoute.method().toUpperCase());
-                            Server.routes.put(path, wo);
-                        }
-                    }
-                    
+        ArrayList<String> httpClasses = PackageExplorer.getClasses(httpControllerPackageName);
+        ArrayList<String> webSocketClasses = PackageExplorer.getClasses(wsControllerPackageName);
+        
+        for(String classname : httpClasses){
+            Class cls = Class.forName(classname);
+            Web classRoute = (Web) cls.getAnnotation(Web.class);
+            Method[] methods = cls.getDeclaredMethods();
+            for(Method method : methods){
+                Web methodRoute = method.getAnnotation(Web.class);
+                if(methodRoute != null){
+                    String classPath = normalizePathSlashes(classRoute.path().trim());
+                    String methodPath = normalizePathSlashes(methodRoute.path().trim());
+                    String path = classPath.toLowerCase()+methodPath.toLowerCase();
+                    path = normalizePathSlashes(path);
+                    WebObject wo = new WebObject(cls.getCanonicalName(), method.getName(), methodRoute.method().toUpperCase());
+                    Server.routes.put(path, wo);
                 }
-            }else if(p.getName().matches(wsControllerPackageName)){
-                Class[] classes = PackageExplorer.getClasses(p.getName());
-                for(Class cls : classes){
-                    Web route = (Web) cls.getAnnotation(Web.class);
-                    if(route != null){
-                        String path = normalizePathSlashes(route.path().toLowerCase());
-                        WebObject wo = new WebObject(cls.getCanonicalName(), null, route.method().toUpperCase());
-                        Server.routes.put(path, wo);
-                    }
-                }
+            }
+        }
+        
+        for(String classname : webSocketClasses){
+            Class cls = Class.forName(classname);
+            Web route = (Web) cls.getAnnotation(Web.class);
+            if(route != null){
+                String path = normalizePathSlashes(route.path().toLowerCase());
+                WebObject wo = new WebObject(cls.getCanonicalName(), null, route.method().toUpperCase());
+                Server.routes.put(path, wo);
             }
         }
     }
