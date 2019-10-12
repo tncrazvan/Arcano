@@ -286,7 +286,8 @@ public abstract class CatPaw extends Server{
                 }).start();
             }
             
-            Server.mapRoutes();
+            Server.mapRoutes(httpControllerPackageNameOriginal,wsControllerPackageNameOriginal);
+            Server.mapRoutes(httpControllerPackageName,wsControllerPackageName);
             
             while(listen){
                 new Thread(new HttpEventListener(ssl.accept())).start();
@@ -313,7 +314,8 @@ public abstract class CatPaw extends Server{
                 }).start();
             }
             
-            Server.mapRoutes();
+            Server.mapRoutes(httpControllerPackageNameOriginal,wsControllerPackageNameOriginal);
+            Server.mapRoutes(httpControllerPackageName,wsControllerPackageName);
             
             while(listen){
                 new Thread(new HttpEventListener(ss.accept())).start();

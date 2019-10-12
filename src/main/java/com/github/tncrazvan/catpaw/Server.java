@@ -216,7 +216,7 @@ public class Server {
         return path;
     }
     
-    public static void mapRoutes() throws ClassNotFoundException, IOException, URISyntaxException{
+    public static void mapRoutes(String httpControllerPackageName,String wsControllerPackageName) throws ClassNotFoundException, IOException, URISyntaxException{
         Package[] packages = Package.getPackages();
         for (Package p : packages) {
             if(p.getName().matches(httpControllerPackageName)){
@@ -232,8 +232,7 @@ public class Server {
                             String path = classPath.toLowerCase()+methodPath.toLowerCase();
                             path = normalizePathSlashes(path);
                             WebObject wo = new WebObject(cls.getCanonicalName(), method.getName(), methodRoute.method().toUpperCase());
-                            if(!Server.routes.containsKey(path))
-                                Server.routes.put(path, wo);
+                            Server.routes.put(path, wo);
                         }
                     }
                     
@@ -245,8 +244,7 @@ public class Server {
                     if(route != null){
                         String path = normalizePathSlashes(route.path().toLowerCase());
                         WebObject wo = new WebObject(cls.getCanonicalName(), null, route.method().toUpperCase());
-                        if(!Server.routes.containsKey(path))
-                            Server.routes.put(path, wo);
+                        Server.routes.put(path, wo);
                     }
                 }
             }
