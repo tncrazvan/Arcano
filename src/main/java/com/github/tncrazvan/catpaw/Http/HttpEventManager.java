@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
 import java.util.logging.Level;
-import com.github.tncrazvan.catpaw.Server;
 import com.github.tncrazvan.catpaw.EventManager;
 import java.io.DataOutputStream;
 import java.io.RandomAccessFile;
@@ -74,7 +73,7 @@ public abstract class HttpEventManager extends EventManager{
     }
     
     public void setStatus(String status){
-        setHeaderField("Status", "HTTP/1.1 "+status);
+        setHeaderField("@Status", status);
     }
     
     public String getHeaderField(String fieldName){
