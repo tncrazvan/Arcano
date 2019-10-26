@@ -5,7 +5,7 @@
  */
 package com.github.tncrazvan.catpaw.Http;
 
-import com.github.tncrazvan.catpaw.Server;
+import com.github.tncrazvan.catpaw.Common;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -30,7 +30,7 @@ public class HttpResponse {
     public HttpResponse(HashMap<String,String> headers, File file) throws FileNotFoundException, IOException {
         FileInputStream fis = new FileInputStream(file);
         if(headers != null && !headers.containsKey("Content-Type")){
-            headers.put("Content-Type", Server.resolveContentType(file.getName()));
+            headers.put("Content-Type", Common.resolveContentType(file.getName()));
         }
         if(headers != null && !headers.containsKey("Content-Length")){
             headers.put("Content-Length", String.valueOf(file.length()));

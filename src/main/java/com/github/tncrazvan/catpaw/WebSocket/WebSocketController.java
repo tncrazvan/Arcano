@@ -25,13 +25,13 @@
  */
 package com.github.tncrazvan.catpaw.WebSocket;
 
-import com.github.tncrazvan.catpaw.Server;
+import com.github.tncrazvan.catpaw.Common;
 
 /**
  *
  * @author razvan
  */
-public abstract class WebSocketController extends Server{
+public abstract class WebSocketController extends Common{
     protected WebSocketEvent event,e;
     protected String[] args;
     

@@ -25,7 +25,7 @@
  */
 package com.github.tncrazvan.catpaw.Http;
 
-import com.github.tncrazvan.catpaw.Server;
+import com.github.tncrazvan.catpaw.Common;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -38,7 +38,7 @@ import java.util.Map;
  *
  * @author Razvan
  */
-public class HttpHeader extends Server{
+public class HttpHeader extends Common{
     private final Map<String, String> header = new HashMap();
     public Map<String, String[]> cookies = new HashMap();
     public HttpHeader(boolean createSuccessHeader) {

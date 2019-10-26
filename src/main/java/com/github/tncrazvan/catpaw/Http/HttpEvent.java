@@ -25,6 +25,7 @@
  */
 package com.github.tncrazvan.catpaw.Http;
 
+import static com.github.tncrazvan.catpaw.Tools.JsonTools.jsonEncode;
 import java.net.Socket;
 import java.io.DataOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -55,7 +56,9 @@ public class HttpEvent extends HttpEventManager{
     
     private void invoke(Object controller,Method method) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvocationTargetException{
         Class<?> type = method.getReturnType();
-        if(type == HttpResponse.class){
+        if(type == Void.class){
+            method.invoke(controller);
+        }else if(type == HttpResponse.class){
             HttpResponse response = (HttpResponse) method.invoke(controller);
             HashMap<String,String> headers = response.getHeaders();
             if(headers != null){
@@ -72,8 +75,11 @@ public class HttpEvent extends HttpEventManager{
                 || type == byte.class || type == char.class || type == short.class
                 || type == long.class){
             send(String.valueOf(method.invoke(controller)));
-        }else{
-            method.invoke(controller);
+        }else {
+            //if it's some other type of object...
+            Object o = method.invoke(controller);
+            if(o != null)
+            send(jsonEncode(o));
         }
         
     }

@@ -25,7 +25,7 @@
  */
 package com.github.tncrazvan.catpaw.WebSocket;
 
-import com.github.tncrazvan.catpaw.Server;
+import com.github.tncrazvan.catpaw.Common;
 import com.github.tncrazvan.catpaw.Http.HttpSession;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -46,7 +46,7 @@ public class WebSocketGroup {
     private String name;
 
     public WebSocketGroup(HttpSession session) {
-        this.key = Server.getBCryptString(session.id());
+        this.key = Common.getBCryptString(session.id());
     }
     
     public void setGroupName(String name){
@@ -105,6 +105,6 @@ public class WebSocketGroup {
     }
     
     public boolean matchCreator(WebSocketEvent e){
-        return Server.validateBCryptString(e.session.id(), key);
+        return Common.validateBCryptString(e.session.id(), key);
     }
 }

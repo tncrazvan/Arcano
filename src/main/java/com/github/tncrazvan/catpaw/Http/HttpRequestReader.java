@@ -33,7 +33,7 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
-import com.github.tncrazvan.catpaw.Server;
+import com.github.tncrazvan.catpaw.Common;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -44,7 +44,7 @@ import javax.net.ssl.SSLSocket;
  *
  * @author Razvan
  */
-public abstract class HttpRequestReader extends Server implements Runnable{
+public abstract class HttpRequestReader extends Common implements Runnable{
     protected Socket client=null;
     protected SSLSocket secureClient=null;
     protected BufferedReader reader=null;

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.tncrazvan</groupId>
     <artifactId>Java.CatPaw</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.3</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -66,6 +66,11 @@
             <artifactId>jaxb-api</artifactId>
             <version>2.3.1</version>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tncrazvan</groupId>
+            <artifactId>AsciiTable</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
     <name>Java.CatPaw</name>

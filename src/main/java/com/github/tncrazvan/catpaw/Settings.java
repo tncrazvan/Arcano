@@ -25,6 +25,8 @@
  */
 package com.github.tncrazvan.catpaw;
 
+import com.github.tncrazvan.catpaw.Tools.JsonTools;
+import static com.github.tncrazvan.catpaw.Tools.JsonTools.toJsonObject;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.IOException;
@@ -44,7 +46,7 @@ public class Settings {
      * @throws IOException 
      */
     public static void parse(String settings) throws IOException{
-        info = Server.JSONPARSER.parse(new String(Files.readAllBytes(Paths.get(settings)))).getAsJsonObject();
+        info = toJsonObject(new String(Files.readAllBytes(Paths.get(settings))));
     }
     
     /**

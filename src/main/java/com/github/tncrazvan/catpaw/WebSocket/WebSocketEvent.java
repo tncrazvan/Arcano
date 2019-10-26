@@ -33,7 +33,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import com.github.tncrazvan.catpaw.Http.HttpHeader;
-import com.github.tncrazvan.catpaw.Server;
+import com.github.tncrazvan.catpaw.Common;
 import com.github.tncrazvan.catpaw.Http.HttpSession;
 import com.github.tncrazvan.catpaw.WebObject;
 
@@ -89,12 +89,12 @@ public class WebSocketEvent extends WebSocketManager{
         try {
             
             
-            if(Server.WS_EVENTS.get(cls.getCanonicalName()) == null){
+            if(Common.WS_EVENTS.get(cls.getCanonicalName()) == null){
                 ArrayList<WebSocketEvent> tmp = new ArrayList<>();
                 tmp.add(this);
-                Server.WS_EVENTS.put(cls.getCanonicalName(), tmp);
+                Common.WS_EVENTS.put(cls.getCanonicalName(), tmp);
             }else{
-                Server.WS_EVENTS.get(cls.getCanonicalName()).add(this);
+                Common.WS_EVENTS.get(cls.getCanonicalName()).add(this);
             }
             onOpenMethod.invoke(controller);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
@@ -116,7 +116,7 @@ public class WebSocketEvent extends WebSocketManager{
     protected void onClose() {
         
         try {
-            Server.WS_EVENTS.get(cls.getCanonicalName()).remove(this);
+            Common.WS_EVENTS.get(cls.getCanonicalName()).remove(this);
             onCloseMethod.invoke(controller);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
             logger.log(Level.SEVERE,null,ex);

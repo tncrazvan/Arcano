@@ -34,6 +34,7 @@ import com.github.tncrazvan.catpaw.Settings;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
 import com.github.tncrazvan.catpaw.Beans.Web;
+import static com.github.tncrazvan.catpaw.Tools.JsonTools.toJsonObject;
 
 /**
  *

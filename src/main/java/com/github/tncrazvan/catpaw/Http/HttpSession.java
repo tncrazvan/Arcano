@@ -25,7 +25,7 @@
  */
 package com.github.tncrazvan.catpaw.Http;
 
-import com.github.tncrazvan.catpaw.Server;
+import com.github.tncrazvan.catpaw.Common;
 import com.github.tncrazvan.catpaw.EventManager;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -35,7 +35,7 @@ import java.util.Map;
  *
  * @author razvan
  */
-public class HttpSession extends Server{
+public class HttpSession extends Common{
     public static final Map<String,HttpSession> LIST = new HashMap<>();
     private long time;
     private final String id;

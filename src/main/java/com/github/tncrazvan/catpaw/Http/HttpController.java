@@ -25,13 +25,13 @@
  */
 package com.github.tncrazvan.catpaw.Http;
 
-import com.github.tncrazvan.catpaw.Server;
+import com.github.tncrazvan.catpaw.Common;
 
 /**
  *
  * @author razvan
  */
-public abstract class HttpController extends Server{
+public abstract class HttpController extends Common{
     protected HttpEvent event,e;
     protected String[] args;
     protected StringBuilder content;

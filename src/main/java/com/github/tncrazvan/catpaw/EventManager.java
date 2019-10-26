@@ -42,7 +42,7 @@ import java.util.Map;
  * and read cookie, and more.
  * @author razvan
  */
-public abstract class EventManager extends Server{
+public abstract class EventManager extends Common{
     protected final HttpHeader clientHeader;
     protected final Map<String,String> queryString = new HashMap<>();
     protected final StringBuilder location = new StringBuilder();
@@ -102,7 +102,7 @@ public abstract class EventManager extends Server{
         String tmp;
         for(int i=location.length;i>0;i--){
             tmp = "/"+String.join("/", Arrays.copyOf(location, i)).toLowerCase();
-            if(Server.routes.containsKey(tmp) && Server.routes.get(tmp).getHttpMethod().equals(httpMethod)){
+            if(Common.routes.containsKey(tmp) && Common.routes.get(tmp).getHttpMethod().equals(httpMethod)){
                 return i-1;
             }
                 
@@ -116,7 +116,7 @@ public abstract class EventManager extends Server{
             classname +="/"+location[i];
         }
         
-        return Server.routes.get(classname.toLowerCase());
+        return Common.routes.get(classname.toLowerCase());
     }
     
     

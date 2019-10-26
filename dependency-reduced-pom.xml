@@ -4,7 +4,7 @@
   <groupId>com.github.tncrazvan</groupId>
   <artifactId>Java.CatPaw</artifactId>
   <name>Java.CatPaw</name>
-  <version>1.0.1</version>
+  <version>1.0.3</version>
   <build>
     <plugins>
       <plugin>

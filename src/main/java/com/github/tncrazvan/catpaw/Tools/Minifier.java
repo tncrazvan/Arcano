@@ -5,7 +5,7 @@
  */
 package com.github.tncrazvan.catpaw.Tools;
 
-import com.github.tncrazvan.catpaw.Server;
+import static com.github.tncrazvan.catpaw.Tools.JsonTools.toJsonArray;
 import com.google.gson.JsonArray;
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,7 +35,7 @@ public class Minifier {
         this.updatesMap = new HashMap<>();
         this.assetsFile = assetsFile;
         FileInputStream fis = new FileInputStream(assetsFile);
-        this.assets = Server.JSONPARSER.parse(new String(fis.readAllBytes())).getAsJsonArray();
+        this.assets = toJsonArray(new String(fis.readAllBytes())).getAsJsonArray();
         fis.close();
         fis=null;
         
@@ -50,7 +50,7 @@ public class Minifier {
     }
     
     public static byte[] minify(byte[] content,String type) throws IOException{
-        return minify(content, "",type);
+        return minify(content, type, Thread.currentThread().getId()+"");
     }
     
     public static byte[] minify(byte[] content,String type,String hashCode) throws IOException{
@@ -62,7 +62,7 @@ public class Minifier {
             tmp.mkdir();
         }
         
-        tmp = new File("tmp/."+Thread.currentThread().getId()+String.format("."+type+".minified.input.tmp", type));
+        tmp = new File("tmp/."+hashCode+"."+type+".minified.input.tmp");
         if(tmp.exists())
             tmp.delete();
         tmp.createNewFile();
@@ -71,7 +71,8 @@ public class Minifier {
         fos.close();
         
         Process process;
-        String cmd = String.format("minify --type=%s %s", type, tmp.toPath().toAbsolutePath().toString());
+        String filename = tmp.toPath().toAbsolutePath().toString().replace("\\", "/");
+        String cmd = String.format("minify --type=%s \"%s\"", type, filename);
         process = Runtime.getRuntime().exec(cmd);
         byte[] result =  process.getInputStream().readAllBytes();
         process.destroy();
@@ -142,3 +143,4 @@ public class Minifier {
         fos.close();
     }
 }
+ 

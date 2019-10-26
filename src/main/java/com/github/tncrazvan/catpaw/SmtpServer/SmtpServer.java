@@ -25,7 +25,7 @@
  */
 package com.github.tncrazvan.catpaw.SmtpServer;
 
-import com.github.tncrazvan.catpaw.Server;
+import com.github.tncrazvan.catpaw.Common;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -36,7 +36,7 @@ import java.util.logging.Level;
  *
  * @author razvan
  */
-public class SmtpServer extends Server implements Runnable{
+public class SmtpServer extends Common implements Runnable{
 
     /**
      * @param args the command line arguments

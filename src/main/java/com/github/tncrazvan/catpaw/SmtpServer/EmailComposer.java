@@ -25,7 +25,7 @@
  */
 package com.github.tncrazvan.catpaw.SmtpServer;
 
-import com.github.tncrazvan.catpaw.Server;
+import com.github.tncrazvan.catpaw.Common;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -69,10 +69,10 @@ public class EmailComposer extends SmtpMessageManager{
         eodSequence = getEndDataWithValue(eodLine);
         
         sayDataFrom(email.getSender());
-        sayDataDate(Server.calendar.getTime().getTime());
+        sayDataDate(Common.calendar.getTime().getTime());
         sayDataSubject(email.getSubject());
         sayDataTo((String[]) email.getRecipients().toArray());
-        setMultipartBoundaryId(Server.generateMultipartBoundary());
+        setMultipartBoundaryId(Common.generateMultipartBoundary());
         sayDataContentType(); // Content-Type:multipart/alternative
         sayNothing();
         sayDataFrames(email.getFrames());

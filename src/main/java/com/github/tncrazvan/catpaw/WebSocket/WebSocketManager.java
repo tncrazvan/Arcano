@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import com.github.tncrazvan.catpaw.Http.HttpHeader;
-import com.github.tncrazvan.catpaw.Server;
+import com.github.tncrazvan.catpaw.Common;
 import com.github.tncrazvan.catpaw.EventManager;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -62,7 +62,7 @@ public abstract class WebSocketManager extends EventManager{
         this.client=client;
         this.clientHeader=clientHeader;
         this.reader=reader;
-        this.requestId = Server.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());
+        this.requestId = Common.getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis());
         this.outputStream = client.getOutputStream();
         //header = new HttpHeader();
     }
@@ -92,9 +92,9 @@ public abstract class WebSocketManager extends EventManager{
             @Override
             public void run() {
                 try {
-                    String acceptKey = DatatypeConverter.printBase64Binary(Server.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + Server.wsAcceptKey));
+                    String acceptKey = DatatypeConverter.printBase64Binary(Common.getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + Common.wsAcceptKey));
 
-                    header.set("@Status", Server.STATUS_SWITCHING_PROTOCOLS);
+                    header.set("@Status", Common.STATUS_SWITCHING_PROTOCOLS);
                     header.set("Connection","Upgrade");
                     header.set("Upgrade","websocket");
                     header.set("Sec-WebSocket-Accept",acceptKey);
@@ -245,7 +245,7 @@ public abstract class WebSocketManager extends EventManager{
     }
     public void send(String data){
         try {
-            send(data.getBytes(Server.charset), false);
+            send(data.getBytes(Common.charset), false);
         } catch (UnsupportedEncodingException ex) {
             logger.log(Level.SEVERE,null,ex);
         }
@@ -254,7 +254,7 @@ public abstract class WebSocketManager extends EventManager{
         send(data, true);
     }
     public void send(byte[] data,boolean binary){
-        int offset = 0, maxLength = Server.wsMtu-1;
+        int offset = 0, maxLength = Common.wsMtu-1;
         if(data.length > maxLength){
             while(offset < data.length){
                 if(offset+maxLength > data.length){
@@ -311,7 +311,7 @@ public abstract class WebSocketManager extends EventManager{
 
     public void broadcast(String msg,Object o){
         try {
-            broadcast(msg.getBytes(Server.charset),o,false);
+            broadcast(msg.getBytes(Common.charset),o,false);
         } catch (UnsupportedEncodingException ex) {
             logger.log(Level.SEVERE,null,ex);
         }
@@ -320,7 +320,7 @@ public abstract class WebSocketManager extends EventManager{
         broadcast(data, o, true);
     }
     public void broadcast(byte[] data,Object o,boolean binary){
-        Iterator i = Server.WS_EVENTS.get(o.getClass().getCanonicalName()).iterator();
+        Iterator i = Common.WS_EVENTS.get(o.getClass().getCanonicalName()).iterator();
         while(i.hasNext()){
             WebSocketEvent e = (WebSocketEvent) i.next();
             if(e!=this){
@@ -343,7 +343,7 @@ public abstract class WebSocketManager extends EventManager{
 
     public void send(String data, WebSocketGroup group){
         try {
-            send(data.getBytes(Server.charset),group,false);
+            send(data.getBytes(Common.charset),group,false);
         } catch (UnsupportedEncodingException ex) {
             logger.log(Level.SEVERE,null,ex);
         }

@@ -29,13 +29,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.catpaw.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
 import java.io.IOException;
-import com.github.tncrazvan.catpaw.Server;
 import com.github.tncrazvan.catpaw.Http.HttpController;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
 import com.github.tncrazvan.catpaw.Http.HttpResponse;
 import java.io.File;
 import com.github.tncrazvan.catpaw.Beans.Web;
+import static com.github.tncrazvan.catpaw.Tools.JsonTools.jsonEncode;
 /**
  *
  * @author Razvan
@@ -86,7 +86,8 @@ public class Get extends HttpController{
         String name = String.join("/", args);
         if(e.issetCookie(name)){
             e.setContentType("application/json");
-            String jsonCookie = Server.JSON_PARSER.toJson(new Cookie("Cookie", e.getCookie(name)));
+            
+            String jsonCookie = jsonEncode(new Cookie("Cookie", e.getCookie(name)));
             e.send(jsonCookie);
         }else{
             e.setStatus(STATUS_NOT_FOUND);
