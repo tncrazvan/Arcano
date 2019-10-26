@@ -26,7 +26,6 @@
 package com.github.tncrazvan.catpaw;
 
 import com.github.tncrazvan.catpaw.Tools.JsonTools;
-import static com.github.tncrazvan.catpaw.Tools.JsonTools.toJsonObject;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.IOException;
@@ -37,15 +36,15 @@ import java.nio.file.Paths;
  * Containst the settings file objects.
  * @author Razvan
  */
-public class Settings {
-    private static JsonObject info = null;
+public class Settings implements JsonTools{
+    private JsonObject info = null;
     
     /**
      * Creates an JsonObject from the given String.
      * @param settings json file.
      * @throws IOException 
      */
-    public static void parse(String settings) throws IOException{
+    public void parse(String settings) throws IOException{
         info = toJsonObject(new String(Files.readAllBytes(Paths.get(settings))));
     }
     
@@ -54,7 +53,7 @@ public class Settings {
      * @param membername object name.
      * @return the settings object as a JsonElement.
      */
-    public static JsonElement get(String membername){
+    public JsonElement get(String membername){
         return info.get(membername);
     }
     
@@ -63,7 +62,7 @@ public class Settings {
      * @param membername object name.
      * @return the settings object as a String.
      */
-    public static String getString(String membername){
+    public String getString(String membername){
         return get(membername).getAsString();
     }
     
@@ -72,7 +71,7 @@ public class Settings {
      * @param membername object name.
      * @return the settings object as an int.
      */
-    public static int getInt(String membername){
+    public int getInt(String membername){
         return get(membername).getAsInt();
     }
     
@@ -80,7 +79,7 @@ public class Settings {
      * Checks if the object name is iset in the settings file.
      * @param key
      */
-    public static boolean isset(String key){
+    public boolean isset(String key){
         return info.has(key);
     }
 }

@@ -25,7 +25,7 @@
  */
 package com.github.tncrazvan.catpaw.Http;
 
-import static com.github.tncrazvan.catpaw.Tools.JsonTools.jsonEncode;
+import com.github.tncrazvan.catpaw.Tools.JsonTools;
 import java.net.Socket;
 import java.io.DataOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -42,7 +42,7 @@ import java.util.logging.Level;
  *
  * @author Razvan
  */
-public class HttpEvent extends HttpEventManager{
+public class HttpEvent extends HttpEventManager implements JsonTools{
     private Method method;
     private String[] args;
     private Class<?> cls;
@@ -55,33 +55,43 @@ public class HttpEvent extends HttpEventManager{
     }
     
     private void invoke(Object controller,Method method) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvocationTargetException{
-        Class<?> type = method.getReturnType();
-        if(type == Void.class){
-            method.invoke(controller);
-        }else if(type == HttpResponse.class){
-            HttpResponse response = (HttpResponse) method.invoke(controller);
-            HashMap<String,String> headers = response.getHeaders();
-            if(headers != null){
-                Iterator it = headers.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry pair = (Map.Entry)it.next();
-                    setHeaderField((String) pair.getKey(), (String) pair.getValue());
-                    it.remove(); // avoids a ConcurrentModificationException
+        try{
+            Class<?> type = method.getReturnType();
+            if(type == Void.class){
+                method.invoke(controller);
+            }else if(type == HttpResponse.class){
+                HttpResponse response = (HttpResponse) method.invoke(controller);
+                HashMap<String,String> headers = response.getHeaders();
+                if(headers != null){
+                    Iterator it = headers.entrySet().iterator();
+                    while (it.hasNext()) {
+                        Map.Entry pair = (Map.Entry)it.next();
+                        setHeaderField((String) pair.getKey(), (String) pair.getValue());
+                        it.remove(); // avoids a ConcurrentModificationException
+                    }
                 }
+                
+                send(response.getContent());
+            }else if(type == String.class || type == int.class || type == float.class
+                    || type == double.class || type == boolean.class || type == float.class
+                    || type == byte.class || type == char.class || type == short.class
+                    || type == long.class){
+                
+                Object result = method.invoke(controller);
+                send(String.valueOf(result));
+            }else {
+                //if it's some other type of object...
+                Object o = method.invoke(controller);
+                if(o != null)
+                    send(jsonEncode(o));
             }
-            send(response.getContent());
-        }else if(type == String.class || type == int.class || type == float.class
-                || type == double.class || type == boolean.class || type == float.class
-                || type == byte.class || type == char.class || type == short.class
-                || type == long.class){
-            send(String.valueOf(method.invoke(controller)));
-        }else {
-            //if it's some other type of object...
-            Object o = method.invoke(controller);
-            if(o != null)
-            send(jsonEncode(o));
+        }catch(InvocationTargetException  e){
+            setStatus(STATUS_INTERNAL_SERVER_ERROR);
+            send(e.getTargetException().getMessage());
+        }catch(IllegalAccessException | IllegalArgumentException e){
+            setStatus(STATUS_INTERNAL_SERVER_ERROR);
+            send(e.getMessage());
         }
-        
     }
     
     private void serveController(String[] location) 

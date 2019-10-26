@@ -26,7 +26,6 @@
 package com.github.tncrazvan.catpaw.Controller.WebSocket;
 
 import com.google.gson.JsonObject;
-import com.github.tncrazvan.catpaw.Settings;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketController;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
@@ -44,8 +43,8 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
     @Override
     public void onOpen() {
         //if the settings.json file contains "ALLOW_WS_GROUPS"..
-        if(Settings.isset("groups")){
-            JsonObject groups = Settings.get("groups").getAsJsonObject();
+        if(settings.isset("groups")){
+            JsonObject groups = settings.get("groups").getAsJsonObject();
             //if the "GROUPS" contains "ALLOW"
             if(groups.has("allow")){
                 //if "ALLOW" is true

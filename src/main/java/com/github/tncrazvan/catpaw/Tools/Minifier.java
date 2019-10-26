@@ -5,7 +5,6 @@
  */
 package com.github.tncrazvan.catpaw.Tools;
 
-import static com.github.tncrazvan.catpaw.Tools.JsonTools.toJsonArray;
 import com.google.gson.JsonArray;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,7 +17,7 @@ import java.util.function.Consumer;
  *
  * @author Administrator
  */
-public class Minifier {
+public class Minifier implements JsonTools{
     private final HashMap<String,Long> updatesMap;
     private final String inputDirName;
     private final String outputSubDirName;

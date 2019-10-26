@@ -83,13 +83,13 @@ public abstract class Server extends Common{
         
         final String settingsPath = new File(args[0]).getParent();
         
-        Settings.parse(args[0]);
+        settings.parse(args[0]);
         
-        if(Settings.isset("minify"))
-            minify = Settings.getInt("minify");
+        if(settings.isset("minify"))
+            minify = settings.getInt("minify");
         
-        if(Settings.isset("threadPoolSize"))
-            threadPoolSize = Settings.getInt("threadPoolSize");
+        if(settings.isset("threadPoolSize"))
+            threadPoolSize = settings.getInt("threadPoolSize");
         ThreadPoolExecutor executor;
         if(threadPoolSize <= 0){
             executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
@@ -98,22 +98,22 @@ public abstract class Server extends Common{
         }
         
             
-        if(Settings.isset("locale")){
-            String[] localeTmpString = Settings.getString("locale").split("-");
+        if(settings.isset("locale")){
+            String[] localeTmpString = settings.getString("locale").split("-");
             locale = new Locale(localeTmpString[0],localeTmpString[1]);
         }
         
-        if(Settings.isset("timezone"))
-            timezone = ZoneId.of(Settings.getString("timezone"));
+        if(settings.isset("timezone"))
+            timezone = ZoneId.of(settings.getString("timezone"));
         
-        if(Settings.isset("port"))
-            port = Settings.getInt("port");
+        if(settings.isset("port"))
+            port = settings.getInt("port");
         
-        if(Settings.isset("bindAddress"))
-            bindAddress = Settings.getString("bindAddress");
+        if(settings.isset("bindAddress"))
+            bindAddress = settings.getString("bindAddress");
         
-        if(Settings.isset("webRoot"))
-            webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+Settings.getString("webRoot");
+        if(settings.isset("webRoot"))
+            webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+settings.getString("webRoot");
         else
             webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+webRoot;
         
@@ -123,8 +123,8 @@ public abstract class Server extends Common{
             webRoot +="/";
         }
         
-        if(Settings.isset("assets"))
-            assets = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+Settings.getString("assets");
+        if(settings.isset("assets"))
+            assets = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+settings.getString("assets");
         else
             assets = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+assets;
         
@@ -137,31 +137,31 @@ public abstract class Server extends Common{
         if(assetsFile.exists())
             minifier = new Minifier(assetsFile,webRoot,"minified", System.out::println);
             
-        if(Settings.isset("charset"))
-            charset = Settings.getString("charset");
+        if(settings.isset("charset"))
+            charset = settings.getString("charset");
         
-        if(Settings.isset("timeout"))
-            timeout = Settings.getInt("timeout");
+        if(settings.isset("timeout"))
+            timeout = settings.getInt("timeout");
         
-        if(Settings.isset("sessionTtl"))
-            sessionTtl = Settings.getInt("sessionTtl");
+        if(settings.isset("sessionTtl"))
+            sessionTtl = settings.getInt("sessionTtl");
         
-        if(Settings.isset("cookieTtl"))
-            cookieTtl = Settings.getInt("cookieTtl");
+        if(settings.isset("cookieTtl"))
+            cookieTtl = settings.getInt("cookieTtl");
         
-        if(Settings.isset("wsMtu"))
-            wsMtu = Settings.getInt("wsMtu");
+        if(settings.isset("wsMtu"))
+            wsMtu = settings.getInt("wsMtu");
         
-        if(Settings.isset("httpMtu"))
-            httpMtu = Settings.getInt("httpMtu");
+        if(settings.isset("httpMtu"))
+            httpMtu = settings.getInt("httpMtu");
         
-        if(Settings.isset("cacheMaxAge"))
-            cacheMaxAge = Settings.getInt("cacheMaxAge");
+        if(settings.isset("cacheMaxAge"))
+            cacheMaxAge = settings.getInt("cacheMaxAge");
         
-        if(Settings.isset("entryPoint"))
-            entryPoint = Settings.getString("entryPoint");
+        if(settings.isset("entryPoint"))
+            entryPoint = settings.getString("entryPoint");
         
-        AsciiTable st = new AsciiTable("Settings");
+        AsciiTable st = new AsciiTable("settings");
         st.addRow("Attribute","Value");
         st.addRow("locale",""+locale.toString());
         st.addRow("timezone",""+timezone.toString());
@@ -182,8 +182,8 @@ public abstract class Server extends Common{
         st.draw();
         System.out.println("\n");
         
-        if(Settings.isset("controllers")){
-            JsonObject controllers = Settings.get("controllers").getAsJsonObject();
+        if(settings.isset("controllers")){
+            JsonObject controllers = settings.get("controllers").getAsJsonObject();
             
             if(controllers.has("http")){
                 httpControllerPackageName = 
@@ -212,10 +212,10 @@ public abstract class Server extends Common{
         }
         
         //checking for SMTP server
-        if(Settings.isset("smtp")){
+        if(settings.isset("smtp")){
             AsciiTable smtpt = new AsciiTable("SMTP");
             smtpt.addRow("Attribute","Value");
-            JsonObject smtp = Settings.get("smtp").getAsJsonObject();
+            JsonObject smtp = settings.get("smtp").getAsJsonObject();
             if(smtp.has("allow")){
                 smtpAllowed = smtp.get("allow").getAsBoolean();
                 smtpt.addRow("allow",smtp.get("allow").getAsString());
@@ -241,9 +241,9 @@ public abstract class Server extends Common{
             smtpt.draw();
         }
         
-        if(Settings.isset("groups")){
-            JsonObject groups = (JsonObject) Settings.get("groups");
-            AsciiTable gt = new AsciiTable("Groups Settings");
+        if(settings.isset("groups")){
+            JsonObject groups = (JsonObject) settings.get("groups");
+            AsciiTable gt = new AsciiTable("Groups settings");
             gt.addRow("Attribute","Value");
             gt.addRow("allow",groups.get("allow").getAsString());
             System.out.println("\n");
@@ -255,7 +255,7 @@ public abstract class Server extends Common{
             
             certt.addRow("Attribute","Value");
             
-            JsonObject certificate_obj = Settings.get("certificate").getAsJsonObject();
+            JsonObject certificate_obj = settings.get("certificate").getAsJsonObject();
             
             String certificate_name = certificate_obj.get("name").getAsString();
             
@@ -329,7 +329,8 @@ public abstract class Server extends Common{
             Common.mapRoutes(httpControllerPackageNameOriginal,wsControllerPackageNameOriginal);
             Common.mapRoutes(httpControllerPackageName,wsControllerPackageName);
             while(listen){
-                executor.submit(new HttpEventListener(ss.accept()));
+                new Thread(new HttpEventListener(ss.accept())).start();
+                //executor.submit(new HttpEventListener(ss.accept()));
             }
         }
         

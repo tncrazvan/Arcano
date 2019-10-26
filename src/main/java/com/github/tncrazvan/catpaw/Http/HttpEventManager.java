@@ -173,6 +173,9 @@ public abstract class HttpEventManager extends EventManager{
     
     public void send(String data){
         try {
+            if(data == null)
+                data = "";
+            
             send(data.getBytes(charset));
         } catch (UnsupportedEncodingException ex) {
             logger.log(Level.SEVERE,null,ex);

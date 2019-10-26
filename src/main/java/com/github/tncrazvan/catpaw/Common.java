@@ -26,7 +26,6 @@
 package com.github.tncrazvan.catpaw;
 import com.github.tncrazvan.catpaw.Tools.Minifier;
 import com.github.tncrazvan.catpaw.Tools.PackageExplorer;
-import com.google.gson.JsonParser;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketEvent;
 import java.io.File;
 import java.io.IOException;
@@ -68,8 +67,10 @@ import com.google.gson.JsonObject;
  * 
  * @author Razvan
  */
-public class Common implements JsonTools{
-    //settings
+public abstract class Common implements JsonTools{
+    //settings object
+    public static final Settings settings = new Settings();
+    //settings values
     protected static HashMap<String, WebObject> routes = new HashMap<>();
     protected static Minifier minifier;
     protected static boolean 

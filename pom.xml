@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.tncrazvan</groupId>
     <artifactId>Java.CatPaw</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.5</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

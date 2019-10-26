@@ -35,7 +35,6 @@ import java.io.UnsupportedEncodingException;
 import com.github.tncrazvan.catpaw.Http.HttpResponse;
 import java.io.File;
 import com.github.tncrazvan.catpaw.Beans.Web;
-import static com.github.tncrazvan.catpaw.Tools.JsonTools.jsonEncode;
 /**
  *
  * @author Razvan

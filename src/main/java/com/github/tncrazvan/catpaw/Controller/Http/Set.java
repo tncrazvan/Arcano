@@ -30,11 +30,9 @@ import com.github.tncrazvan.catpaw.Controller.WebSocket.WebSocketGroupApplicatio
 import com.github.tncrazvan.catpaw.Http.HttpEvent;
 import com.github.tncrazvan.catpaw.Http.HttpController;
 import com.github.tncrazvan.catpaw.Http.HttpSession;
-import com.github.tncrazvan.catpaw.Settings;
 import com.github.tncrazvan.catpaw.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
 import com.github.tncrazvan.catpaw.Beans.Web;
-import static com.github.tncrazvan.catpaw.Tools.JsonTools.toJsonObject;
 
 /**
  *
@@ -48,8 +46,8 @@ public class Set extends HttpController{
 
     @Web(path="/webSocketGroup")
     public void webSocketGroup() throws UnsupportedEncodingException{
-        if(Settings.isset("groups")){
-            JsonObject groups = Settings.get("groups").getAsJsonObject();
+        if(settings.isset("groups")){
+            JsonObject groups = settings.get("groups").getAsJsonObject();
             if(groups.has("allow")){
                 if(groups.get("allow").getAsBoolean()){
                     HttpSession session = e.startSession();
