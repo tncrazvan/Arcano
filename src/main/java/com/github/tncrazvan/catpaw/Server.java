@@ -85,6 +85,9 @@ public abstract class Server extends Common{
         
         settings.parse(args[0]);
         
+        if(settings.isset("sendExceptions"))
+            sendExceptions = settings.get("sendExceptions").getAsBoolean();
+        
         if(settings.isset("minify"))
             minify = settings.getInt("minify");
         
@@ -178,6 +181,7 @@ public abstract class Server extends Common{
         st.addRow("entryPoint",""+entryPoint);
         st.addRow("minify",minify+" milliseconds");
         st.addRow("threadPoolSize",threadPoolSize+" Threads");
+        st.addRow("sendExceptions",sendExceptions?"True":"False");
         System.out.println("\n");
         st.draw();
         System.out.println("\n");

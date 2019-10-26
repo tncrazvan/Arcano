@@ -74,6 +74,7 @@ public abstract class Common implements JsonTools{
     protected static HashMap<String, WebObject> routes = new HashMap<>();
     protected static Minifier minifier;
     protected static boolean 
+            sendExceptions = true,
             listen = true,
             groupsAllowed = false,
             smtpAllowed = false;

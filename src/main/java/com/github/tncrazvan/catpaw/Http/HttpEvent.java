@@ -87,10 +87,16 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             }
         }catch(InvocationTargetException  e){
             setStatus(STATUS_INTERNAL_SERVER_ERROR);
-            send(e.getTargetException().getMessage());
+            if(sendExceptions)
+                send(e.getTargetException().getMessage());
+            else
+                send("");
         }catch(IllegalAccessException | IllegalArgumentException e){
             setStatus(STATUS_INTERNAL_SERVER_ERROR);
-            send(e.getMessage());
+            if(sendExceptions) 
+                send(e.getMessage());
+            else
+                send("");
         }
     }
     
