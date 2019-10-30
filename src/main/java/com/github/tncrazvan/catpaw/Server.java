@@ -34,6 +34,7 @@ import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import com.github.tncrazvan.catpaw.Http.HttpEventListener;
 import com.github.tncrazvan.catpaw.SmtpServer.SmtpServer;
+import com.github.tncrazvan.catpaw.Tools.JsonTools;
 import com.github.tncrazvan.catpaw.Tools.Minifier;
 import java.io.File;
 import java.io.InputStream;
@@ -60,14 +61,14 @@ import javax.net.ssl.TrustManagerFactory;
  *
  * @author Razvan
  */
-public abstract class Server extends Common{
+public class Server extends Common implements JsonTools{
     private static SmtpServer smtpServer;
     public static void main (String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException{
-        listen(args);
+        new Server().listen(args);
     }
     
-    public static void listen(File settings) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException{
-        listen(new String[]{
+    public static void main(File settings) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException{
+        main(new String[]{
             settings.getAbsolutePath()
         });
     }
@@ -78,12 +79,23 @@ public abstract class Server extends Common{
      * @throws IOException
      * @throws NoSuchAlgorithmException 
      * @throws java.lang.ClassNotFoundException 
+     * @throws java.net.URISyntaxException 
      */
-    public static void listen(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
+    public void listen(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
         
         final String settingsPath = new File(args[0]).getParent();
         
         settings.parse(args[0]);
+        
+        if(settings.isset("compress")){
+            compression = JSON_PARSER.fromJson(settings.get("compress").getAsJsonArray(), String[].class);
+        }else{
+            compression = new String[]{};
+        }
+            
+        
+        if(settings.isset("responseWrapper"))
+            responseWrapper = settings.get("responseWrapper").getAsBoolean();
         
         if(settings.isset("sendExceptions"))
             sendExceptions = settings.get("sendExceptions").getAsBoolean();
@@ -138,7 +150,7 @@ public abstract class Server extends Common{
         }
         File assetsFile = new File(assets);
         if(assetsFile.exists())
-            minifier = new Minifier(assetsFile,webRoot,"minified", System.out::println);
+            minifier = new Minifier(assetsFile,webRoot,"minified");
             
         if(settings.isset("charset"))
             charset = settings.getString("charset");
@@ -182,6 +194,7 @@ public abstract class Server extends Common{
         st.addRow("minify",minify+" milliseconds");
         st.addRow("threadPoolSize",threadPoolSize+" Threads");
         st.addRow("sendExceptions",sendExceptions?"True":"False");
+        st.addRow("responseWrapper",responseWrapper?"True":"False");
         System.out.println("\n");
         st.draw();
         System.out.println("\n");
@@ -290,13 +303,16 @@ public abstract class Server extends Common{
             }
             if(minify >= 1 && minifier != null) {
                 System.out.println("Server will minify files in background once every "+minify+"ms.");
-                new Thread(() -> {
-                    while(true){
-                        try {
-                            Thread.sleep(minify);
-                            minifier.minify();
-                        } catch (InterruptedException | IOException ex) {
-                            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while(true){
+                            try {
+                                Thread.sleep(minify);
+                                minifier.minify();
+                            } catch (InterruptedException | IOException ex) {
+                                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                            }
                         }
                     }
                 }).start();
@@ -318,13 +334,16 @@ public abstract class Server extends Common{
             }
             if(minify >= 1 && minifier != null) {
                 System.out.println("Server will minify files in background once every "+minify+"ms.");
-                new Thread(() -> {
-                    while(true){
-                        try {
-                            Thread.sleep(minify);
-                            minifier.minify();
-                        } catch (InterruptedException | IOException ex) {
-                            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while(true){
+                            try {
+                                Thread.sleep(minify);
+                                minifier.minify();
+                            } catch (InterruptedException | IOException ex) {
+                                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                            }
                         }
                     }
                 }).start();
@@ -356,9 +375,9 @@ public abstract class Server extends Common{
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
             KeyStore keyStore = KeyStore.getInstance(certificateType);
             
-            InputStream is = new FileInputStream(tlsCertificate);
-            keyStore.load(is,tlsPassword.toCharArray());
-            is.close();
+            try (InputStream is = new FileInputStream(tlsCertificate)) {
+                keyStore.load(is,tlsPassword.toCharArray());
+            }
              
             keyManagerFactory.init(keyStore, tlsPassword.toCharArray());
             KeyManager[] km = keyManagerFactory.getKeyManagers();
@@ -375,7 +394,7 @@ public abstract class Server extends Common{
              
             return sslContext;
         } catch (IOException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException | UnrecoverableKeyException | CertificateException ex){
-            ex.printStackTrace();
+            ex.printStackTrace(System.out);
         }
          
         return null;

@@ -87,8 +87,6 @@ public class WebSocketEvent extends WebSocketManager{
     @Override
     protected void onOpen() {        
         try {
-            
-            
             if(Common.WS_EVENTS.get(cls.getCanonicalName()) == null){
                 ArrayList<WebSocketEvent> tmp = new ArrayList<>();
                 tmp.add(this);

@@ -15,7 +15,7 @@ import com.google.gson.JsonObject;
 public class JwtMessage extends Common implements JsonTools{
     private static final String SECRET = "";
     private final JsonObject header = new JsonObject();
-    private JsonObject body;
+    private final JsonObject body;
     private String contents = "";
     public JwtMessage(JsonObject body){
         header.addProperty("alg", "HS512");

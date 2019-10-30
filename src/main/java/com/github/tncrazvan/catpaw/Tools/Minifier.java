@@ -20,32 +20,15 @@ import java.util.function.Consumer;
 public class Minifier implements JsonTools{
     private final HashMap<String,Long> updatesMap;
     private final String inputDirName;
-    private final String outputSubDirName;
-    private final boolean isWindows;
-    private final Consumer<String> consumer;
-    private final File root;
-    private final String JS_PATTERN = "^.+\\.js$";
-    private final String CSS_PATTERN = "^.+\\.css$";
     private final JsonArray assets;
-    private final File assetsFile;
     private final String outputDirectoryname = "minified";
     private final String outputFilename = "minified";
-    public Minifier(File assetsFile,String inputDirName,String outputSubDirName, Consumer<String> consumer) throws IOException {
+    public Minifier(File assetsFile,String inputDirName,String outputSubDirName) throws IOException {
         this.updatesMap = new HashMap<>();
-        this.assetsFile = assetsFile;
-        FileInputStream fis = new FileInputStream(assetsFile);
-        this.assets = toJsonArray(new String(fis.readAllBytes())).getAsJsonArray();
-        fis.close();
-        fis=null;
-        
+        try (FileInputStream fis = new FileInputStream(assetsFile)) {
+            this.assets = toJsonArray(new String(fis.readAllBytes())).getAsJsonArray();
+        }
         this.inputDirName = inputDirName;
-        this.outputSubDirName = outputSubDirName;
-        this.isWindows = System
-                        .getProperty("os.name")
-                        .toLowerCase()
-                        .startsWith("windows");
-        this.consumer = consumer;
-        this.root = new File(inputDirName);
     }
     
     public static byte[] minify(byte[] content,String type) throws IOException{
@@ -65,9 +48,9 @@ public class Minifier implements JsonTools{
         if(tmp.exists())
             tmp.delete();
         tmp.createNewFile();
-        FileOutputStream fos = new FileOutputStream(tmp);
-        fos.write(content);
-        fos.close();
+        try (FileOutputStream fos = new FileOutputStream(tmp)) {
+            fos.write(content);
+        }
         
         Process process;
         String filename = tmp.toPath().toAbsolutePath().toString().replace("\\", "/");
@@ -114,8 +97,8 @@ public class Minifier implements JsonTools{
                 
                 fis.close();
             }
-        }catch(Exception e){
-            e.printStackTrace();
+        }catch(IOException e){
+            e.printStackTrace(System.out);
         }
         
         
@@ -137,9 +120,9 @@ public class Minifier implements JsonTools{
         if(minified.exists())
             minified.delete();
         minified.createNewFile();
-        FileOutputStream fos = new FileOutputStream(minified);
-        fos.write(contents);
-        fos.close();
+        try (FileOutputStream fos = new FileOutputStream(minified)) {
+            fos.write(contents);
+        }
     }
 }
  

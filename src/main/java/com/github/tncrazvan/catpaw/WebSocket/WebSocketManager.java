@@ -48,13 +48,13 @@ import javax.xml.bind.DatatypeConverter;
  * @author Razvan
  */
 public abstract class WebSocketManager extends EventManager{
-    private static ArrayList<WebSocketEvent> subscriptions = new ArrayList<>();
+    private static final ArrayList<WebSocketEvent> subscriptions = new ArrayList<>();
     protected final Socket client;
     protected final HttpHeader clientHeader;
     protected final BufferedReader reader;
     protected final String requestId;
     protected final OutputStream outputStream;
-    private Map<String,String> userLanguages = new HashMap<>();
+    private final Map<String,String> userLanguages = new HashMap<>();
     private boolean connected = true;
     //private final HttpHeader header;
     public WebSocketManager(BufferedReader reader, Socket client, HttpHeader clientHeader) throws IOException {
@@ -71,6 +71,7 @@ public abstract class WebSocketManager extends EventManager{
         return clientHeader;
     }
 
+    @Override
     public Socket getClient(){
         return client;
     }
@@ -146,7 +147,7 @@ public abstract class WebSocketManager extends EventManager{
     private boolean fin,rsv1,rsv2,rsv3;
     private byte opcode;
     private byte[] payload = null,mask = null,length = null;
-    private String base = "";
+    private final String base = "";
     public void unmask(byte b) throws UnsupportedEncodingException, IOException{
         //System.out.println("=================================");
         switch (reading) {
@@ -213,7 +214,7 @@ public abstract class WebSocketManager extends EventManager{
                 try{
                     payload[payloadIndex] = (byte) (b ^ mask[payloadIndex%4]);
                 }catch(Exception e){
-                    e.printStackTrace();
+                    e.printStackTrace(System.out);
                 }
                 payloadIndex++;
                 if(payloadIndex == payload.length){
@@ -320,9 +321,7 @@ public abstract class WebSocketManager extends EventManager{
         broadcast(data, o, true);
     }
     public void broadcast(byte[] data,Object o,boolean binary){
-        Iterator i = Common.WS_EVENTS.get(o.getClass().getCanonicalName()).iterator();
-        while(i.hasNext()){
-            WebSocketEvent e = (WebSocketEvent) i.next();
+        for (WebSocketEvent e : Common.WS_EVENTS.get(o.getClass().getCanonicalName())) {
             if(e!=this){
                 e.send(data,binary);
             }

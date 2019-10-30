@@ -32,10 +32,13 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import com.github.tncrazvan.catpaw.WebObject;
+import com.google.gson.JsonObject;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.stream.Stream;
 
 
 /**
@@ -70,31 +73,123 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                         it.remove(); // avoids a ConcurrentModificationException
                     }
                 }
-                
-                send(response.getContent());
-            }else if(type == String.class || type == int.class || type == float.class
-                    || type == double.class || type == boolean.class || type == float.class
-                    || type == byte.class || type == char.class || type == short.class
-                    || type == long.class){
-                
-                Object result = method.invoke(controller);
-                send(String.valueOf(result));
+                if(response.isRaw()){
+                    send((byte[]) response.getContent());
+                }else{
+                    type = response.getType();
+                    if(type == String.class || type == Character.class){
+                        Object content  = response.getContent();
+                        if(content != null){
+                            if(responseWrapper){
+                                JsonObject obj = new JsonObject();
+                                obj.addProperty("result", new String((byte[])content));
+                                setHeaderField("Content-Type", "application/json");
+                                send(obj.toString().getBytes(charset));
+                            }else{
+                                send(new String((byte[])content));
+                            }
+                        }else
+                            send("");
+                    }else{
+                        Object content  = response.getContent();
+                        if(content != null){
+                            String tmp = new String((byte[])content);
+                            if(responseWrapper){
+                                setHeaderField("Content-Type", "application/json");
+                                send(("{\"result\": "+tmp+"}").getBytes(charset));
+                            }else{
+                                send(tmp);
+                            }
+                        }else
+                            send("");
+                    }
+                }
             }else {
                 //if it's some other type of object...
-                Object o = method.invoke(controller);
-                if(o != null)
-                    send(jsonEncode(o));
+                Object data = method.invoke(controller);
+                HttpResponse response = new HttpResponse(null,data==null?"":data);
+                if(data == null)
+                    response.setRaw(true);
+                
+                if(response.isRaw()){
+                    send((byte[]) response.getContent());
+                }else{
+                    type = response.getType();
+                    if(type == String.class || type == Character.class){
+                        Object content  = response.getContent();
+                        if(content != null){
+                            if(responseWrapper){
+                                JsonObject obj = new JsonObject();
+                                obj.addProperty("result", new String((byte[])content));
+                                setHeaderField("Content-Type", "application/json");
+                                send(obj.toString().getBytes(charset));
+                            }else{
+                                send(new String((byte[])content));
+                            }
+                        }else
+                            send("");
+                    }else{
+                        Object content  = response.getContent();
+                        if(content != null){
+                            String tmp = new String((byte[])content).trim();
+                            if(responseWrapper){
+                                setHeaderField("Content-Type", "application/json");
+                                send(("{\"result\": "+tmp+"}").getBytes(charset));
+                            }else{
+                                send(tmp);
+                            }
+                            
+                        }else
+                            send("");
+                    }
+                }
             }
         }catch(InvocationTargetException  e){
             setStatus(STATUS_INTERNAL_SERVER_ERROR);
-            if(sendExceptions)
-                send(e.getTargetException().getMessage());
+            if(sendExceptions){
+                String message = e.getTargetException().getMessage();
+                if(responseWrapper){
+                    JsonObject obj = new JsonObject();
+                    HttpResponse response = new HttpResponse(null,message==null?"":message);
+                    obj.addProperty("exception", new String((byte[])(response.getContent())));
+                    setHeaderField("Content-Type", "application/json");
+                    try {
+                        send(obj.toString().getBytes(charset));
+                    } catch (UnsupportedEncodingException ex) {
+                        send(obj.toString().getBytes());
+                    }
+                }else{
+                    try {
+                        send(message.getBytes(charset));
+                    } catch (UnsupportedEncodingException ex) {
+                        send(message.getBytes());
+                    }
+                }
+            }
             else
                 send("");
-        }catch(IllegalAccessException | IllegalArgumentException e){
+        }catch(UnsupportedEncodingException | IllegalAccessException | IllegalArgumentException e){
             setStatus(STATUS_INTERNAL_SERVER_ERROR);
-            if(sendExceptions) 
-                send(e.getMessage());
+            if(sendExceptions){
+                String message = e.getMessage();
+                if(responseWrapper){
+                    JsonObject obj = new JsonObject();
+                    HttpResponse response = new HttpResponse(null,message==null?"":message);
+                    obj.addProperty("exception", new String((byte[])(response.getContent())));
+                    setHeaderField("Content-Type", "application/json");
+                    try {
+                        send(obj.toString().getBytes(charset));
+                    } catch (UnsupportedEncodingException ex) {
+                        send(obj.toString().getBytes());
+                    }   
+                }else{
+                    try {
+                        send(message.getBytes(charset));
+                    } catch (UnsupportedEncodingException ex) {
+                        send(message.getBytes());
+                    }
+                }
+            }
             else
                 send("");
         }
@@ -108,7 +203,8 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         }
         try{
             classId = getClassnameIndex(location,getMethod());
-            wo = resolveClassName(classId,location);
+            String[] typedLocation = Stream.concat(Arrays.stream(new String[]{getMethod()}), Arrays.stream(location)).toArray(String[]::new);
+            wo = resolveClassName(classId+1,typedLocation);
             cls = Class.forName(wo.getClassname());
             controller = cls.getDeclaredConstructor().newInstance();
             

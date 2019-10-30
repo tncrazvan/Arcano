@@ -101,11 +101,10 @@ public abstract class EventManager extends Common{
     protected int getClassnameIndex(String[] location,String httpMethod) throws ClassNotFoundException{
         String tmp;
         for(int i=location.length;i>0;i--){
-            tmp = "/"+String.join("/", Arrays.copyOf(location, i)).toLowerCase();
+            tmp = httpMethod+"/"+String.join("/", Arrays.copyOf(location, i)).toLowerCase();
             if(Common.routes.containsKey(tmp) && Common.routes.get(tmp).getHttpMethod().equals(httpMethod)){
                 return i-1;
             }
-                
         }
         throw new ClassNotFoundException();
     }
@@ -113,10 +112,13 @@ public abstract class EventManager extends Common{
     protected WebObject resolveClassName(int classId,String[] location){
         String classname = "";
         for(int i=0;i<=classId;i++){
-            classname +="/"+location[i];
+            if(i>0) {
+                classname += "/"+location[i].toLowerCase();
+            }else
+                classname += location[i];
         }
         
-        return Common.routes.get(classname.toLowerCase());
+        return Common.routes.get(classname);
     }
     
     
@@ -128,7 +130,9 @@ public abstract class EventManager extends Common{
             try{
                 Class.forName(currentName);
                 return i;
-            }catch(Exception e){}
+            }catch(ClassNotFoundException e){
+                e.printStackTrace(System.out);
+            }
                 
         }
         throw new ClassNotFoundException();

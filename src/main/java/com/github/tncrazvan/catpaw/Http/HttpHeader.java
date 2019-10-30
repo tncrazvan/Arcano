@@ -73,22 +73,23 @@ public class HttpHeader extends Common{
                 +"\r\n";
     }
     
+    @Override
     public String toString(){
         String str= "";
-        for(String key : header.keySet()){
-            str +=this.fieldToString(key);
-        }
+        str = header
+                .keySet()
+                .stream()
+                .map((key) -> this.fieldToString(key)).reduce(str, String::concat);
         
-        for(String key : cookies.keySet()){
-            str +=this.cookieToString(key);
-        }
+        str = cookies
+                .keySet()
+                .stream()
+                .map((key) -> this.cookieToString(key)).reduce(str, String::concat);
         return str;
     }
     
     public boolean isDefined(String key){
-        if(header.get(key) == null)
-            return false;
-        return true;
+        return header.get(key) != null;
     }
     
     public void set(String a, String b){
@@ -159,15 +160,16 @@ public class HttpHeader extends Common{
         HttpHeader header = new HttpHeader(false);
         String[] lines = string.split("\\r\\n");
         boolean end = false;
-        for(int i=0;i<lines.length;i++){
-            if(lines[i].equals("")) continue;
-            String[] item = lines[i].split(":\\s*",2);
-            if(item.length>1){
+        for (String line : lines) {
+            if (line.equals("")) {
+                continue;
+            }
+            String[] item = line.split(":\\s*", 2);
+            if (item.length>1) {
                 if(item[0].equals("Cookie")){
                     String[] c = item[1].split(";");
-                    for(int j=0;j<c.length;j++){
-                        String[] cookieInfo = c[j].split("=(?!\\s|\\s|$)");
-                        
+                    for (String c1 : c) {
+                        String[] cookieInfo = c1.split("=(?!\\s|\\s|$)");
                         if(cookieInfo.length > 1){
                             String [] b = new String[5];
                             b[0] = cookieInfo[1];
@@ -177,20 +179,18 @@ public class HttpHeader extends Common{
                             b[4] = "Cookie";
                             header.cookies.put(cookieInfo[0], b);
                         }
-                        
-                        
                     }
                 }else{
                     header.set(item[0],item[1]);
                 }
-            }else{
-                if(lines[i].matches("^.+(?=\\s\\/).*HTTPS?\\/.*$")){
-                    String[] parts = lines[i].split("\\s+");
+            } else {
+                if (line.matches("^.+(?=\\s\\/).*HTTPS?\\/.*$")) {
+                    String[] parts = line.split("\\s+");
                     header.set("Method",parts[0]);
                     header.set("@Resource",parts[1]);
                     header.set("Version",parts[2]);
-                }else{
-                    header.set(lines[i],null);
+                } else {
+                    header.set(line, null);
                 }
             }
         }

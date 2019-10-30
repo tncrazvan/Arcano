@@ -78,6 +78,7 @@ public class Settings implements JsonTools{
     /**
      * Checks if the object name is iset in the settings file.
      * @param key
+     * @return 
      */
     public boolean isset(String key){
         return info.has(key);

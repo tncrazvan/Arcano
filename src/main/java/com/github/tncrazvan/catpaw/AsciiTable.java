@@ -12,8 +12,8 @@ import java.util.ArrayList;
  * @author Razvan
  */
 public class AsciiTable {
-    private ArrayList<Integer> columns = new ArrayList<>();
-    private ArrayList<String[]> rows = new ArrayList<>();
+    private final ArrayList<Integer> columns = new ArrayList<>();
+    private final ArrayList<String[]> rows = new ArrayList<>();
     private String title;
     private String titleFormat;
     private String titleSeparatorFormat;

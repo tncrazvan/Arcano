@@ -43,6 +43,7 @@ public class EmailFrame {
     public String getCharset(){
         return contentType[1];
     }
+    @Override
     public String toString(){
         return message;
     }

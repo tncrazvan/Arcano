@@ -74,12 +74,15 @@ public abstract class Common implements JsonTools{
     protected static HashMap<String, WebObject> routes = new HashMap<>();
     protected static Minifier minifier;
     protected static boolean 
+            responseWrapper = false,
             sendExceptions = true,
             listen = true,
             groupsAllowed = false,
             smtpAllowed = false;
     protected static long 
             sessionTtl = 1440; //24 minutes
+    protected final static String NO_COMPRESSION="",DEFLATE="deflate",GZIP="gzip";
+    protected static String[] compression;
     protected static int 
             port = 80,
             timeout = 30000;
@@ -233,9 +236,10 @@ public abstract class Common implements JsonTools{
                     String classPath = normalizePathSlashes(classRoute.path().trim());
                     String methodPath = normalizePathSlashes(methodRoute.path().trim());
                     String path = classPath.toLowerCase()+methodPath.toLowerCase();
+                    String type = methodRoute.method().toUpperCase();
                     path = normalizePathSlashes(path);
-                    WebObject wo = new WebObject(cls.getCanonicalName(), method.getName(), methodRoute.method().toUpperCase());
-                    Common.routes.put(path, wo);
+                    WebObject wo = new WebObject(cls.getCanonicalName(), method.getName(), type);
+                    Common.routes.put(type+path, wo);
                 }
             }
         }
@@ -510,7 +514,7 @@ public abstract class Common implements JsonTools{
          data = data.replaceAll("\\+", "%2B");
          data = URLDecoder.decode(data, "utf-8");
       } catch (UnsupportedEncodingException e) {
-         e.printStackTrace();
+         e.printStackTrace(System.out);
       }
       return data;
    }
@@ -527,7 +531,7 @@ public abstract class Common implements JsonTools{
      */
     public static String resolveContentType(String location){
         String tmp_type = "";
-        String[] tmp_type0 = location.toString().split("/");
+        String[] tmp_type0 = location.split("/");
 
         
         if(tmp_type0.length > 0){

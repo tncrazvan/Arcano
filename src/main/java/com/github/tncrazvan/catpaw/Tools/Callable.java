@@ -8,6 +8,7 @@ package com.github.tncrazvan.catpaw.Tools;
 /**
  *
  * @author Administrator
+ * @param <T>
  */
 public abstract class Callable<T>{
     public abstract void callback(T o);

@@ -236,11 +236,15 @@ public abstract class SmtpMessageManager {
     }
     
     protected void sayDataFrames(ArrayList<EmailFrame> frames){
-        for(EmailFrame frame : frames){
+        frames.stream().map((frame) -> {
             say("Content-Type: "+frame.getContentTye()+"; charset=\""+frame.getCharset()+"\"");
+            return frame;
+        }).map((frame) -> {
             sayNothing();
+            return frame;
+        }).forEachOrdered((frame) -> {
             say(frame.toString());
-        }
+        });
         sayEndBoundary();
     }
     

@@ -11,15 +11,15 @@ import java.io.File;
  *
  * @author Administrator
  */
-public class FileSystem {
-    public static void explore(String dir,boolean recursive,Callable c){
+public interface FileSystem {
+    static void explore(String dir,boolean recursive,Callable c){
         explore(new File(dir),recursive,c);
     }
     
-    public static void explore(File dir,boolean recursive,Callable c){
+    static void explore(File dir,boolean recursive,Callable c){
         File[] files = dir.listFiles();
-        for(int i=0;i<files.length;i++){
-            c.callback(files[i]);
+        for (File file : files) {
+            c.callback(file);
         }
     }
 }

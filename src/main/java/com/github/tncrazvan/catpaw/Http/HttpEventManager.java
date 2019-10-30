@@ -32,6 +32,8 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.logging.Level;
 import com.github.tncrazvan.catpaw.EventManager;
+import com.github.tncrazvan.catpaw.Tools.Deflate;
+import com.github.tncrazvan.catpaw.Tools.Gzip;
 import java.io.DataOutputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -47,10 +49,23 @@ public abstract class HttpEventManager extends EventManager{
     private boolean alive=true;
     protected final StringBuilder content;
     protected boolean isDir = false;
+    private final String acceptEncoding;
+    private final String encodingLabel;
     public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client,StringBuilder content) throws UnsupportedEncodingException {
         super(client,clientHeader);
         this.output = output;
         this.content=content;
+        if(this.clientHeader.isDefined("Accept-Encoding")){
+            acceptEncoding = this.clientHeader.get("Accept-Encoding");
+            encodingLabel = "Content-Encoding";
+        }else if(this.clientHeader.isDefined("Transfer-Encoding")){
+            acceptEncoding = this.clientHeader.get("Transfer-Encoding");
+            encodingLabel = "Transfer-Encoding";
+        }else{
+            acceptEncoding = "";
+            encodingLabel = "";
+        }
+        
     }
     
     /**
@@ -141,7 +156,7 @@ public abstract class HttpEventManager extends EventManager{
             output.flush();
             alive = true;
         } catch (IOException ex) {
-            ex.printStackTrace();
+            ex.printStackTrace(System.out);
             alive=false;
             close();
         }
@@ -149,15 +164,33 @@ public abstract class HttpEventManager extends EventManager{
     
     public void send(byte[] data) {
         if(alive){
-            if(firstMessage && defaultHeaders){
-                sendHeaders();
-            }
             try {
+                for(String cmpr : compression){
+                    switch(cmpr){
+                        case DEFLATE:
+                            if(acceptEncoding.matches(".+"+cmpr+".*")){
+                                data = Deflate.deflate(data);
+                                this.header.set(encodingLabel, cmpr);
+                                break;
+                            }
+                            break;
+                        case GZIP:
+                            if(acceptEncoding.matches(".+"+cmpr+".*")){
+                                data = Gzip.compress(data);
+                                this.header.set(encodingLabel, cmpr);
+                                break;
+                            }
+                            break;
+                    }
+                }
+                if(firstMessage && defaultHeaders){
+                    sendHeaders();
+                }
                 output.write(data);
                 output.flush();
                 alive = true;
             } catch (IOException ex) {
-                ex.printStackTrace();
+                ex.printStackTrace(System.out);
                 alive=false;
                 close();
             }
@@ -204,107 +237,106 @@ public abstract class HttpEventManager extends EventManager{
     private void sendFileContents(File f){
         try {
             byte[] buffer;
-            RandomAccessFile raf = new RandomAccessFile(f, "r");
-            DataOutputStream dos = new DataOutputStream(client.getOutputStream());
-            
-            int fileLength = (int) raf.length();
-            
-            if(clientHeader.isDefined("Range")){
-                setStatus(HttpEvent.STATUS_PARTIAL_CONTENT);
-                String[] ranges = clientHeader.get("Range").split("=")[1].split(",");
-                int[] rangeStart = new int[ranges.length];
-                int[] rangeEnd = new int[ranges.length];
-                int lastIndex;
-                for (int i = 0; i < ranges.length; i++) {
-                    lastIndex = ranges[i].length() - 1;
-                    String[] tmp = ranges[i].split("-");
-                    if(!ranges[i].substring(0, 1).equals("-")){
-                        rangeStart[i] = Integer.parseInt(tmp[0]);
-                    }else{
-                        rangeStart[i] = 0;
+            try (RandomAccessFile raf = new RandomAccessFile(f, "r"); 
+                    DataOutputStream dos = new DataOutputStream(client.getOutputStream())) {
+                
+                int fileLength = (int) raf.length();
+                
+                if(clientHeader.isDefined("Range")){
+                    setStatus(HttpEvent.STATUS_PARTIAL_CONTENT);
+                    String[] ranges = clientHeader.get("Range").split("=")[1].split(",");
+                    int[] rangeStart = new int[ranges.length];
+                    int[] rangeEnd = new int[ranges.length];
+                    int lastIndex;
+                    for (int i = 0; i < ranges.length; i++) {
+                        lastIndex = ranges[i].length() - 1;
+                        String[] tmp = ranges[i].split("-");
+                        if(!ranges[i].substring(0, 1).equals("-")){
+                            rangeStart[i] = Integer.parseInt(tmp[0]);
+                        }else{
+                            rangeStart[i] = 0;
+                        }
+                        if(!ranges[i].substring(lastIndex, lastIndex+1).equals("-")){
+                            rangeEnd[i] = Integer.parseInt(tmp[1]);
+                        }else{
+                            rangeEnd[i] = fileLength-1;
+                        }
                     }
-                    if(!ranges[i].substring(lastIndex, lastIndex+1).equals("-")){
-                        rangeEnd[i] = Integer.parseInt(tmp[1]);
-                    }else{
-                        rangeEnd[i] = fileLength-1;
-                    }
-                }
-                String ctype = resolveContentType(f.getName());
-                int start,end;
-                if(rangeStart.length > 1){
-                    String body = "";
-                    String boundary = generateMultipartBoundary();
-                    if(firstMessage && defaultHeaders){
-                        firstMessage = false;
-                        //header.set("Content-Length", ""+clength);
-                        header.set("Content-Type", "multipart/byteranges; boundary="+boundary);
-                        dos.writeUTF(header.toString());
-                    }
-                    
-                    for (int i = 0; i < rangeStart.length; i++) {
-                        start = rangeStart[i];
-                        end = rangeEnd[i];
-                        dos.writeUTF("--"+boundary+"\r\n");
-                        dos.writeUTF("Content-Type: "+ctype+"\r\n");
-                        dos.writeUTF("Content-Range: bytes "+start+"-"+end+"/"+fileLength+"\r\n\r\n");
-                        if(end-start+1 > httpMtu){
-                            int remainingBytes = end-start+1;
-                            buffer = new byte[httpMtu];
-                            raf.seek(start);
-                            while(remainingBytes > 0){
+                    String ctype = resolveContentType(f.getName());
+                    int start,end;
+                    if(rangeStart.length > 1){
+                        String body = "";
+                        String boundary = generateMultipartBoundary();
+                        if(firstMessage && defaultHeaders){
+                            firstMessage = false;
+                            //header.set("Content-Length", ""+clength);
+                            header.set("Content-Type", "multipart/byteranges; boundary="+boundary);
+                            dos.writeUTF(header.toString());
+                        }
+                        
+                        for (int i = 0; i < rangeStart.length; i++) {
+                            start = rangeStart[i];
+                            end = rangeEnd[i];
+                            dos.writeUTF("--"+boundary+"\r\n");
+                            dos.writeUTF("Content-Type: "+ctype+"\r\n");
+                            dos.writeUTF("Content-Range: bytes "+start+"-"+end+"/"+fileLength+"\r\n\r\n");
+                            if(end-start+1 > httpMtu){
+                                int remainingBytes = end-start+1;
+                                buffer = new byte[httpMtu];
+                                raf.seek(start);
+                                while(remainingBytes > 0){
+                                    raf.read(buffer);
+                                    dos.write(buffer);
+                                    remainingBytes -= httpMtu;
+                                    if(remainingBytes < 0){
+                                        buffer = new byte[remainingBytes+httpMtu];
+                                        dos.write(buffer);
+                                        remainingBytes = 0;
+                                    }else{
+                                        buffer = new byte[httpMtu];
+                                    }
+                                }
+                                
+                            }else{
+                                buffer = new byte[end-start+1];
+                                raf.seek(start);
                                 raf.read(buffer);
                                 dos.write(buffer);
-                                remainingBytes -= httpMtu;
-                                if(remainingBytes < 0){
-                                    buffer = new byte[remainingBytes+httpMtu];
-                                    dos.write(buffer);
-                                    remainingBytes = 0;
-                                }else{
-                                    buffer = new byte[httpMtu];
-                                }
                             }
-
-                        }else{
-                            buffer = new byte[end-start+1];
-                            raf.seek(start);
-                            raf.read(buffer);
-                            dos.write(buffer);
+                            if(i < rangeStart.length-1){
+                                dos.writeUTF("\r\n");
+                            }
                         }
-                        if(i < rangeStart.length-1){
-                            dos.writeUTF("\r\n");
+                        if(rangeStart.length > 1){
+                            dos.writeUTF("\r\n--"+boundary+"--");
                         }
-                    }
-                    if(rangeStart.length > 1){
-                        dos.writeUTF("\r\n--"+boundary+"--");
+                    }else{
+                        start = rangeStart[0];
+                        end = rangeEnd[0];
+                        int len = end-start+1;
+                        if(firstMessage && defaultHeaders){
+                            firstMessage = false;
+                            header.set("Content-Range", "bytes "+start+"-"+end+"/"+fileLength);
+                            header.set("Content-Length", ""+len);
+                            dos.write((header.toString()+"\r\n").getBytes());
+                        }
+                        buffer = new byte[end-start+1];
+                        raf.seek(start);
+                        raf.read(buffer);
+                        dos.write(buffer);
                     }
                 }else{
-                    start = rangeStart[0];
-                    end = rangeEnd[0];
-                    int len = end-start+1;
                     if(firstMessage && defaultHeaders){
                         firstMessage = false;
-                        header.set("Content-Range", "bytes "+start+"-"+end+"/"+fileLength);
-                        header.set("Content-Length", ""+len);
+                        header.set("Content-Length", ""+fileLength);
                         dos.write((header.toString()+"\r\n").getBytes());
                     }
-                    buffer = new byte[end-start+1];
-                    raf.seek(start);
+                    buffer = new byte[fileLength];
+                    raf.seek(0);
                     raf.read(buffer);
                     dos.write(buffer);
                 }
-            }else{
-                if(firstMessage && defaultHeaders){
-                    firstMessage = false;
-                    header.set("Content-Length", ""+fileLength);
-                    dos.write((header.toString()+"\r\n").getBytes());
-                }
-                buffer = new byte[fileLength];
-                raf.seek(0);
-                raf.read(buffer);
-                dos.write(buffer);
             }
-            dos.close();
-            raf.close();
         } catch (FileNotFoundException ex) {
             logger.log(Level.INFO,null,ex);
         } catch (IOException ex) {

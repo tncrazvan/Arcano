@@ -43,10 +43,10 @@ public interface JsonTools {
     }
     
     //Decode
-    default <T> T jsonDecode(String o, Class<T>cls){
+    default <T> T jsonDecode(String o, Class<T> cls){
         return (T) JSON_PARSER.fromJson(o, cls);
     }
-    default <T> T jsonDecode(StringBuilder o, Class<T>cls){
+    default <T> T jsonDecode(StringBuilder o, Class<T> cls){
         return jsonDecode(o.toString(),cls);
     }
 }
