@@ -26,6 +26,7 @@
 package com.github.tncrazvan.catpaw;
 
 import com.github.tncrazvan.catpaw.Tools.JsonTools;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.IOException;
@@ -59,6 +60,24 @@ public class Settings implements JsonTools{
     
     /**
      * 
+     * @param membername array name.
+     * @return the settings object as a JsonArray.
+     */
+    public JsonArray getJsonArray(String membername){
+        return info.get(membername).getAsJsonArray();
+    }
+    
+    /**
+     * 
+     * @param membername array name.
+     * @return the settings object as a JsonObject.
+     */
+    public JsonObject getJsonObject(String membername){
+        return info.get(membername).getAsJsonObject();
+    }
+    
+    /**
+     * 
      * @param membername object name.
      * @return the settings object as a String.
      */
@@ -73,6 +92,15 @@ public class Settings implements JsonTools{
      */
     public int getInt(String membername){
         return get(membername).getAsInt();
+    }
+    
+    /**
+     * 
+     * @param membername object name.
+     * @return the settings object as a boolean.
+     */
+    public boolean getBoolean(String membername){
+        return get(membername).getAsBoolean();
     }
     
     /**
