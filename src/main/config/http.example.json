@@ -1,5 +1,6 @@
 {
     "minify": 1,
+    "compress": ["deflate"],
     "port": 80,
     "webRoot": "../webapp",
     "bindAddress": "::",
@@ -7,7 +8,6 @@
         "http": "com.github.tncrazvan.catpaw.Controller.Http",
         "ws": "com.github.tncrazvan.catpaw.Controller.WebSocket"
     },
-    "compress": ["deflate"],
     "header": {
         "Cache-Control": "no-store"
     }

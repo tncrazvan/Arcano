@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>io.arcano</groupId>
-    <artifactId>Java.CatPaw</artifactId>
+    <groupId>com.github.tncrazvan</groupId>
+    <artifactId>Arcano</artifactId>
     <version>1.0.5</version>
     <packaging>jar</packaging>
+    <repositories>
+        <repository>
+            <id>com.github.tncrazvan.AsciiTable</id>
+            <url>https://raw.githubusercontent.com/tncrazvan/AsciiTable/maven-repository</url>
+        </repository>
+    </repositories>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -12,54 +18,62 @@
     </properties>
     <build>
         <plugins>
-            <!--<plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.7</version>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
-                        <id>Run URL in system browser.</id>
-                        <phase>validate</phase>
-                        <configuration>
-                            <target>
-                                <exec executable="start" vmlauncher="false">
-                                    <arg line="http://localhost:8080"/>
-                                </exec>
-                            </target>
-                        </configuration>
+                        <phase>package</phase>
                         <goals>
-                            <goal>run</goal>
+                            <goal>shade</goal>
                         </goals>
                     </execution>
                 </executions>
-            </plugin>-->
+            </plugin>
             <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-shade-plugin</artifactId>
-              <version>3.1.0</version>
-              <executions>
-                <execution>
-                  <phase>package</phase>
-                  <goals>
-                    <goal>shade</goal>
-                  </goals>
-                  <configuration>
-                    <transformers>
-                      <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                        <mainClass>com.github.tncrazvan.catpaw.CatPaw</mainClass>
-                      </transformer>
-                    </transformers>
-                  </configuration>
-                </execution>
-              </executions>
+                <!-- Build an executable JAR -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>com.github.tncrazvan.arcano.Server</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                      <manifest>
+                          <mainClass>com.github.tncrazvan.arcano.Server</mainClass>
+                      </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <mainClass>com.github.tncrazvan.arcano.Server</mainClass>
+                </configuration>
             </plugin>
         </plugins>
     </build>
-    
     <dependencies>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.5</version>
+            <version>2.8.6</version>
         </dependency>
         <dependency>
             <groupId>javax.xml.bind</groupId>
@@ -73,5 +87,5 @@
             <version>1.0.0</version>
         </dependency>
     </dependencies>
-    <name>Java.CatPaw</name>
+    <name>Arcano</name>
 </project>

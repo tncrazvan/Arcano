@@ -1,6 +1,7 @@
 {
     "minify": 1,
-	"port":443,
+    "port":443,
+    "compress": ["deflate"],
     "webRoot": "../webapp",
     "charset":"UTF-8",
     "bindAddress": "::",
@@ -8,10 +9,9 @@
         "http": "com.github.tncrazvan.catpaw.Controller.Http",
         "ws": "com.github.tncrazvan.catpaw.Controller.WebSocket"
     },
-    "compress": ["deflate"],
     "header": {
         "Cache-Control": "no-store"
-    }
+    },
 	
     "groups":{
         "allow":true
