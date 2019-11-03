@@ -25,6 +25,7 @@
  */
 package com.github.tncrazvan.arcano.Controller.WebSocket;
 
+import com.github.tncrazvan.arcano.Bean.Web;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
@@ -36,6 +37,7 @@ import java.util.logging.Logger;
  *
  * @author razvan
  */
+@Web(path = "/WebSocketGroupApplicationProgramInterface")
 public class WebSocketGroupApplicationProgramInterface extends WebSocketController{
     private String groupName;
     private WebSocketGroup group;

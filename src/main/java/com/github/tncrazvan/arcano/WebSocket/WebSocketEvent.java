@@ -36,6 +36,8 @@ import com.github.tncrazvan.arcano.Http.HttpHeader;
 import com.github.tncrazvan.arcano.Common;
 import com.github.tncrazvan.arcano.Http.HttpSession;
 import com.github.tncrazvan.arcano.WebObject;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 
 /**
@@ -57,15 +59,16 @@ public class WebSocketEvent extends WebSocketManager{
     private void serveController(String[] location) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException{
         args = new String[0];
         try{
-            classId = getClassnameIndex(wsControllerPackageName,location);
-            wo = resolveClassName(classId,location);
+            classId = getClassnameIndex(location,"WS");
+            String[] typedLocation = Stream.concat(Arrays.stream(new String[]{"WS"}), Arrays.stream(location)).toArray(String[]::new);
+            wo = resolveClassName(classId+1,typedLocation);
             cls = Class.forName(wo.getClassname());
             controller = cls.getDeclaredConstructor().newInstance();
         }catch(ClassNotFoundException ex){
             try{
-                cls = Class.forName(wsControllerPackageName+"."+wsNotFoundName);
+                cls = Class.forName(wsNotFoundName);
             }catch(ClassNotFoundException eex){
-                cls = Class.forName(wsControllerPackageNameOriginal+"."+wsNotFoundNameOriginal);
+                cls = Class.forName(wsNotFoundNameOriginal);
             }
             controller = cls.getDeclaredConstructor().newInstance();
         }
@@ -112,7 +115,6 @@ public class WebSocketEvent extends WebSocketManager{
     
     @Override
     protected void onClose() {
-        
         try {
             Common.WS_EVENTS.get(cls.getCanonicalName()).remove(this);
             onCloseMethod.invoke(controller);

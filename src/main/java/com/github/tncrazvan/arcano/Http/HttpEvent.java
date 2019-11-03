@@ -60,7 +60,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
     private void invoke(Object controller,Method method) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvocationTargetException{
         try{
             Class<?> type = method.getReturnType();
-            if(type == Void.class){
+            if(type == void.class || type == Void.class){
                 method.invoke(controller);
             }else if(type == HttpResponse.class){
                 HttpResponse response = (HttpResponse) method.invoke(controller);
@@ -202,41 +202,49 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             location = new String[]{""};
         }
         try{
-            classId = getClassnameIndex(location,getMethod());
-            String[] typedLocation = Stream.concat(Arrays.stream(new String[]{getMethod()}), Arrays.stream(location)).toArray(String[]::new);
-            wo = resolveClassName(classId+1,typedLocation);
-            cls = Class.forName(wo.getClassname());
-            controller = cls.getDeclaredConstructor().newInstance();
-            
-            String methodname = location.length>classId?wo.getMethodname():"main";
-            args = resolveMethodArgs(classId+1, location);
-            try{
-                method = controller.getClass().getDeclaredMethod(methodname);
-            }catch(NoSuchMethodException ex){
-                args = resolveMethodArgs(classId, location);
+            if(location.length > 0 && !location[0].equals("")){
+                classId = getClassnameIndex(location,getMethod());
+                String[] typedLocation = Stream.concat(Arrays.stream(new String[]{getMethod()}), Arrays.stream(location)).toArray(String[]::new);
+                wo = resolveClassName(classId+1,typedLocation);
+                cls = Class.forName(wo.getClassname());
+                controller = cls.getDeclaredConstructor().newInstance();
+
+                String methodname = location.length>classId?wo.getMethodname():"main";
+                args = resolveMethodArgs(classId+1, location);
+                try{
+                    method = controller.getClass().getDeclaredMethod(methodname);
+                }catch(NoSuchMethodException ex){
+                    args = resolveMethodArgs(classId, location);
+                    method = controller.getClass().getDeclaredMethod("main");
+                }
+            }else{
+                try{
+                    cls = Class.forName(httpDefaultName);
+                }catch(ClassNotFoundException eex){
+                    cls = Class.forName(httpDefaultNameOriginal);
+                }
+                controller = cls.getDeclaredConstructor().newInstance();
                 method = controller.getClass().getDeclaredMethod("main");
             }
-            
             ((HttpController)controller).setEvent(this);
             ((HttpController)controller).setArgs(args);
             ((HttpController)controller).setContent(content);
-            
             invoke(controller,method);
         }catch(ClassNotFoundException ex){
             try{
-                cls = Class.forName(httpControllerPackageName+"."+httpNotFoundName);
+                cls = Class.forName(httpNotFoundName);
             }catch(ClassNotFoundException eex){
-                cls = Class.forName(httpControllerPackageNameOriginal+"."+httpNotFoundNameOriginal);
+                cls = Class.forName(httpNotFoundNameOriginal);
             }
             controller = cls.getDeclaredConstructor().newInstance();
-            Method main = controller.getClass().getDeclaredMethod("main");
+            method = controller.getClass().getDeclaredMethod("main");
             //Method onClose = controller.getClass().getDeclaredMethod("onClose");
             
             ((HttpController)controller).setEvent(this);
             ((HttpController)controller).setArgs(args);
             ((HttpController)controller).setContent(content);
-            
-            invoke(controller, main);
+            setStatus(STATUS_NOT_FOUND);
+            invoke(controller, method);
         }
     }
     

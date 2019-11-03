@@ -25,19 +25,23 @@
  */
 package com.github.tncrazvan.arcano.Http;
 
+import com.github.tncrazvan.arcano.Bean.Web;
 import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.WebObject;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author razvan
  */
-public abstract class HttpController extends Common{
+public class HttpController extends Common{
     protected HttpEvent event,e;
     protected String[] args;
     protected StringBuilder content;
-    public HttpController() {
-        
-    }
     
     public void setEvent(HttpEvent event){
         this.event=event;

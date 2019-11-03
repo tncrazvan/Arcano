@@ -35,7 +35,6 @@ import com.github.tncrazvan.arcano.Bean.Web;
  */
 @Web(path="/unset")
 public class Unset extends HttpController{
-    
     @Web(path="/cookie")
     public void cookie() throws UnsupportedEncodingException{
         String name = String.join("/", args);

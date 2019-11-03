@@ -25,7 +25,13 @@
  */
 package com.github.tncrazvan.arcano.WebSocket;
 
+import com.github.tncrazvan.arcano.Bean.Web;
 import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.WebObject;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.InvocationTargetException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -34,6 +40,7 @@ import com.github.tncrazvan.arcano.Common;
 public abstract class WebSocketController extends Common{
     protected WebSocketEvent event,e;
     protected String[] args;
+    
     
     public void setEvent(WebSocketEvent event){
         this.event=event;

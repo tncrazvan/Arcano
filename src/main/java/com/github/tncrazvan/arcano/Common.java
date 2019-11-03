@@ -24,15 +24,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package com.github.tncrazvan.arcano;
+import com.github.tncrazvan.arcano.Bean.Default;
+import com.github.tncrazvan.arcano.Bean.NotFound;
 import com.github.tncrazvan.arcano.Tool.Minifier;
-import com.github.tncrazvan.arcano.Tool.PackageExplorer;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
 import java.io.File;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -60,8 +59,11 @@ import java.util.regex.Pattern;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import com.github.tncrazvan.arcano.Bean.Web;
+import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import com.google.gson.JsonObject;
+import com.github.tncrazvan.arcano.Bean.Match;
 
 /**
  * 
@@ -92,13 +94,9 @@ public abstract class Common implements JsonTools{
             webRoot = "../webapp",
             charset = "UTF-8",
             bindAddress = "::",
-            httpControllerPackageNameOriginal = "com.github.tncrazvan.arcano.Controller.Http",
-            wsControllerPackageNameOriginal = "com.github.tncrazvan.arcano.Controller.WebSocket",
-            httpDefaultNameOriginal = "App",
-            httpNotFoundNameOriginal = "ControllerNotFound",
-            wsNotFoundNameOriginal = "ControllerNotFound",
-            httpControllerPackageName = httpControllerPackageNameOriginal,
-            wsControllerPackageName = wsControllerPackageNameOriginal,
+            httpDefaultNameOriginal = null,
+            httpNotFoundNameOriginal = null,
+            wsNotFoundNameOriginal = null,
             httpDefaultName = httpDefaultNameOriginal,
             httpNotFoundName = httpNotFoundNameOriginal,
             wsNotFoundName = wsNotFoundNameOriginal,
@@ -210,7 +208,69 @@ public abstract class Common implements JsonTools{
             STATUS_NOT_EXTENDED = "510 Not Extended",
             STATUS_NETWORK_AUTHENTICATION_REQUIRED = "511 Network Authentication Required";
     
-    private static String normalizePathSlashes(String path){
+    public static void expose(Class<?>... classes) {
+        for(Class<?> cls : classes){
+            try {
+                if(HttpController.class.isAssignableFrom(cls)){
+                    Web classRoute = (Web) cls.getAnnotation(Web.class);
+                    Match webFilter = (Match) cls.getAnnotation(Match.class);
+                    Method[] methods = cls.getDeclaredMethods();
+                    for(Method method : methods){
+                        Web methodRoute = method.getAnnotation(Web.class);
+                        if(methodRoute != null){
+                            String classPath = normalizePathSlashes(classRoute.path().trim());
+                            String methodPath = normalizePathSlashes(methodRoute.path().trim());
+                            String path = classPath.toLowerCase()+methodPath.toLowerCase();
+                            String type;
+                            if(webFilter != null){
+                                type = webFilter.method();
+                            }else{
+                                type = "GET";
+                            }
+                            
+                            path = normalizePathSlashes(path);
+                            WebObject wo = new WebObject(cls.getCanonicalName(), method.getName(), type);
+                            Common.routes.put(type+path, wo);
+                        }else if(cls.getAnnotation(NotFound.class) != null){
+                            if(httpNotFoundNameOriginal == null)
+                                httpNotFoundNameOriginal = cls.getCanonicalName();
+                            httpNotFoundName = cls.getCanonicalName();
+                        }else if(cls.getAnnotation(Default.class) != null){
+                            if(httpDefaultNameOriginal == null)
+                                httpDefaultNameOriginal = cls.getCanonicalName();
+                            httpDefaultName = cls.getCanonicalName();
+                        }
+                    }
+                }else if(WebSocketController.class.isAssignableFrom(cls)){
+                    Web route = (Web) cls.getAnnotation(Web.class);
+                    Match webFilter = (Match) cls.getAnnotation(Match.class);
+                    if(route != null){
+                        String path = normalizePathSlashes(route.path().toLowerCase());
+                        String type;
+                        if(webFilter != null){
+                            type = webFilter.method().toUpperCase();
+                        }else{
+                            type = "GET";
+                        }
+                        WebObject wo = new WebObject(cls.getCanonicalName(), null, type);
+                        wo.setHttpMethod("WS");
+                        Common.routes.put("WS"+path, wo);
+                    }else{
+                        NotFound nf = (NotFound) cls.getAnnotation(NotFound.class);
+                        if(nf != null){
+                            if(wsNotFoundNameOriginal == null)
+                                wsNotFoundNameOriginal = cls.getCanonicalName();
+                            wsNotFoundName = cls.getCanonicalName();
+                        }
+                    }
+                }
+            } catch (SecurityException | IllegalArgumentException  ex) {
+                Logger.getLogger(HttpController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    protected static String normalizePathSlashes(String path){
         int classPathLength = path.length();
         if(classPathLength >= 1 && path.charAt(0)!='/'){
             path = '/'+path;
@@ -220,39 +280,6 @@ public abstract class Common implements JsonTools{
         }
         
         return path;
-    }
-    
-    public static void mapRoutes(String httpControllerPackageName,String wsControllerPackageName) throws ClassNotFoundException, IOException, URISyntaxException{
-        ArrayList<String> httpClasses = PackageExplorer.getClasses(httpControllerPackageName);
-        ArrayList<String> webSocketClasses = PackageExplorer.getClasses(wsControllerPackageName);
-        
-        for(String classname : httpClasses){
-            Class cls = Class.forName(classname);
-            Web classRoute = (Web) cls.getAnnotation(Web.class);
-            Method[] methods = cls.getDeclaredMethods();
-            for(Method method : methods){
-                Web methodRoute = method.getAnnotation(Web.class);
-                if(methodRoute != null){
-                    String classPath = normalizePathSlashes(classRoute.path().trim());
-                    String methodPath = normalizePathSlashes(methodRoute.path().trim());
-                    String path = classPath.toLowerCase()+methodPath.toLowerCase();
-                    String type = methodRoute.method().toUpperCase();
-                    path = normalizePathSlashes(path);
-                    WebObject wo = new WebObject(cls.getCanonicalName(), method.getName(), type);
-                    Common.routes.put(type+path, wo);
-                }
-            }
-        }
-        
-        for(String classname : webSocketClasses){
-            Class cls = Class.forName(classname);
-            Web route = (Web) cls.getAnnotation(Web.class);
-            if(route != null){
-                String path = normalizePathSlashes(route.path().toLowerCase());
-                WebObject wo = new WebObject(cls.getCanonicalName(), null, route.method().toUpperCase());
-                Common.routes.put(path, wo);
-            }
-        }
     }
     
     protected static com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound 

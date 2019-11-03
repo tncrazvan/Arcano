@@ -45,7 +45,6 @@ import java.security.KeyStoreException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.time.ZoneId;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -65,9 +64,26 @@ import javax.net.ssl.TrustManagerFactory;
  */
 public class Server extends Common implements JsonTools{
     private static SmtpServer smtpServer;
-    public static void main (String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException{
-        new Server().listen(args);
+    public static void main (String[] args) throws NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException, IOException{        
+        Server server = new Server();
+        server.listen(args);
     }
+    
+    public Server(Class<?>... classes) {
+        expose(
+            com.github.tncrazvan.arcano.Controller.Http.App.class,
+            com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound.class,
+            com.github.tncrazvan.arcano.Controller.Http.Get.class,
+            com.github.tncrazvan.arcano.Controller.Http.Isset.class,
+            com.github.tncrazvan.arcano.Controller.Http.Set.class,
+            com.github.tncrazvan.arcano.Controller.Http.Unset.class,
+            
+            com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class,
+            com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApplicationProgramInterface.class
+        );
+        expose(classes);
+    }
+    
     
     /**
      * Starts the server listening.
@@ -79,7 +95,7 @@ public class Server extends Common implements JsonTools{
      */
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
         
-        System.out.println(Arrays.toString(args));
+        //System.out.println(Arrays.toString(args));
         
         final String settingsPath = new File(args[0]).getParent();
         
@@ -175,7 +191,7 @@ public class Server extends Common implements JsonTools{
             entryPoint = settings.getString("entryPoint");
         
         AsciiTable st = new AsciiTable();
-        st.add("Attribute","Value");
+        st.add("Key","Value");
         st.add("locale",""+locale.toString());
         st.add("timezone",""+timezone.toString());
         st.add("port",""+port);
@@ -193,34 +209,6 @@ public class Server extends Common implements JsonTools{
         st.add("threadPoolSize",threadPoolSize+" Threads");
         st.add("sendExceptions",sendExceptions?"True":"False");
         st.add("responseWrapper",responseWrapper?"True":"False");
-        
-        if(settings.isset("controllers")){
-            JsonObject controllers = settings.get("controllers").getAsJsonObject();
-            
-            if(controllers.has("http")){
-                httpControllerPackageName = 
-                                        controllers
-                                        .get("http")
-                                        .getAsString();
-            }
-            
-            if(controllers.has("websocket")){
-                wsControllerPackageName = controllers
-                                .get("websocket")
-                                .getAsString();
-            }else if(controllers.has("ws")){
-                wsControllerPackageName = 
-                                        controllers
-                                        .get("ws")
-                                        .getAsString();
-            }
-            
-            AsciiTable ct = new AsciiTable();
-            ct.add("Type","Package Name");
-            ct.add("http",""+httpControllerPackageName);
-            ct.add("websocket",""+wsControllerPackageName);
-            st.add("controllers",ct.toString());
-        }
         
         //checking for SMTP server
         if(settings.isset("smtp")){
@@ -252,11 +240,12 @@ public class Server extends Common implements JsonTools{
         
         if(settings.isset("groups")){
             JsonObject groups = (JsonObject) settings.get("groups");
-            AsciiTable gt = new AsciiTable();
-            gt.add("Attribute","Value");
-            gt.add("allow",groups.get("allow").getAsString());
-            st.add("Groups",gt.toString());
+            groupsAllowed = groups.get("allow").getAsBoolean();
         }
+        AsciiTable gt = new AsciiTable();
+        gt.add("Attribute","Value");
+        gt.add("allow",groupsAllowed?"True":"False");
+        st.add("groups",gt.toString());
         
         if(port == 443){
             
@@ -308,8 +297,6 @@ public class Server extends Common implements JsonTools{
                 }).start();
             }
             
-            Common.mapRoutes(httpControllerPackageNameOriginal,wsControllerPackageNameOriginal);
-            Common.mapRoutes(httpControllerPackageName,wsControllerPackageName);
             System.err.println(st.toString());
             while(listen){
                 executor.submit(new HttpEventListener(ssl.accept()));
@@ -339,8 +326,12 @@ public class Server extends Common implements JsonTools{
                 }).start();
             }
             
-            Common.mapRoutes(httpControllerPackageNameOriginal,wsControllerPackageNameOriginal);
-            Common.mapRoutes(httpControllerPackageName,wsControllerPackageName);
+            AsciiTable routesTable = new AsciiTable();
+            routesTable.add("Path");
+            routes.entrySet().forEach((entry) -> {
+                routesTable.add(entry.getKey());
+            });
+            st.add("Routes",routesTable.toString());
             
             System.out.println(st.toString());
             

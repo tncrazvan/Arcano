@@ -25,21 +25,16 @@
  */
 package com.github.tncrazvan.arcano.Controller.Http;
 
+import com.github.tncrazvan.arcano.Bean.NotFound;
 import com.github.tncrazvan.arcano.Http.HttpController;
-import com.github.tncrazvan.arcano.Http.HttpEvent;
 
 /**
  *
  * @author razvan
  */
+@NotFound
 public class ControllerNotFound extends HttpController{
-    public void main() {
-        e.setStatus(HttpEvent.STATUS_NOT_FOUND);
-        try{
-            e.send("Page not found");
-        }catch(Exception ex){
-            System.err.println("\n\nException on location: "+e.getClientHeader().get("@Resource"));
-            ex.printStackTrace(System.out);
-        }
+    public String main() {
+        return "Page not found";
     }
 }

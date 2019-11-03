@@ -121,32 +121,6 @@ public abstract class EventManager extends Common{
         return Common.routes.get(classname);
     }
     
-    
-    //FOR WEBSOCKETS
-    protected int getClassnameIndex(String root, String[] location) throws ClassNotFoundException{
-        String currentName = root;
-        for(int i=0;i<location.length;i++){
-            currentName +="."+location[i];
-            try{
-                Class.forName(currentName);
-                return i;
-            }catch(ClassNotFoundException e){
-                e.printStackTrace(System.out);
-            }
-                
-        }
-        throw new ClassNotFoundException();
-    }
-    
-    protected String resolveClassName(int classId,String root,String[] location){
-        String classname = root;
-        for(int i=0;i<=classId;i++){
-            classname +="."+location[i];
-        }
-        
-        return classname;
-    }
-    
     protected String[] resolveMethodArgs(int offset, String[] location){
         String[] args = new String[0];
         if(location.length-1>offset-1){

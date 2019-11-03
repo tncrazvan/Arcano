@@ -5,18 +5,17 @@
  */
 package com.github.tncrazvan.arcano.Controller.Http;
 
+import com.github.tncrazvan.arcano.Bean.Default;
 import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.io.IOException;
-import com.github.tncrazvan.arcano.Bean.Web;
 
 /**
  *
  * @author Administrator
  */
-@Web
-public class App extends HttpController{
-    @Web
+@Default
+public class App extends HttpController {
     public HttpResponse main() throws IOException {
         Get request = new Get();
         request.setArgs(entryPoint.split("/"));
