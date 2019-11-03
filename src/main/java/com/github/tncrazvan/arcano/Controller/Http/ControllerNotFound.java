@@ -27,14 +27,52 @@ package com.github.tncrazvan.arcano.Controller.Http;
 
 import com.github.tncrazvan.arcano.Bean.NotFound;
 import com.github.tncrazvan.arcano.Http.HttpController;
+import com.github.tncrazvan.arcano.Tool.JavaScriptExecutor;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import javax.script.ScriptException;
 
 /**
  *
  * @author razvan
  */
 @NotFound
-public class ControllerNotFound extends HttpController{
-    public String main() {
-        return "Page not found";
+public class ControllerNotFound extends HttpController{    
+    private JavaScriptExecutor executor;
+    public void main() throws ScriptException, IOException {
+        if(Files.exists(Path.of(configDir+"/"+scripts+"/Http"))){
+            String filename = configDir+"/"+scripts+"/Http";
+            for(short i=0;i<args.length;i++){
+                filename +="/"+args[i];
+                if(Files.exists(Path.of(filename+".js"))){
+                    String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                    executor = new JavaScriptExecutor();
+                    executor.execute(e, null, filename+".js", ar, content);
+                    break;
+                }
+                if(Files.exists(Path.of(filename+".JS"))){
+                    String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                    executor = new JavaScriptExecutor();
+                    executor.execute(e, null, filename+".JS", ar, content);
+                    break;
+                }
+                if(Files.exists(Path.of(filename+".jS"))){
+                    String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                    executor = new JavaScriptExecutor();
+                    executor.execute(e, null, filename+".jS", ar, content);
+                    break;
+                }
+                if(Files.exists(Path.of(filename+".Js"))){
+                    String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                    executor = new JavaScriptExecutor();
+                    executor.execute(e, null, filename+".Js", ar, content);
+                    break;
+                }
+            }
+        }else{
+            e.send("404 Not Found");
+        }
     }
 }

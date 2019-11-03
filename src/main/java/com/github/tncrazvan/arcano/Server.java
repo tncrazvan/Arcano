@@ -25,6 +25,8 @@
  */
 package com.github.tncrazvan.arcano;
 
+import static com.github.tncrazvan.arcano.Common.minifier;
+import static com.github.tncrazvan.arcano.Common.minify;
 import com.github.tncrazvan.asciitable.AsciiTable;
 import com.google.gson.JsonObject;
 import java.io.FileInputStream;
@@ -57,6 +59,8 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 
 /**
  *
@@ -64,9 +68,10 @@ import javax.net.ssl.TrustManagerFactory;
  */
 public class Server extends Common implements JsonTools{
     private static SmtpServer smtpServer;
-    public static void main (String[] args) throws NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException, IOException{        
+    public static void main (String[] args) throws NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException, IOException{
         Server server = new Server();
-        server.listen(args);
+        //server.listen(args);
+        server.listen(new String[]{"C:/Users/Administrator/Projects/HtmlProjects/Arcano/config/http.json"});
     }
     
     public Server(Class<?>... classes) {
@@ -97,9 +102,12 @@ public class Server extends Common implements JsonTools{
         
         //System.out.println(Arrays.toString(args));
         
-        final String settingsPath = new File(args[0]).getParent();
+        configDir = new File(args[0]).getParent();
         
         settings.parse(args[0]);
+        
+        if(settings.isset("scripts"))
+            scripts = settings.get("scripts").getAsString();
         
         if(settings.isset("compress")){
             compression = JSON_PARSER.fromJson(settings.get("compress").getAsJsonArray(), String[].class);
@@ -259,7 +267,7 @@ public class Server extends Common implements JsonTools{
             String certificate_password = certificate_obj.get("password").getAsString();
             
             
-            SSLContext sslContext = createSSLContext(settingsPath+"/"+certificate_name,certificate_type,certificate_password);
+            SSLContext sslContext = createSSLContext(configDir+"/"+certificate_name,certificate_type,certificate_password);
             
             AsciiTable certt = new AsciiTable();
             certt.add("Attribute","Value");
@@ -276,26 +284,8 @@ public class Server extends Common implements JsonTools{
             SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
             ssl.bind(new InetSocketAddress(bindAddress, port));
             System.out.println("\nServer started.");
-            if(minify >= 0 && minifier != null) {
-                minifier.minify();
-                System.out.println("Files minified.");
-            }
-            if(minify >= 1 && minifier != null) {
-                System.out.println("Server will minify files in background once every "+minify+"ms.");
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        while(true){
-                            try {
-                                Thread.sleep(minify);
-                                minifier.minify();
-                            } catch (InterruptedException | IOException ex) {
-                                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-                            }
-                        }
-                    }
-                }).start();
-            }
+            
+            minify();
             
             System.err.println(st.toString());
             while(listen){
@@ -305,26 +295,8 @@ public class Server extends Common implements JsonTools{
             ServerSocket ss = new ServerSocket();
             ss.bind(new InetSocketAddress(bindAddress, port));
             System.out.println("\nServer started.");
-            if(minify >= 0 && minifier != null) {
-                minifier.minify();
-                System.out.println("Files minified.");
-            }
-            if(minify >= 1 && minifier != null) {
-                System.out.println("Server will minify files in background once every "+minify+"ms.");
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        while(true){
-                            try {
-                                Thread.sleep(minify);
-                                minifier.minify();
-                            } catch (InterruptedException | IOException ex) {
-                                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
-                            }
-                        }
-                    }
-                }).start();
-            }
+            
+            minify();
             
             AsciiTable routesTable = new AsciiTable();
             routesTable.add("Path");
@@ -342,7 +314,36 @@ public class Server extends Common implements JsonTools{
         
     }
     
-    
+    private void minify() throws IOException{
+        if(minify >= 0 && minifier != null) {
+            minifier.minify();
+            System.out.println("Files minified.");
+        }else if(minify < 0){
+            minifier.minify(false);
+            System.out.println("Files glued but not minified.");
+        }
+        if((minify > 0 || minify < 0) && minifier != null) {
+            System.out.println("Server will minify files in background once every "+minify+"ms.");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(true){
+                        try {
+                            if(minify < 0){
+                                Thread.sleep(-minify);
+                                minifier.minify(false);
+                            }else{
+                                Thread.sleep(minify);
+                                minifier.minify();
+                            }
+                        } catch (InterruptedException | IOException ex) {
+                            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            }).start();
+        }
+    }
     
     /**
      * Creates an SSLContext which can be used to generate Secure Sockets.

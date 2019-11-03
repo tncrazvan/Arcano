@@ -109,6 +109,7 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
 
     @Override
     public void onClose() {
+        if(group == null) return;
         //if the client exists in the group...
         if(group.clientExists(e)){
             //remove the client from group

@@ -64,12 +64,15 @@ import com.github.tncrazvan.arcano.Tool.JsonTools;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.arcano.Bean.Match;
+import javax.script.ScriptEngine;
 
 /**
  * 
  * @author Razvan
  */
 public abstract class Common implements JsonTools{
+    //JavaScript Engine
+    public static ScriptEngine js = null;
     //settings object
     public static final Settings settings = new Settings();
     //settings values
@@ -89,8 +92,10 @@ public abstract class Common implements JsonTools{
             port = 80,
             timeout = 30000;
     protected static String 
+            configDir = null,
             jwtSecret = "eswtrweqtr3w25trwes4tyw456t",
             assets = "../webapp/assets.json",
+            scripts = "../scripts",
             webRoot = "../webapp",
             charset = "UTF-8",
             bindAddress = "::",

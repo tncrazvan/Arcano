@@ -241,7 +241,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             //Method onClose = controller.getClass().getDeclaredMethod("onClose");
             
             ((HttpController)controller).setEvent(this);
-            ((HttpController)controller).setArgs(args);
+            ((HttpController)controller).setArgs(location);
             ((HttpController)controller).setContent(content);
             setStatus(STATUS_NOT_FOUND);
             invoke(controller, method);

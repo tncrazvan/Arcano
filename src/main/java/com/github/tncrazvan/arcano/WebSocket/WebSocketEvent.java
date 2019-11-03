@@ -64,6 +64,7 @@ public class WebSocketEvent extends WebSocketManager{
             wo = resolveClassName(classId+1,typedLocation);
             cls = Class.forName(wo.getClassname());
             controller = cls.getDeclaredConstructor().newInstance();
+            ((WebSocketController)controller).setArgs(args);
         }catch(ClassNotFoundException ex){
             try{
                 cls = Class.forName(wsNotFoundName);
@@ -71,10 +72,10 @@ public class WebSocketEvent extends WebSocketManager{
                 cls = Class.forName(wsNotFoundNameOriginal);
             }
             controller = cls.getDeclaredConstructor().newInstance();
+            ((WebSocketController)controller).setArgs(location);
         }
         
         ((WebSocketController)controller).setEvent(this);
-        ((WebSocketController)controller).setArgs(args);
         
         onOpenMethod = controller.getClass().getMethod("onOpen");
         onMessageMethod = controller.getClass().getMethod("onMessage",byte[].class);

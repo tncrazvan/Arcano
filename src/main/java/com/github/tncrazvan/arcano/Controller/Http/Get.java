@@ -35,7 +35,6 @@ import java.io.UnsupportedEncodingException;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.io.File;
 import com.github.tncrazvan.arcano.Bean.Web;
-import com.github.tncrazvan.arcano.Bean.Match;
 /**
  *
  * @author Razvan
