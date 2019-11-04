@@ -107,6 +107,7 @@ public abstract class HttpRequestReader extends Common implements Runnable{
                         int offset = 0;
                         chain = new byte[httpMtu];
                         try{
+                            if(input.available() > 0)
                             while(input.read(chain)>0){
                                 if(offset < httpMtu){
                                     offset++;
@@ -116,7 +117,7 @@ public abstract class HttpRequestReader extends Common implements Runnable{
                                     chain = new byte[httpMtu];
                                 }
                             }
-                        }catch(SocketTimeoutException e){
+                        }catch(SocketTimeoutException | EOFException e){
                             outputString.append(new String(chain,charset));
                         }
                     }

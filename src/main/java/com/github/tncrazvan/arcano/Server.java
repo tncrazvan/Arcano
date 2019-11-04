@@ -59,8 +59,6 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 
 /**
  *
