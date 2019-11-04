@@ -93,7 +93,7 @@ public abstract class HttpRequestReader extends Common implements Runnable{
             }else{
                 HttpHeader clientHeader = HttpHeader.fromString(outputString.toString().trim());
                 outputString = new StringBuilder();
-                if((clientHeader.get("Method").equals("POST") || port == 25) && !EOFException){
+                if(!EOFException){
                     int chunkSize = 0;
                     if(clientHeader.isDefined("Content-Length")){
                         chunkSize = Integer.parseInt(clientHeader.get("Content-Length"));
