@@ -5,6 +5,7 @@
  */
 package com.github.tncrazvan.arcano.Tool;
 
+import com.github.tncrazvan.arcano.Common;
 import static com.github.tncrazvan.arcano.Common.STATUS_SUCCESS;
 import static com.github.tncrazvan.arcano.Common.js;
 import com.github.tncrazvan.arcano.Http.HttpEvent;
@@ -13,7 +14,11 @@ import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
 import com.google.gson.JsonObject;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -22,6 +27,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,7 +41,7 @@ import jdk.nashorn.api.scripting.JSObject;
  *
  * @author Administrator
  */
-public class JavaScriptExecutor {
+public class JavaScriptExecutor extends Common{
     private final static String NASHORN_ARGS = "nashorn.args";
     private final static String ES_6 = "--language=es6 --no-deprecation-warning";
     
@@ -48,14 +54,43 @@ public class JavaScriptExecutor {
         
     }
     
-    private class JSFile extends JavaScriptCurrentContext implements Function<String, File> {
-        public JSFile(String dirname) {
+    public class JSFile extends File{
+
+        public JSFile(String filename) {
+            super(filename);
+        }
+        
+        
+        public String read() throws FileNotFoundException, IOException{
+            FileInputStream fis = new FileInputStream(this);
+            String result = new String(fis.readAllBytes(),charset);
+            fis.close();
+            return result;
+            
+        }
+        
+        public void write(String contents) throws FileNotFoundException, UnsupportedEncodingException, IOException{
+            FileOutputStream fos = new FileOutputStream(this);
+            fos.write(contents.getBytes(charset));
+            fos.close();
+        }
+        
+        public Map<String,Object> info() throws IOException{
+            return info("*");
+        }
+        public Map<String,Object> info(String selection) throws IOException{
+             return Files.readAttributes(this.toPath(), selection);
+        }
+    }
+    
+    private class JSFileMaker extends JavaScriptCurrentContext implements Function<String, JSFile> {
+        public JSFileMaker(String dirname) {
             super(dirname);
         }
         
         @Override
-        public File apply(String filename) {
-            return new File(dirname+"/"+filename);
+        public JSFile apply(String filename) {
+            return new JSFile(dirname+"/"+filename);
         }
     }
     
@@ -186,6 +221,7 @@ public class JavaScriptExecutor {
         }
     }
     
+    
     //Http
     private void eval(HttpEvent e,ScriptContext context,String filename,String[] args,StringBuilder content) throws ScriptException, IOException{
         String dirname = Path.of(filename).getParent().toString();
@@ -203,7 +239,7 @@ public class JavaScriptExecutor {
                 put("content",content.toString());
                 put("server",e);
                 put("mysql",new JSMySQLConnector());
-                put("File",new JSFile(dirname));
+                put("file",new JSFileMaker(dirname));
             }}
         ));
     }
@@ -239,7 +275,7 @@ public class JavaScriptExecutor {
                 put("args",args);
                 put("log",new JSLog());
                 put("server",e);
-                put("File",new JSFile(dirname));
+                put("file",new JSFileMaker(dirname));
                 put("mysql",new JSMySQLConnector());
                 put("onOpen",onOpen);
                 put("onMessage",onMessage);

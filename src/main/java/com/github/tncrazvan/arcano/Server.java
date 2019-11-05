@@ -68,7 +68,8 @@ public class Server extends Common implements JsonTools{
     private static SmtpServer smtpServer;
     public static void main (String[] args) throws NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException, IOException{
         Server server = new Server();
-        server.listen(args);
+        //server.listen(args);
+        server.listen(new String[]{"C:\\Users\\RazvanTanase\\Documents\\HtmlProjects\\Test\\http.json"});
     }
     
     public Server(Class<?>... classes) {
@@ -315,7 +316,7 @@ public class Server extends Common implements JsonTools{
         if(minify >= 0 && minifier != null) {
             minifier.minify();
             System.out.println("Files minified.");
-        }else if(minify < 0){
+        }else if(minify < 0 && minifier != null){
             minifier.minify(false);
             System.out.println("Files glued but not minified.");
         }
