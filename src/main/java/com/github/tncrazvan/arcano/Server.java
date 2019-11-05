@@ -68,8 +68,7 @@ public class Server extends Common implements JsonTools{
     private static SmtpServer smtpServer;
     public static void main (String[] args) throws NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException, IOException{
         Server server = new Server();
-        //server.listen(args);
-        server.listen(new String[]{"C:\\Users\\RazvanTanase\\Documents\\HtmlProjects\\Test\\http.json"});
+        server.listen(args);
     }
     
     public Server(Class<?>... classes) {
