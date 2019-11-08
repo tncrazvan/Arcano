@@ -166,11 +166,31 @@ public class JavaScriptExecutor extends Common{
     }
     
     public class JSLog implements Function<String, Void>{
-        public Function todo;
-        
         @Override
         public Void apply(String message) {
             System.out.println(message);
+            return null;
+        }
+    }
+    
+    public class JSSleep implements Function<Long, Void>{
+        @Override
+        public Void apply(Long millis) {
+            try {
+                Thread.sleep(millis);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(JavaScriptExecutor.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return null;
+        }
+    }
+    
+    public class JSThread<T> implements Function<Function<Thread,Void>, Void>{
+        @Override
+        public Void apply(Function<Thread,Void> todo) {
+            new Thread(()->{
+                todo.apply(Thread.currentThread());
+            }).start();
             return null;
         }
     }
@@ -281,6 +301,9 @@ public class JavaScriptExecutor extends Common{
         }
     }
     
+    private static String tail(String dirname){
+        return "\nfunction header(key,value){server.setHeaderField(key,value);}function status(value){header(\"@Status\",value);}function send(data){try{data=JSON.parse(data);}catch(e){}server.send(data);}\nfunction require(filename){load('"+dirname.replace("\\", "/")+"/'+filename);}\nmain();";
+    }
     
     //Http
     private void eval(HttpEvent e,ScriptContext context,String filename,String[] args,StringBuilder content) throws ScriptException, IOException{
@@ -292,7 +315,7 @@ public class JavaScriptExecutor extends Common{
         
         Common c = this;
         
-        js.eval(script+"\nfunction header(key,value){server.setHeaderField(key,value);}function send(data){try{data=JSON.parse(data);}catch(e){}server.send(data);}\nfunction require(filename){load('"+dirname.replace("\\", "/")+"/'+filename);}\nmain();",new SimpleBindings(
+        js.eval("function main(){"+script+"}"+tail(dirname),new SimpleBindings(
             new HashMap<String,Object>(){{
                 put("args",args);
                 put("log",new JSLog());
@@ -301,6 +324,8 @@ public class JavaScriptExecutor extends Common{
                 put("server",e);
                 put("mysql",new JSMySQLConnector());
                 put("file",new JSFileMaker(dirname));
+                put("thread",new JSThread());
+                put("sleep",new JSSleep());
                 
                 //INFORMATINOAL RESPONSES
                 put("STATUS_CONTINUE",STATUS_CONTINUE);
@@ -404,7 +429,7 @@ public class JavaScriptExecutor extends Common{
         
         Common c = this;
         
-        js.eval(script+"\nfunction send(data){try{data=JSON.parse(data);}catch(e){}server.send(data);}\nfunction require(filename){load('"+dirname.replace("\\", "/")+"/'+filename);}\nmain();",new SimpleBindings(
+        js.eval("function main(){"+script+"}"+tail(dirname),new SimpleBindings(
             new HashMap<String,Object>(){{
                 put("args",args);
                 put("log",new JSLog());
@@ -414,6 +439,8 @@ public class JavaScriptExecutor extends Common{
                 put("onOpen",onOpen);
                 put("onMessage",onMessage);
                 put("onClose",onClose);
+                put("thread",new JSThread());
+                put("sleep",new JSSleep());
                 
                 //INFORMATINOAL RESPONSES
                 put("STATUS_CONTINUE",STATUS_CONTINUE);

@@ -77,20 +77,21 @@ public class ControllerNotFound extends WebSocketController{
             }catch(ScriptException | IOException e){
                 
             }
-            executor.onOpen.todo.apply(null);
+            if(executor.onOpen.todo != null)
+                executor.onOpen.todo.apply(null);
         }else
             e.close();
     }
 
     @Override
     public void onMessage(byte[] data) {
-        if(executor != null)
+        if(executor != null && executor.onMessage.todo != null)
             executor.onMessage.todo.apply(new String(data));
     }
 
     @Override
     public void onClose() {
-        if(executor != null)
+        if(executor != null && executor.onClose.todo != null)
             executor.onClose.todo.apply(null);
     }
 
