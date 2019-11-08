@@ -64,6 +64,7 @@ import com.github.tncrazvan.arcano.Tool.JsonTools;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.arcano.Bean.Match;
+import java.util.concurrent.ThreadPoolExecutor;
 import javax.script.ScriptEngine;
 
 /**
@@ -71,6 +72,7 @@ import javax.script.ScriptEngine;
  * @author Razvan
  */
 public abstract class Common implements JsonTools{
+    public static ThreadPoolExecutor executor;
     //JavaScript Engine
     public static ScriptEngine js = null;
     //settings object
@@ -89,6 +91,7 @@ public abstract class Common implements JsonTools{
     protected final static String NO_COMPRESSION="",DEFLATE="deflate",GZIP="gzip";
     protected static String[] compression;
     protected static int 
+            keepAlive = 60000, //Thread keepalive
             port = 80,
             timeout = 30000;
     protected static String 

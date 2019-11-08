@@ -124,13 +124,15 @@ public class Server extends Common implements JsonTools{
         
         if(settings.isset("threadPoolSize"))
             threadPoolSize = settings.getInt("threadPoolSize");
-        ThreadPoolExecutor executor;
+        
         if(threadPoolSize <= 0){
             executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         }else{
             executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadPoolSize);
         }
         
+        if(settings.isset("keepAlive"))
+            keepAlive = settings.getInt("keepAlive");
             
         if(settings.isset("locale")){
             String[] localeTmpString = settings.getString("locale").split("-");
@@ -212,6 +214,7 @@ public class Server extends Common implements JsonTools{
         st.add("entryPoint",""+entryPoint);
         st.add("minify",minify+" milliseconds");
         st.add("threadPoolSize",threadPoolSize+" Threads");
+        st.add("keepAlive",keepAlive+" milliseconds");
         st.add("sendExceptions",sendExceptions?"True":"False");
         st.add("responseWrapper",responseWrapper?"True":"False");
         

@@ -188,9 +188,9 @@ public class JavaScriptExecutor extends Common{
     public class JSThread<T> implements Function<Function<Thread,Void>, Void>{
         @Override
         public Void apply(Function<Thread,Void> todo) {
-            new Thread(()->{
+            executor.submit(()->{
                 todo.apply(Thread.currentThread());
-            }).start();
+            });
             return null;
         }
     }
