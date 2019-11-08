@@ -42,37 +42,46 @@ import javax.script.ScriptException;
 public class ControllerNotFound extends HttpController{    
     private JavaScriptExecutor executor;
     public void main() throws ScriptException, IOException {
-        if(Files.exists(Path.of(configDir+"/"+scripts+"/Http"))){
-            String filename = configDir+"/"+scripts+"/Http";
-            for(short i=0;i<args.length;i++){
-                filename +="/"+args[i];
-                if(Files.exists(Path.of(filename+".js"))){
-                    String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+        String filename = configDir+"/"+scripts+"/Http";
+        if(Files.exists(Path.of(filename))){
+            if(args.length == 0){
+                if(Files.exists(Path.of(filename+"/.js"))){
                     executor = new JavaScriptExecutor();
-                    executor.execute(e, null, filename+".js", ar, content);
-                    break;
+                    executor.execute(e, null, filename+"/.js", args, content);
+                }else{
+                    e.send("");
                 }
-                if(Files.exists(Path.of(filename+".JS"))){
-                    String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
-                    executor = new JavaScriptExecutor();
-                    executor.execute(e, null, filename+".JS", ar, content);
-                    break;
-                }
-                if(Files.exists(Path.of(filename+".jS"))){
-                    String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
-                    executor = new JavaScriptExecutor();
-                    executor.execute(e, null, filename+".jS", ar, content);
-                    break;
-                }
-                if(Files.exists(Path.of(filename+".Js"))){
-                    String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
-                    executor = new JavaScriptExecutor();
-                    executor.execute(e, null, filename+".Js", ar, content);
-                    break;
+            }else{
+                for(short i=0;i<args.length;i++){
+                    filename +="/"+args[i];
+                    if(Files.exists(Path.of(filename+".js"))){
+                        String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                        executor = new JavaScriptExecutor();
+                        executor.execute(e, null, filename+".js", ar, content);
+                        break;
+                    }
+                    if(Files.exists(Path.of(filename+".JS"))){
+                        String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                        executor = new JavaScriptExecutor();
+                        executor.execute(e, null, filename+".JS", ar, content);
+                        break;
+                    }
+                    if(Files.exists(Path.of(filename+".jS"))){
+                        String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                        executor = new JavaScriptExecutor();
+                        executor.execute(e, null, filename+".jS", ar, content);
+                        break;
+                    }
+                    if(Files.exists(Path.of(filename+".Js"))){
+                        String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                        executor = new JavaScriptExecutor();
+                        executor.execute(e, null, filename+".Js", ar, content);
+                        break;
+                    }
                 }
             }
         }else{
-            e.send("404 Not Found");
+            e.send("");
         }
     }
 }

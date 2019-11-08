@@ -25,6 +25,8 @@
  */
 package com.github.tncrazvan.arcano.Http;
 
+import static com.github.tncrazvan.arcano.Common.STATUS_INTERNAL_SERVER_ERROR;
+import static com.github.tncrazvan.arcano.Common.STATUS_NOT_FOUND;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
 import java.net.Socket;
 import java.io.DataOutputStream;
@@ -219,9 +221,11 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 }
             }else{
                 try{
-                    cls = Class.forName(httpDefaultName);
+                    //cls = Class.forName(httpDefaultName);
+                    cls = Class.forName(httpNotFoundName);
                 }catch(ClassNotFoundException eex){
-                    cls = Class.forName(httpDefaultNameOriginal);
+                    //cls = Class.forName(httpDefaultNameOriginal);
+                    cls = Class.forName(httpNotFoundNameOriginal);
                 }
                 controller = cls.getDeclaredConstructor().newInstance();
                 method = controller.getClass().getDeclaredMethod("main");
