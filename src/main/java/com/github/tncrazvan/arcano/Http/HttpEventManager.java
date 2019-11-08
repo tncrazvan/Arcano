@@ -234,6 +234,14 @@ public abstract class HttpEventManager extends EventManager{
         defaultHeaders = true;
     }
     
+    public String getClientAddress(){
+        return client.getInetAddress().toString();
+    }
+    
+    public int getClientPort(){
+        return client.getPort();
+    }
+    
     private void sendFileContents(File f){
         try {
             byte[] buffer;
