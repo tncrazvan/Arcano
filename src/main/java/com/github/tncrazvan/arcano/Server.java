@@ -147,6 +147,8 @@ public class Server extends Common implements JsonTools{
         
         if(settings.isset("bindAddress"))
             bindAddress = settings.getString("bindAddress");
+        else if(settings.isset("bindingAddress"))
+            bindAddress = settings.getString("bindingAddress");
         
         if(settings.isset("webRoot"))
             webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+settings.getString("webRoot");
