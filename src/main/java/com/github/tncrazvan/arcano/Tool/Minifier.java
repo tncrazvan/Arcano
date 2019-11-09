@@ -86,8 +86,9 @@ public class Minifier implements JsonTools{
         minify(true);
     }
     public void minify(boolean min) throws IOException{
+        js = "";
+        css = "";
         size = assets.size();
-        boolean changes = false;
         try{
             for(int i=0;i<size;i++){
                 filename = inputDirName+assets.get(i).getAsString();
@@ -126,19 +127,9 @@ public class Minifier implements JsonTools{
                     f = new File(listedFilename);
                     fis = new FileInputStream(f);
                     if(listedFilename.endsWith(".js")){
-                        key = f.toPath().toString();
-                        if(!updatesMap.containsKey(key) || (long)updatesMap.get(key) < f.lastModified()){
-                            changes = true;
-                            updatesMap.put(key, f.lastModified());
-                            js += min?new String(minify(fis.readAllBytes(),"js",this.hashCode()+"")):new String(fis.readAllBytes());
-                        }
+                        js += min?new String(minify(fis.readAllBytes(),"js",this.hashCode()+"")):new String(fis.readAllBytes());
                     }else if(listedFilename.endsWith(".css")){
-                        key = f.toPath().toString();
-                        if(!updatesMap.containsKey(key) || (long)updatesMap.get(key) < f.lastModified()){
-                            changes = true;
-                            updatesMap.put(key, f.lastModified());
-                            css += min?new String(minify(fis.readAllBytes(),"css",this.hashCode()+"")):new String(fis.readAllBytes());
-                        }
+                        css += min?new String(minify(fis.readAllBytes(),"css",this.hashCode()+"")):new String(fis.readAllBytes());
                     }
 
                     fis.close();
@@ -152,22 +143,22 @@ public class Minifier implements JsonTools{
         
         fis=null;
         
-        save(dir,minifiedJS,js.getBytes(),changes);
-        save(dir,minifiedCSS,css.getBytes(),changes);
+        save(dir,minifiedJS,js.getBytes());
+        save(dir,minifiedCSS,css.getBytes());
     }
     
     
-    private void save(File dir,File minified,byte[] contents,boolean changes) throws IOException{
+    private void save(File dir,File minified,byte[] contents) throws IOException{
         if(!dir.exists())
             dir.mkdir();
         
-        if(!changes && minified.exists()) return;
         
         if(minified.exists())
             minified.delete();
         minified.createNewFile();
         try (FileOutputStream fos = new FileOutputStream(minified)) {
             fos.write(contents);
+            fos.close();
         }
     }
 }
