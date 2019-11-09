@@ -117,7 +117,7 @@ public abstract class Common implements JsonTools{
     protected static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();
     protected static int 
             threadPoolSize = 2,
-            minify = -1,
+            minify = 0,
             cookieTtl = 60*60*24*30,
             wsGroupMaxClient = 10,
             wsMtu = 65536,
