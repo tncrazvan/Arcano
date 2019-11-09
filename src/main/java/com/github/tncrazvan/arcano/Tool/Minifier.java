@@ -22,16 +22,15 @@ import java.util.regex.Pattern;
 public class Minifier implements JsonTools{
     private final HashMap<String,Long> updatesMap;
     private final String inputDirName;
-    private final JsonArray assets;
+    private final File assets;
     private final String outputDirectoryname = "minified";
     private final String outputFilename = "minified";
-    private File minifiedJS,minifiedCSS;
+    private final File minifiedJS;
+    private final File minifiedCSS;
     private File dir;
     public Minifier(File assetsFile,String inputDirName,String outputSubDirName) throws IOException {
         this.updatesMap = new HashMap<>();
-        try (FileInputStream fis = new FileInputStream(assetsFile)) {
-            this.assets = toJsonArray(new String(fis.readAllBytes())).getAsJsonArray();
-        }
+        this.assets = assetsFile;
         this.inputDirName = inputDirName;
         dir = new File(inputDirName+outputDirectoryname);
         minifiedJS = new File(inputDirName+outputDirectoryname+"/"+outputFilename+".js");
@@ -88,10 +87,15 @@ public class Minifier implements JsonTools{
     public void minify(boolean min) throws IOException{
         js = "";
         css = "";
-        size = assets.size();
+        JsonArray arr = new JsonArray();
+        try (FileInputStream fis = new FileInputStream(assets)) {
+            arr = toJsonArray(new String(fis.readAllBytes())).getAsJsonArray();
+            fis.close();
+        }
+        size = arr.size();
         try{
             for(int i=0;i<size;i++){
-                filename = inputDirName+assets.get(i).getAsString();
+                filename = inputDirName+arr.get(i).getAsString();
                 pattern = Pattern.compile(REGEX_PATTERN_CALL);
                 matcher = pattern.matcher(filename);
                 if(matcher.find()){
@@ -148,18 +152,20 @@ public class Minifier implements JsonTools{
     }
     
     
-    private void save(File dir,File minified,byte[] contents) throws IOException{
-        if(!dir.exists())
-            dir.mkdir();
-        
-        
-        if(minified.exists())
-            minified.delete();
-        minified.createNewFile();
-        try (FileOutputStream fos = new FileOutputStream(minified)) {
-            fos.write(contents);
-            fos.close();
-        }
+    private void save(File dir,File minified,byte[] contents){
+        try{
+            if(!dir.exists())
+                dir.mkdir();
+
+
+            if(minified.exists())
+                minified.delete();
+            minified.createNewFile();
+            try (FileOutputStream fos = new FileOutputStream(minified)) {
+                fos.write(contents);
+                fos.close();
+            }
+        }catch(IOException e){}
     }
 }
  

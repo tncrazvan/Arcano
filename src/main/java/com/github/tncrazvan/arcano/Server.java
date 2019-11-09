@@ -317,7 +317,7 @@ public class Server extends Common implements JsonTools{
     }
     
     private void minify() throws IOException{
-        if(minify >= 0 && minifier != null) {
+        if(minify > 0 && minifier != null) {
             minifier.minify();
             System.out.println("Files minified.");
         }else if(minify < 0 && minifier != null){
