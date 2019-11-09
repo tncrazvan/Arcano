@@ -399,6 +399,7 @@ public class JavaScriptExecutor extends Common{
                 put("STATUS_NETWORK_AUTHENTICATION_REQUIRED",STATUS_NETWORK_AUTHENTICATION_REQUIRED);
             }}
         ));
+        e.send("");
     }
     
     
@@ -514,6 +515,6 @@ public class JavaScriptExecutor extends Common{
                 put("STATUS_NETWORK_AUTHENTICATION_REQUIRED",STATUS_NETWORK_AUTHENTICATION_REQUIRED);
             }}
         ));
-        
+        e.send("");
     }
 }
