@@ -25,14 +25,7 @@
  */
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.Bean.Web;
 import com.github.tncrazvan.arcano.Common;
-import com.github.tncrazvan.arcano.WebObject;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -41,7 +34,7 @@ import java.util.logging.Logger;
 public class HttpController extends Common{
     protected HttpEvent event,e;
     protected String[] args;
-    protected StringBuilder content;
+    protected byte[] input;
     
     public void setEvent(HttpEvent event){
         this.event=event;
@@ -50,7 +43,7 @@ public class HttpController extends Common{
     public void setArgs(String[] args){
         this.args=args;
     }
-    public void setContent(StringBuilder content){
-        this.content=content;
+    public void setInput(byte[] input){
+        this.input=input;
     }
 }

@@ -117,11 +117,9 @@ public abstract class Common implements JsonTools{
     protected static int 
             threadPoolSize = 2,
             minify = 0,
-            cookieTtl = 60*60*24*30,
             wsGroupMaxClient = 10,
             wsMtu = 65536,
-            httpMtu = 65536,
-            cacheMaxAge = 60*60*24*365; //1 year
+            httpMtu = 65536;
     
     protected static String wsAcceptKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 

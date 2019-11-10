@@ -47,14 +47,14 @@ public abstract class HttpEventManager extends EventManager{
     //private HttpHeader header;
     private boolean defaultHeaders=true;
     private boolean alive=true;
-    protected final StringBuilder content;
+    protected final byte[] input;
     protected boolean isDir = false;
     private final String acceptEncoding;
     private final String encodingLabel;
-    public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client,StringBuilder content) throws UnsupportedEncodingException {
+    public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client,byte[] input) throws UnsupportedEncodingException {
         super(client,clientHeader);
         this.output = output;
-        this.content=content;
+        this.input=input;
         if(this.clientHeader.isDefined("Accept-Encoding")){
             acceptEncoding = this.clientHeader.get("Accept-Encoding");
             encodingLabel = "Content-Encoding";

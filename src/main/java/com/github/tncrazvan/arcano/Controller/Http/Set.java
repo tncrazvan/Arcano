@@ -80,7 +80,7 @@ public class Set extends HttpController{
     @Match(method="POST")
     public void cookie() throws UnsupportedEncodingException{
         String name = String.join("/", args);
-        JsonObject data = toJsonObject(content);
+        JsonObject data = toJsonObject(new String(input));
         try{
             e.setCookie(name, data.get("value").getAsString(), e.getUrlQuery("path"), e.getUrlQuery("path"), Integer.parseInt(e.getUrlQuery("expire")));
         }catch(NumberFormatException ex){

@@ -55,8 +55,8 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
     private WebObject wo;
     private int classId;
     
-    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, StringBuilder content) throws UnsupportedEncodingException {
-        super(output,clientHeader,client,content);
+    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, byte[] input) throws UnsupportedEncodingException {
+        super(output,clientHeader,client,input);
     }
     
     private void invoke(Object controller,Method method) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvocationTargetException{
@@ -232,7 +232,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             }
             ((HttpController)controller).setEvent(this);
             ((HttpController)controller).setArgs(args);
-            ((HttpController)controller).setContent(content);
+            ((HttpController)controller).setInput(input);
             invoke(controller,method);
         }catch(ClassNotFoundException ex){
             try{
@@ -246,7 +246,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             
             ((HttpController)controller).setEvent(this);
             ((HttpController)controller).setArgs(location);
-            ((HttpController)controller).setContent(content);
+            ((HttpController)controller).setInput(input);
             setStatus(STATUS_NOT_FOUND);
             invoke(controller, method);
         }

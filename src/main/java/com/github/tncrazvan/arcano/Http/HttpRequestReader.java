@@ -38,6 +38,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.net.SocketTimeoutException;
+import java.util.ArrayList;
 import javax.net.ssl.SSLSocket;
 
 /**
@@ -92,7 +93,9 @@ public abstract class HttpRequestReader extends Common implements Runnable{
                 client.close();
             }else{
                 HttpHeader clientHeader = HttpHeader.fromString(outputString.toString().trim());
-                outputString = new StringBuilder();
+                //outputString = new StringBuilder();
+                ArrayList<byte[]> inputList = new ArrayList<>();
+                int length = 0;
                 if(!EOFException){
                     int chunkSize = 0;
                     if(clientHeader.isDefined("Content-Length")){
@@ -102,7 +105,9 @@ public abstract class HttpRequestReader extends Common implements Runnable{
                     if(chunkSize > 0){
                         chain = new byte[chunkSize];
                         input.readFully(chain);
-                        outputString.append(new String(chain,charset));
+                        inputList.add(chain);
+                        length += chain.length;
+                        //outputString.append(new String(chain,charset));
                     }else{
                         int offset = 0;
                         chain = new byte[httpMtu];
@@ -112,17 +117,28 @@ public abstract class HttpRequestReader extends Common implements Runnable{
                                 if(offset < httpMtu){
                                     offset++;
                                 }else{
-                                    outputString.append(new String(chain,charset));
+                                    //outputString.append(new String(chain,charset));
+                                    inputList.add(chain);
+                                    length += chain.length;
                                     offset = 0;
                                     chain = new byte[httpMtu];
                                 }
                             }
                         }catch(SocketTimeoutException | EOFException e){
-                            outputString.append(new String(chain,charset));
+                            //outputString.append(new String(chain,charset));
+                            length += chain.length;
+                            inputList.add(chain);
                         }
                     }
                 }
-                this.onRequest(clientHeader,outputString);
+                byte[] inputBytes = new byte[length];
+                int pos = 0;
+                for(byte[] bytes : inputList){
+                    for(int i=0;i<bytes.length;i++,pos++){
+                        inputBytes[pos] = bytes[i];
+                    }
+                }
+                this.onRequest(clientHeader,inputBytes);
             }
             
         } catch (IOException ex) {
@@ -135,6 +151,6 @@ public abstract class HttpRequestReader extends Common implements Runnable{
     }
     
     
-    public abstract void onRequest(HttpHeader clientHeader, StringBuilder content);
+    public abstract void onRequest(HttpHeader clientHeader, byte[] input);
     
 }

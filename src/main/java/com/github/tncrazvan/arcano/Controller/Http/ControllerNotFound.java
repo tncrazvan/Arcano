@@ -47,7 +47,7 @@ public class ControllerNotFound extends HttpController{
             if(args.length == 0){
                 if(Files.exists(Path.of(filename+"/.js"))){
                     executor = new JavaScriptExecutor();
-                    executor.execute(e, null, filename+"/.js", args, content);
+                    executor.execute(e, null, filename+"/.js", args, input);
                 }else{
                     e.send("");
                 }
@@ -57,25 +57,25 @@ public class ControllerNotFound extends HttpController{
                     if(Files.exists(Path.of(filename+".js"))){
                         String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
                         executor = new JavaScriptExecutor();
-                        executor.execute(e, null, filename+".js", ar, content);
+                        executor.execute(e, null, filename+".js", ar, input);
                         break;
                     }
                     if(Files.exists(Path.of(filename+".JS"))){
                         String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
                         executor = new JavaScriptExecutor();
-                        executor.execute(e, null, filename+".JS", ar, content);
+                        executor.execute(e, null, filename+".JS", ar, input);
                         break;
                     }
                     if(Files.exists(Path.of(filename+".jS"))){
                         String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
                         executor = new JavaScriptExecutor();
-                        executor.execute(e, null, filename+".jS", ar, content);
+                        executor.execute(e, null, filename+".jS", ar, input);
                         break;
                     }
                     if(Files.exists(Path.of(filename+".Js"))){
                         String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
                         executor = new JavaScriptExecutor();
-                        executor.execute(e, null, filename+".Js", ar, content);
+                        executor.execute(e, null, filename+".Js", ar, input);
                         break;
                     }
                 }

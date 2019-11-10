@@ -73,12 +73,18 @@ import com.github.tncrazvan.arcano.Tool.Database.Query;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
 import com.google.gson.JsonObject;
 import com.mysql.cj.jdbc.MysqlDataSource;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -90,7 +96,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -121,17 +128,21 @@ public class JavaScriptExecutor extends Common{
         }
         
         
-        public String read() throws FileNotFoundException, IOException{
+        public byte[] read() throws FileNotFoundException, IOException{
             FileInputStream fis = new FileInputStream(this);
-            String result = new String(fis.readAllBytes(),charset);
+            byte[] result = fis.readAllBytes();
             fis.close();
             return result;
             
         }
         
-        public void write(String contents) throws FileNotFoundException, UnsupportedEncodingException, IOException{
+        public void write(String contents) throws UnsupportedEncodingException, IOException{
+            write(contents.getBytes(charset));
+        }
+        
+        public void write(byte[] contents) throws FileNotFoundException, IOException{
             FileOutputStream fos = new FileOutputStream(this);
-            fos.write(contents.getBytes(charset));
+            fos.write(contents);
             fos.close();
         }
         
@@ -156,13 +167,13 @@ public class JavaScriptExecutor extends Common{
     
     
     //Http
-    public void execute(HttpEvent e,ScriptContext context,String filename,String[] args,StringBuilder content) throws ScriptException, IOException{
+    public void execute(HttpEvent e,ScriptContext context,String filename,String[] args,byte[] input) throws ScriptException, IOException{
         ScriptEngineManager mgr = new ScriptEngineManager();
         if(js == null){
             System.setProperty(NASHORN_ARGS, ES_6);
             js = mgr.getEngineByName("nashorn");
         }
-        eval(e,context,filename,args,content);
+        eval(e,context,filename,args,input);
     }
     
     public class JSLog implements Function<String, Void>{
@@ -173,13 +184,176 @@ public class JavaScriptExecutor extends Common{
         }
     }
     
+    public class JSHttpResult{
+        private final byte[] data;
+
+        public JSHttpResult(byte[] data) {
+            this.data = data;
+        }
+        
+        public byte[] getBytes(){
+            return data;
+        }
+        
+        public String getString(){
+            return new String(data);
+        }
+        
+        public boolean isEmpty(){
+            return data == null;
+        }
+        
+        public boolean isNull(){
+            return data == null;
+        }
+        
+        public boolean isNullOrEmpty(){
+            return data == null || data.length == 0;
+        }
+        
+        public boolean isBlank(){
+            return new String(data).trim().equals("");
+        }
+        
+        public boolean isNullOrBLank(){
+            return data == null || new String(data).trim().equals("");
+        }
+        
+    }
+    
+    public class JSHttp{
+        public JSHttpResult get(String targetURL){
+            return request("GET", targetURL, null, null);
+        }
+        public JSHttpResult get(String targetURL, JsonObject headers){
+            return request("GET", targetURL, null, headers);
+        }
+        public JSHttpResult post(String targetURL){
+            return request("POST", targetURL, null, null);
+        }
+        public JSHttpResult post(String targetURL, String data){
+            return request("POST", targetURL, data, null);
+        }
+        public JSHttpResult post(String targetURL, String data, JsonObject headers){
+            return request("POST", targetURL, data, headers);
+        }
+        public JSHttpResult request(String method, String targetURL, String data) {
+            return request(method, targetURL, data, null);
+        }
+        public JSHttpResult request(String method, String targetURL, String data, JsonObject headers) {
+            try {
+                //Create connection
+                URL url = new URL(targetURL);
+                final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod(method);
+                
+                if(headers != null)
+                    headers.keySet().forEach((key) -> {
+                        connection.setRequestProperty(key, headers.get(key).getAsString());
+                    });
+                
+                connection.setUseCaches(false);
+                connection.setDoOutput(true);
+
+                if(method.equals("POST")){
+                    //Send request
+                    DataOutputStream wr = new DataOutputStream (connection.getOutputStream());
+                    wr.writeBytes(data==null?"":data);
+                    wr.close();
+                }
+
+                //Get Response  
+                InputStream is = connection.getInputStream();
+                /*BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+                StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
+                String line;
+                while ((line = rd.readLine()) != null) {
+                  response.append(line);
+                  response.append('\r');
+                }
+                rd.close();
+                return response.toString();*/
+                
+                return new JSHttpResult(is.readAllBytes());
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, null, e);
+                return null;
+            }
+        }
+        
+    }
+    
+    public class JSZip{
+        private String filename;
+        private ArrayList<ZipEntryData> entries;
+        public JSZip(String filename) throws FileNotFoundException {
+            this.filename = filename;
+            entries = new ArrayList<>();
+        }
+        
+        private class ZipEntryData{
+            public ZipEntry entry;
+            public byte[] data;
+
+            public ZipEntryData(ZipEntry entry, byte[] data) {
+                this.entry = entry;
+                this.data = data;
+            }
+            
+        }
+        
+        public void addEntry(String filename, String contents) throws IOException{
+            addEntry(filename, contents.getBytes(charset));
+        }
+        
+        public void addEntry(String filename, JSFile file) throws IOException{
+            addEntry(filename, file.read());
+        }
+        public void addEntry(String filename, byte[] data) throws IOException{
+            ZipEntry e = new ZipEntry(filename);
+            entries.add(new ZipEntryData(e, data));
+        }
+        
+        public void make() throws IOException{
+            File file = new File(filename);
+            try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(file))) {
+                entries.forEach((e) -> {
+                    try {
+                        out.putNextEntry(e.entry);
+                        out.write(e.data, 0, e.data.length);
+                        out.closeEntry();
+                    } catch (IOException ex) {
+                        logger.log(Level.SEVERE, null, ex);
+                    }
+                });
+            }
+        }
+    }
+    
+    public class JSZipMaker extends JavaScriptCurrentContext implements Function<String, JSZip>{
+
+        public JSZipMaker(String dirname) {
+            super(dirname);
+        }
+        
+        @Override
+        public JSZip apply(String filename) {
+            try {
+                return new JSZip(dirname+"/"+filename);
+            } catch (FileNotFoundException ex) {
+                logger.log(Level.SEVERE, null, ex);
+            }
+            return null;
+        }
+    }
+    
     public class JSSleep implements Function<Long, Void>{
         @Override
         public Void apply(Long millis) {
             try {
                 Thread.sleep(millis);
             } catch (InterruptedException ex) {
-                Logger.getLogger(JavaScriptExecutor.class.getName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.SEVERE, null, ex);
             }
             return null;
         }
@@ -295,7 +469,7 @@ public class JavaScriptExecutor extends Common{
                 mysql.set(dataSource.getConnection());
                 return mysql;
             } catch (SQLException ex) {
-                Logger.getLogger(JavaScriptExecutor.class.getName()).log(Level.SEVERE, null, ex);
+                logger.log(Level.SEVERE, null, ex);
             }
             return null;
         }
@@ -306,7 +480,7 @@ public class JavaScriptExecutor extends Common{
     }
     
     //Http
-    private void eval(HttpEvent e,ScriptContext context,String filename,String[] args,StringBuilder content) throws ScriptException, IOException{
+    private void eval(HttpEvent e,ScriptContext context,String filename,String[] args,byte[] input) throws ScriptException, IOException{
         String dirname = Path.of(filename).getParent().toString();
         e.setStatus(STATUS_SUCCESS);
         String script = Files.readString(Path.of(filename));
@@ -320,12 +494,14 @@ public class JavaScriptExecutor extends Common{
                 put("args",args);
                 put("log",new JSLog());
                 put("method",e.getMethod());
-                put("content",content.toString());
+                put("input",new JSHttpResult(input));
                 put("server",e);
                 put("mysql",new JSMySQLConnector());
                 put("file",new JSFileMaker(dirname));
                 put("thread",new JSThread());
                 put("sleep",new JSSleep());
+                put("zip",new JSZipMaker(dirname));
+                put("http",new JSHttp());
                 
                 //INFORMATINOAL RESPONSES
                 put("STATUS_CONTINUE",STATUS_CONTINUE);
@@ -442,6 +618,9 @@ public class JavaScriptExecutor extends Common{
                 put("onClose",onClose);
                 put("thread",new JSThread());
                 put("sleep",new JSSleep());
+                put("zip",new JSZipMaker(dirname));
+                put("http",new JSHttp());
+                put("fromBytesToString",new JSHttp());
                 
                 //INFORMATINOAL RESPONSES
                 put("STATUS_CONTINUE",STATUS_CONTINUE);

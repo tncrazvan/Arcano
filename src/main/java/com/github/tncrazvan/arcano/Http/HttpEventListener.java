@@ -50,7 +50,7 @@ public class HttpEventListener extends HttpRequestReader{
     }
     
     @Override
-    public void onRequest(HttpHeader clientHeader, StringBuilder content) {
+    public void onRequest(HttpHeader clientHeader, byte[] input) {
         if(clientHeader != null && clientHeader.get("Connection")!=null){
             matcher = upgradePattern.matcher(clientHeader.get("Connection"));
             if(matcher.find()){
@@ -81,7 +81,7 @@ public class HttpEventListener extends HttpRequestReader{
                 try {
                     client.setSoTimeout(timeout);
                     //default connection, assuming it's Http 1.x
-                    new HttpEvent(output,clientHeader,client,content).execute();
+                    new HttpEvent(output,clientHeader,client,input).execute();
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE,null,ex);
                 }

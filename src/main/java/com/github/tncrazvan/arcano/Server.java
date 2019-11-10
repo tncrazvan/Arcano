@@ -181,17 +181,11 @@ public class Server extends Common implements JsonTools{
         if(settings.isset("sessionTtl"))
             sessionTtl = settings.getInt("sessionTtl");
         
-        if(settings.isset("cookieTtl"))
-            cookieTtl = settings.getInt("cookieTtl");
-        
         if(settings.isset("wsMtu"))
             wsMtu = settings.getInt("wsMtu");
         
         if(settings.isset("httpMtu"))
             httpMtu = settings.getInt("httpMtu");
-        
-        if(settings.isset("cacheMaxAge"))
-            cacheMaxAge = settings.getInt("cacheMaxAge");
         
         if(settings.isset("entryPoint"))
             entryPoint = settings.getString("entryPoint");
@@ -206,8 +200,6 @@ public class Server extends Common implements JsonTools{
         st.add("charset",charset);
         st.add("timeout",""+timeout+" milliseconds");
         st.add("sessionTtl",""+sessionTtl+" seconds");
-        st.add("cookieTtl",""+cookieTtl+" seconds");
-        st.add("cacheMaxAge",""+cacheMaxAge+" seconds");
         st.add("wsMtu",""+wsMtu+" bytes");
         st.add("httpMtu",""+httpMtu+" bytes");
         st.add("entryPoint",""+entryPoint);
