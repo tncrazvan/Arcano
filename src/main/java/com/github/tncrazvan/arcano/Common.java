@@ -91,7 +91,6 @@ public abstract class Common implements JsonTools{
     protected final static String NO_COMPRESSION="",DEFLATE="deflate",GZIP="gzip";
     protected static String[] compression;
     protected static int 
-            keepAlive = 60000, //Thread keepalive
             port = 80,
             timeout = 30000;
     protected static String 
