@@ -467,6 +467,20 @@ public abstract class Common implements JsonTools{
     
     
    
+    /**
+    * Encodes String to base64.
+    * @param value input String.
+    * @return encoded String.
+    */ 
+    public static String btoa(byte[] value){
+        try {
+            return new String(BASE64_ENCODER.encode(value),charset);
+        } catch (UnsupportedEncodingException ex) {
+            logger.log(Level.WARNING,null,ex);
+        }
+        return null;
+    }
+    
    /**
     * Encodes String to base64.
     * @param value input String.

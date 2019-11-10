@@ -73,7 +73,6 @@ import com.github.tncrazvan.arcano.Tool.Database.Query;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
 import com.google.gson.JsonObject;
 import com.mysql.cj.jdbc.MysqlDataSource;
-import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -81,7 +80,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -133,7 +131,6 @@ public class JavaScriptExecutor extends Common{
             byte[] result = fis.readAllBytes();
             fis.close();
             return result;
-            
         }
         
         public void write(String contents) throws UnsupportedEncodingException, IOException{
@@ -176,10 +173,9 @@ public class JavaScriptExecutor extends Common{
         eval(e,context,filename,args,input);
     }
     
-    public class JSLog implements Function<String, Void>{
+    public class JSLog implements Function<Object, Void>{
         @Override
-        public Void apply(String message) {
-            System.out.println(message);
+        public Void apply(Object message) {
             return null;
         }
     }
@@ -195,8 +191,8 @@ public class JavaScriptExecutor extends Common{
             return data;
         }
         
-        public String getString(){
-            return new String(data);
+        public String getString() throws UnsupportedEncodingException{
+            return new String(data,charset);
         }
         
         public boolean isEmpty(){
@@ -284,8 +280,9 @@ public class JavaScriptExecutor extends Common{
     }
     
     public class JSZip{
-        private String filename;
-        private ArrayList<ZipEntryData> entries;
+        private final String filename;
+        private JSFile file;
+        private final ArrayList<ZipEntryData> entries;
         public JSZip(String filename) throws FileNotFoundException {
             this.filename = filename;
             entries = new ArrayList<>();
@@ -315,7 +312,7 @@ public class JavaScriptExecutor extends Common{
         }
         
         public void make() throws IOException{
-            File file = new File(filename);
+            file = new JSFile(filename);
             try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(file))) {
                 entries.forEach((e) -> {
                     try {
@@ -327,6 +324,10 @@ public class JavaScriptExecutor extends Common{
                     }
                 });
             }
+        }
+        
+        public JSFile getFile(){
+            return file;
         }
     }
     
