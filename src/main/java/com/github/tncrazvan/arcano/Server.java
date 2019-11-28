@@ -245,8 +245,7 @@ public class Server extends Common implements JsonTools{
         gt.add("allow",groupsAllowed?"True":"False");
         st.add("groups",gt.toString());
         
-        if(port == 443){
-            
+        if(settings.isset("certificate")){
             JsonObject certificate_obj = settings.get("certificate").getAsJsonObject();
             
             
@@ -263,7 +262,7 @@ public class Server extends Common implements JsonTools{
             certt.add("Attribute","Value");
             certt.add("name",certificate_name);
             certt.add("type",certificate_type);
-            certt.add("password","[Password matches]");
+            certt.add("password","***");
             
             st.add("certificate",certt.toString());
             
