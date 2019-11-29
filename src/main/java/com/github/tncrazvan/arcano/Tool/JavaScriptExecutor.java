@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.github.tncrazvan.arcano.Tool;
 
 import com.github.tncrazvan.arcano.Common;
@@ -69,99 +64,46 @@ import static com.github.tncrazvan.arcano.Common.STATUS_USE_PROXY;
 import static com.github.tncrazvan.arcano.Common.STATUS_VARIANT_ALSO_NEGOTATIES;
 import static com.github.tncrazvan.arcano.Common.js;
 import com.github.tncrazvan.arcano.Http.HttpEvent;
-import com.github.tncrazvan.arcano.Tool.Database.Query;
+import com.github.tncrazvan.arcano.Tool.JavaScript.LoaderEventListener;
+import com.github.tncrazvan.arcano.Tool.JavaScript.LoaderEventListener.EventListener;
+import com.github.tncrazvan.arcano.Tool.JavaScript.FileSystem.LoaderJSFileMaker.JSFileMaker;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
-import com.google.gson.JsonObject;
-import com.mysql.cj.jdbc.MysqlDataSource;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
-import jdk.nashorn.api.scripting.JSObject;
+import com.github.tncrazvan.arcano.Tool.JavaScript.FileSystem.LoaderJSFile;
+import com.github.tncrazvan.arcano.Tool.JavaScript.FileSystem.LoaderJSFileMaker;
+import com.github.tncrazvan.arcano.Tool.JavaScript.Http.LoaderJSHttp;
+import com.github.tncrazvan.arcano.Tool.JavaScript.Http.LoaderJSHttp.JSHttp;
+import com.github.tncrazvan.arcano.Tool.JavaScript.Http.LoaderJSHttpResult;
+import com.github.tncrazvan.arcano.Tool.JavaScript.Http.LoaderJSHttpResult.JSHttpResult;
+import com.github.tncrazvan.arcano.Tool.JavaScript.LoaderJSLog;
+import com.github.tncrazvan.arcano.Tool.JavaScript.LoaderJSLog.JSLog;
+import com.github.tncrazvan.arcano.Tool.JavaScript.MySQL.LoaderJSMySQLConnection;
+import com.github.tncrazvan.arcano.Tool.JavaScript.MySQL.LoaderJSMySQLConnector;
+import com.github.tncrazvan.arcano.Tool.JavaScript.MySQL.LoaderJSMySQLConnector.JSMySQLConnector;
+import com.github.tncrazvan.arcano.Tool.JavaScript.System.LoaderJSSleep;
+import com.github.tncrazvan.arcano.Tool.JavaScript.System.LoaderJSSleep.JSSleep;
+import com.github.tncrazvan.arcano.Tool.JavaScript.System.LoaderJSThread;
+import com.github.tncrazvan.arcano.Tool.JavaScript.System.LoaderJSThread.JSThread;
+import com.github.tncrazvan.arcano.Tool.JavaScript.FileSystem.LoaderJSZip;
+import com.github.tncrazvan.arcano.Tool.JavaScript.FileSystem.LoaderJSZipMaker;
+import com.github.tncrazvan.arcano.Tool.JavaScript.FileSystem.LoaderJSZipMaker.JSZipMaker;
 
 /**
  *
  * @author Administrator
  */
-public class JavaScriptExecutor extends Common{
+public class JavaScriptExecutor extends Common 
+        implements LoaderJSFile,LoaderJSFileMaker,LoaderJSLog,LoaderJSHttpResult,LoaderJSHttp,LoaderJSZip,LoaderJSZipMaker,
+        LoaderJSSleep,LoaderJSThread,LoaderJSMySQLConnection,LoaderJSMySQLConnector,LoaderEventListener{
     private final static String NASHORN_ARGS = "nashorn.args";
     private final static String ES_6 = "--language=es6 --no-deprecation-warning";
-    
-    private abstract class JavaScriptCurrentContext{
-        final String dirname;
-
-        public JavaScriptCurrentContext(String dirname) {
-            this.dirname = dirname;
-        }
-        
-    }
-    
-    public class JSFile extends File{
-
-        public JSFile(String filename) {
-            super(filename);
-        }
-        
-        
-        public byte[] read() throws FileNotFoundException, IOException{
-            FileInputStream fis = new FileInputStream(this);
-            byte[] result = fis.readAllBytes();
-            fis.close();
-            return result;
-        }
-        
-        public void write(String contents) throws UnsupportedEncodingException, IOException{
-            write(contents.getBytes(charset));
-        }
-        
-        public void write(byte[] contents) throws FileNotFoundException, IOException{
-            FileOutputStream fos = new FileOutputStream(this);
-            fos.write(contents);
-            fos.close();
-        }
-        
-        public Map<String,Object> info() throws IOException{
-            return info("*");
-        }
-        public Map<String,Object> info(String selection) throws IOException{
-             return Files.readAttributes(this.toPath(), selection);
-        }
-    }
-    
-    private class JSFileMaker extends JavaScriptCurrentContext implements Function<String, JSFile> {
-        public JSFileMaker(String dirname) {
-            super(dirname);
-        }
-        
-        @Override
-        public JSFile apply(String filename) {
-            return new JSFile(dirname+"/"+filename);
-        }
-    }
-    
     
     //Http
     public void execute(HttpEvent e,ScriptContext context,String filename,String[] args,byte[] input) throws ScriptException, IOException{
@@ -171,309 +113,6 @@ public class JavaScriptExecutor extends Common{
             js = mgr.getEngineByName("nashorn");
         }
         eval(e,context,filename,args,input);
-    }
-    
-    public class JSLog implements Function<Object, Void>{
-        @Override
-        public Void apply(Object message) {
-            return null;
-        }
-    }
-    
-    public class JSHttpResult{
-        private final byte[] data;
-
-        public JSHttpResult(byte[] data) {
-            this.data = data;
-        }
-        
-        public byte[] getBytes(){
-            return data;
-        }
-        
-        public String getString() throws UnsupportedEncodingException{
-            return new String(data,charset);
-        }
-        
-        public boolean isEmpty(){
-            return data == null;
-        }
-        
-        public boolean isNull(){
-            return data == null;
-        }
-        
-        public boolean isNullOrEmpty(){
-            return data == null || data.length == 0;
-        }
-        
-        public boolean isBlank(){
-            return new String(data).trim().equals("");
-        }
-        
-        public boolean isNullOrBLank(){
-            return data == null || new String(data).trim().equals("");
-        }
-        
-    }
-    
-    public class JSHttp{
-        public JSHttpResult get(String targetURL){
-            return request("GET", targetURL, null, null);
-        }
-        public JSHttpResult get(String targetURL, JsonObject headers){
-            return request("GET", targetURL, null, headers);
-        }
-        public JSHttpResult post(String targetURL){
-            return request("POST", targetURL, null, null);
-        }
-        public JSHttpResult post(String targetURL, String data){
-            return request("POST", targetURL, data, null);
-        }
-        public JSHttpResult post(String targetURL, String data, JsonObject headers){
-            return request("POST", targetURL, data, headers);
-        }
-        public JSHttpResult request(String method, String targetURL, String data) {
-            return request(method, targetURL, data, null);
-        }
-        public JSHttpResult request(String method, String targetURL, String data, JsonObject headers) {
-            try {
-                //Create connection
-                URL url = new URL(targetURL);
-                final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod(method);
-                
-                if(headers != null)
-                    headers.keySet().forEach((key) -> {
-                        connection.setRequestProperty(key, headers.get(key).getAsString());
-                    });
-                
-                connection.setUseCaches(false);
-                connection.setDoOutput(true);
-
-                if(method.equals("POST")){
-                    //Send request
-                    DataOutputStream wr = new DataOutputStream (connection.getOutputStream());
-                    wr.writeBytes(data==null?"":data);
-                    wr.close();
-                }
-
-                //Get Response  
-                InputStream is = connection.getInputStream();
-                /*BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-                StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
-                String line;
-                while ((line = rd.readLine()) != null) {
-                  response.append(line);
-                  response.append('\r');
-                }
-                rd.close();
-                return response.toString();*/
-                
-                return new JSHttpResult(is.readAllBytes());
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, null, e);
-                return null;
-            }
-        }
-        
-    }
-    
-    public class JSZip{
-        private final String filename;
-        private JSFile file;
-        private final ArrayList<ZipEntryData> entries;
-        public JSZip(String filename) throws FileNotFoundException {
-            this.filename = filename;
-            entries = new ArrayList<>();
-        }
-        
-        private class ZipEntryData{
-            public ZipEntry entry;
-            public byte[] data;
-
-            public ZipEntryData(ZipEntry entry, byte[] data) {
-                this.entry = entry;
-                this.data = data;
-            }
-            
-        }
-        
-        public void addEntry(String filename, String contents) throws IOException{
-            addEntry(filename, contents.getBytes(charset));
-        }
-        
-        public void addEntry(String filename, JSFile file) throws IOException{
-            addEntry(filename, file.read());
-        }
-        public void addEntry(String filename, byte[] data) throws IOException{
-            ZipEntry e = new ZipEntry(filename);
-            entries.add(new ZipEntryData(e, data));
-        }
-        
-        public void make() throws IOException{
-            file = new JSFile(filename);
-            try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(file))) {
-                entries.forEach((e) -> {
-                    try {
-                        out.putNextEntry(e.entry);
-                        out.write(e.data, 0, e.data.length);
-                        out.closeEntry();
-                    } catch (IOException ex) {
-                        logger.log(Level.SEVERE, null, ex);
-                    }
-                });
-            }
-        }
-        
-        public JSFile getFile(){
-            return file;
-        }
-    }
-    
-    public class JSZipMaker extends JavaScriptCurrentContext implements Function<String, JSZip>{
-
-        public JSZipMaker(String dirname) {
-            super(dirname);
-        }
-        
-        @Override
-        public JSZip apply(String filename) {
-            try {
-                return new JSZip(dirname+"/"+filename);
-            } catch (FileNotFoundException ex) {
-                logger.log(Level.SEVERE, null, ex);
-            }
-            return null;
-        }
-    }
-    
-    public class JSSleep implements Function<Long, Void>{
-        @Override
-        public Void apply(Long millis) {
-            try {
-                Thread.sleep(millis);
-            } catch (InterruptedException ex) {
-                logger.log(Level.SEVERE, null, ex);
-            }
-            return null;
-        }
-    }
-    
-    public class JSThread<T> implements Function<Function<Thread,Void>, Void>{
-        @Override
-        public Void apply(Function<Thread,Void> todo) {
-            executor.submit(()->{
-                todo.apply(Thread.currentThread());
-            });
-            return null;
-        }
-    }
-    
-    public class EventListener<T> implements Function<Function<T,Void>, Void>{
-        public Function todo;
-        
-        @Override
-        public Void apply(Function<T,Void> todo) {
-            this.todo = todo;
-            return null;
-        }
-    }
-    
-    public class JSMySQLConnection implements JsonTools{
-        private Connection connection;
-        public void set(Connection connection){
-            this.connection = connection;
-        }
-        public Connection get(){
-            return connection;
-        }
-        
-        public void close() throws SQLException{
-            connection.close();
-        }
-        
-        public void database(String dbname) throws SQLException{
-            connection.setCatalog(dbname);
-        }
-        private Query query;
-        public void prepare(String value) throws SQLException{
-            query = new Query(connection, value);
-        }
-        public void bindString(String key, String value) throws SQLException{
-            query.setString(key, value);
-        }
-        public JSObject execute() throws SQLException, ScriptException{
-            ResultSet result = query.executeQuery();
-            ResultSetMetaData metadata = result.getMetaData();
-            ArrayList<Object> output = new ArrayList<>();
-            while(result.next()){
-                JsonObject o = new JsonObject();
-                for(int i=1,length=metadata.getColumnCount();i<=length;i++){
-                    String colname = metadata.getColumnName(i);
-                    int type = metadata.getColumnType(i);
-                    switch(type){
-                        case java.sql.Types.BINARY:
-                        case java.sql.Types.CLOB:
-                        case java.sql.Types.BLOB:
-                        case java.sql.Types.VARBINARY:
-                        case java.sql.Types.NVARCHAR:
-                        case java.sql.Types.NCHAR:
-                        case java.sql.Types.DATE:
-                        case java.sql.Types.CHAR:
-                        case java.sql.Types.VARCHAR:
-                        default:
-                            o.addProperty(colname, result.getString(colname));
-                            break;
-                        case java.sql.Types.NUMERIC:
-                        case java.sql.Types.SMALLINT:
-                        case java.sql.Types.INTEGER:
-                        case java.sql.Types.BIT:
-                        case java.sql.Types.BIGINT:
-                            o.addProperty(colname, result.getInt(colname));
-                            break;
-                        case java.sql.Types.FLOAT:
-                            o.addProperty(colname, result.getFloat(colname));
-                            break;
-                        case java.sql.Types.DECIMAL:
-                        case java.sql.Types.DOUBLE:
-                            o.addProperty(colname, result.getDouble(colname));
-                            break;
-                        case java.sql.Types.BOOLEAN:
-                            o.addProperty(colname, result.getBoolean(colname));
-                            break;
-                    }
-                }
-                output.add(o);
-            }
-            js.put("$tmp", output);
-            JSObject obj = (JSObject)js.eval("JSON.parse($tmp)");
-            return obj;
-        }
-    }
-    
-    public class JSMySQLConnector implements Function<Object, JSMySQLConnection>,JsonTools{
-        public JSMySQLConnection mysql = null;
-        @Override
-        public JSMySQLConnection apply(Object arg) {
-            JsonObject details = toJsonObject(arg);
-            MysqlDataSource dataSource = new MysqlDataSource();
-            dataSource.setUser(details.get("username").getAsString());
-            dataSource.setPassword(details.get("password").getAsString());
-            dataSource.setServerName(details.get("hostname").getAsString());
-            try {
-                if(mysql != null && !mysql.get().isClosed()){
-                    mysql.get().close();
-                }
-                if(mysql == null)
-                    mysql = new JSMySQLConnection();
-                mysql.set(dataSource.getConnection());
-                return mysql;
-            } catch (SQLException ex) {
-                logger.log(Level.SEVERE, null, ex);
-            }
-            return null;
-        }
     }
     
     private static String tail(String dirname){

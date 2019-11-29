@@ -1,29 +1,5 @@
-/**
- * Arcano is a Java library that makes it easier
- * to program and manage a Java Web Server by providing different tools
- * such as:
- * 1) An MVC (Model-View-Controller) alike design pattern to manage 
- *    client requests without using any URL rewriting rules.
- * 2) A WebSocket Manager, allowing the server to accept and manage 
- *    incoming WebSocket connections.
- * 3) Direct access to every socket bound to every client application.
- * 4) Direct access to the headers of the incomming and outgoing Http messages.
- * Copyright (C) 2016-2018  Tanase Razvan Catalin
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- * 
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
 package com.github.tncrazvan.arcano;
+
 import com.github.tncrazvan.arcano.Bean.Default;
 import com.github.tncrazvan.arcano.Bean.NotFound;
 import com.github.tncrazvan.arcano.Tool.Minifier;
@@ -78,22 +54,22 @@ public abstract class Common implements JsonTools{
     //settings object
     public static final Settings settings = new Settings();
     //settings values
-    protected static HashMap<String, WebObject> routes = new HashMap<>();
-    protected static Minifier minifier;
-    protected static boolean 
+    public static HashMap<String, WebObject> routes = new HashMap<>();
+    public static Minifier minifier;
+    public static boolean 
             responseWrapper = false,
             sendExceptions = true,
             listen = true,
             groupsAllowed = false,
             smtpAllowed = false;
-    protected static long 
+    public static long 
             sessionTtl = 1440; //24 minutes
-    protected final static String NO_COMPRESSION="",DEFLATE="deflate",GZIP="gzip";
-    protected static String[] compression;
-    protected static int 
+    public final static String NO_COMPRESSION="",DEFLATE="deflate",GZIP="gzip";
+    public static String[] compression;
+    public static int 
             port = 80,
             timeout = 30000;
-    protected static String 
+    public static String 
             configDir = null,
             jwtSecret = "eswtrweqtr3w25trwes4tyw456t",
             assets = "../webapp/assets.json",
@@ -108,32 +84,32 @@ public abstract class Common implements JsonTools{
             httpNotFoundName = httpNotFoundNameOriginal,
             wsNotFoundName = wsNotFoundNameOriginal,
             entryPoint = "/index.html";
-    protected static Locale locale = Locale.getDefault();
-    protected static ZoneId timezone = ZoneId.systemDefault();
-    protected static DateTimeFormatter httpDateFormat = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", locale).withZone(timezone);
-    protected static Logger logger = Logger.getLogger(Common.class.getName());
+    public static Locale locale = Locale.getDefault();
+    public static ZoneId timezone = ZoneId.systemDefault();
+    public static DateTimeFormatter httpDateFormat = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", locale).withZone(timezone);
+    public static Logger logger = Logger.getLogger(Common.class.getName());
     //advanced settings
-    protected static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();
-    protected static int 
+    public static final Map<String,ArrayList<WebSocketEvent>> WS_EVENTS = new HashMap<>();
+    public static int 
             threadPoolSize = 2,
             minify = 0,
             wsGroupMaxClient = 10,
             wsMtu = 65536,
             httpMtu = 65536;
     
-    protected static String wsAcceptKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    public static String wsAcceptKey = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-    protected static JsonObject mainSettings;
+    public static JsonObject mainSettings;
     public static final Calendar calendar = Calendar.getInstance();
     
     
     //other vars
-    protected static final Date date = new Date();
-    //protected static final Gson JSON_PARSER = new Gson();
+    public static final Date date = new Date();
+    //public static final Gson JSON_PARSER = new Gson();
     //public static final JsonParser JSONPARSER = new JsonParser();
-    protected static boolean running = false;
-    protected static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
-    protected static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
+    public static boolean running = false;
+    public static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
+    public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
     private static final String patternLeftStart = "<\\s*(?=script)";
     private static final String patternLeftEnd = "<\\s*\\/\\s*(?=script)";
     private static final String patternRightEnd = "(?<=&lt;\\/script)>";
@@ -275,7 +251,7 @@ public abstract class Common implements JsonTools{
         }
     }
     
-    protected static String normalizePathSlashes(String path){
+    public static String normalizePathSlashes(String path){
         int classPathLength = path.length();
         if(classPathLength >= 1 && path.charAt(0)!='/'){
             path = '/'+path;
@@ -287,22 +263,22 @@ public abstract class Common implements JsonTools{
         return path;
     }
     
-    protected static com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound 
+    public static com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound 
             httpControllerNotFound = new 
             com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound();
     
-    protected static com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound 
+    public static com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound 
             webSocketControllerNotFound = new 
             com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound();
 
     
-    protected static com.github.tncrazvan.arcano.Controller.Http.Get get = new com.github.tncrazvan.arcano.Controller.Http.Get();
+    public static com.github.tncrazvan.arcano.Controller.Http.Get get = new com.github.tncrazvan.arcano.Controller.Http.Get();
  
-    protected static com.github.tncrazvan.arcano.Controller.Http.Set set = new com.github.tncrazvan.arcano.Controller.Http.Set();
+    public static com.github.tncrazvan.arcano.Controller.Http.Set set = new com.github.tncrazvan.arcano.Controller.Http.Set();
 
-    protected static com.github.tncrazvan.arcano.Controller.Http.Isset isset = new com.github.tncrazvan.arcano.Controller.Http.Isset();
+    public static com.github.tncrazvan.arcano.Controller.Http.Isset isset = new com.github.tncrazvan.arcano.Controller.Http.Isset();
     
-    protected static com.github.tncrazvan.arcano.Controller.Http.Unset unset = new com.github.tncrazvan.arcano.Controller.Http.Unset();
+    public static com.github.tncrazvan.arcano.Controller.Http.Unset unset = new com.github.tncrazvan.arcano.Controller.Http.Unset();
 
     public static LocalDateTime time(String value){
         return time(Integer.parseInt(value));
