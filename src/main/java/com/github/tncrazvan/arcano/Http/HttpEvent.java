@@ -1,21 +1,20 @@
 package com.github.tncrazvan.arcano.Http;
 
-import static com.github.tncrazvan.arcano.Common.STATUS_INTERNAL_SERVER_ERROR;
-import static com.github.tncrazvan.arcano.Common.STATUS_NOT_FOUND;
-import com.github.tncrazvan.arcano.Tool.JsonTools;
-import java.net.Socket;
 import java.io.DataOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import com.github.tncrazvan.arcano.WebObject;
-import com.google.gson.JsonObject;
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.Stream;
+
+import com.github.tncrazvan.arcano.WebObject;
+import com.github.tncrazvan.arcano.Tool.JsonTools;
+import com.google.gson.JsonObject;
 
 
 /**
@@ -30,205 +29,207 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
     private WebObject wo;
     private int classId;
     
-    public HttpEvent(DataOutputStream output, HttpHeader clientHeader, Socket client, byte[] input) throws UnsupportedEncodingException {
-        super(output,clientHeader,client,input);
+    public HttpEvent(final DataOutputStream output, final HttpHeader clientHeader, final Socket client,
+            final byte[] input) throws UnsupportedEncodingException {
+        super(output, clientHeader, client, input);
     }
-    
-    private void invoke(Object controller,Method method) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InvocationTargetException{
-        try{
+
+    private void invoke(final Object controller, final Method method) throws IllegalAccessException,
+            IllegalArgumentException, InvocationTargetException, InvocationTargetException {
+        try {
             Class<?> type = method.getReturnType();
-            if(type == void.class || type == Void.class){
+            if (type == void.class || type == Void.class) {
                 method.invoke(controller);
-            }else if(type == HttpResponse.class){
-                HttpResponse response = (HttpResponse) method.invoke(controller);
-                HashMap<String,String> headers = response.getHeaders();
-                if(headers != null){
-                    Iterator it = headers.entrySet().iterator();
+            } else if (type == HttpResponse.class) {
+                final HttpResponse response = (HttpResponse) method.invoke(controller);
+                final HashMap<String, String> headers = response.getHeaders();
+                if (headers != null) {
+                    final Iterator it = headers.entrySet().iterator();
                     while (it.hasNext()) {
-                        Map.Entry pair = (Map.Entry)it.next();
+                        final Map.Entry pair = (Map.Entry) it.next();
                         setHeaderField((String) pair.getKey(), (String) pair.getValue());
                         it.remove(); // avoids a ConcurrentModificationException
                     }
                 }
-                if(response.isRaw()){
+                if (response.isRaw()) {
                     send((byte[]) response.getContent());
-                }else{
+                } else {
                     type = response.getType();
-                    if(type == String.class || type == Character.class){
-                        Object content  = response.getContent();
-                        if(content != null){
-                            if(responseWrapper){
-                                JsonObject obj = new JsonObject();
-                                obj.addProperty("result", new String((byte[])content));
+                    if (type == String.class || type == Character.class) {
+                        final Object content = response.getContent();
+                        if (content != null) {
+                            if (responseWrapper) {
+                                final JsonObject obj = new JsonObject();
+                                obj.addProperty("result", new String((byte[]) content));
                                 setHeaderField("Content-Type", "application/json");
                                 send(obj.toString().getBytes(charset));
-                            }else{
-                                send(new String((byte[])content));
+                            } else {
+                                send(new String((byte[]) content));
                             }
-                        }else
+                        } else
                             send("");
-                    }else{
-                        Object content  = response.getContent();
-                        if(content != null){
-                            String tmp = new String((byte[])content);
-                            if(responseWrapper){
+                    } else {
+                        final Object content = response.getContent();
+                        if (content != null) {
+                            final String tmp = new String((byte[]) content);
+                            if (responseWrapper) {
                                 setHeaderField("Content-Type", "application/json");
-                                send(("{\"result\": "+tmp+"}").getBytes(charset));
-                            }else{
+                                send(("{\"result\": " + tmp + "}").getBytes(charset));
+                            } else {
                                 send(tmp);
                             }
-                        }else
+                        } else
                             send("");
                     }
                 }
-            }else {
-                //if it's some other type of object...
-                Object data = method.invoke(controller);
-                HttpResponse response = new HttpResponse(null,data==null?"":data);
-                if(data == null)
+            } else {
+                // if it's some other type of object...
+                final Object data = method.invoke(controller);
+                final HttpResponse response = new HttpResponse(null, data == null ? "" : data);
+                if (data == null)
                     response.setRaw(true);
-                
-                if(response.isRaw()){
+
+                if (response.isRaw()) {
                     send((byte[]) response.getContent());
-                }else{
+                } else {
                     type = response.getType();
-                    if(type == String.class || type == Character.class){
-                        Object content  = response.getContent();
-                        if(content != null){
-                            if(responseWrapper){
-                                JsonObject obj = new JsonObject();
-                                obj.addProperty("result", new String((byte[])content));
+                    if (type == String.class || type == Character.class) {
+                        final Object content = response.getContent();
+                        if (content != null) {
+                            if (responseWrapper) {
+                                final JsonObject obj = new JsonObject();
+                                obj.addProperty("result", new String((byte[]) content));
                                 setHeaderField("Content-Type", "application/json");
                                 send(obj.toString().getBytes(charset));
-                            }else{
-                                send(new String((byte[])content));
+                            } else {
+                                send(new String((byte[]) content));
                             }
-                        }else
+                        } else
                             send("");
-                    }else{
-                        Object content  = response.getContent();
-                        if(content != null){
-                            String tmp = new String((byte[])content).trim();
-                            if(responseWrapper){
+                    } else {
+                        final Object content = response.getContent();
+                        if (content != null) {
+                            final String tmp = new String((byte[]) content).trim();
+                            if (responseWrapper) {
                                 setHeaderField("Content-Type", "application/json");
-                                send(("{\"result\": "+tmp+"}").getBytes(charset));
-                            }else{
+                                send(("{\"result\": " + tmp + "}").getBytes(charset));
+                            } else {
                                 send(tmp);
                             }
-                            
-                        }else
+
+                        } else
                             send("");
                     }
                 }
             }
-        }catch(InvocationTargetException  e){
+        } catch (final InvocationTargetException e) {
             setStatus(STATUS_INTERNAL_SERVER_ERROR);
-            if(sendExceptions){
-                String message = e.getTargetException().getMessage();
-                if(responseWrapper){
-                    JsonObject obj = new JsonObject();
-                    HttpResponse response = new HttpResponse(null,message==null?"":message);
-                    obj.addProperty("exception", new String((byte[])(response.getContent())));
+            if (sendExceptions) {
+                final String message = e.getTargetException().getMessage();
+                if (responseWrapper) {
+                    final JsonObject obj = new JsonObject();
+                    final HttpResponse response = new HttpResponse(null, message == null ? "" : message);
+                    obj.addProperty("exception", new String((byte[]) (response.getContent())));
                     setHeaderField("Content-Type", "application/json");
                     try {
                         send(obj.toString().getBytes(charset));
-                    } catch (UnsupportedEncodingException ex) {
+                    } catch (final UnsupportedEncodingException ex) {
                         send(obj.toString().getBytes());
                     }
-                }else{
+                } else {
                     try {
                         send(message.getBytes(charset));
-                    } catch (UnsupportedEncodingException ex) {
+                    } catch (final UnsupportedEncodingException ex) {
                         send(message.getBytes());
                     }
                 }
-            }
-            else
+            } else
                 send("");
-        }catch(UnsupportedEncodingException | IllegalAccessException | IllegalArgumentException e){
+        } catch (UnsupportedEncodingException | IllegalAccessException | IllegalArgumentException e) {
             setStatus(STATUS_INTERNAL_SERVER_ERROR);
-            if(sendExceptions){
-                String message = e.getMessage();
-                if(responseWrapper){
-                    JsonObject obj = new JsonObject();
-                    HttpResponse response = new HttpResponse(null,message==null?"":message);
-                    obj.addProperty("exception", new String((byte[])(response.getContent())));
+            if (sendExceptions) {
+                final String message = e.getMessage();
+                if (responseWrapper) {
+                    final JsonObject obj = new JsonObject();
+                    final HttpResponse response = new HttpResponse(null, message == null ? "" : message);
+                    obj.addProperty("exception", new String((byte[]) (response.getContent())));
                     setHeaderField("Content-Type", "application/json");
                     try {
                         send(obj.toString().getBytes(charset));
-                    } catch (UnsupportedEncodingException ex) {
+                    } catch (final UnsupportedEncodingException ex) {
                         send(obj.toString().getBytes());
-                    }   
-                }else{
+                    }
+                } else {
                     try {
                         send(message.getBytes(charset));
-                    } catch (UnsupportedEncodingException ex) {
+                    } catch (final UnsupportedEncodingException ex) {
                         send(message.getBytes());
                     }
                 }
-            }
-            else
+            } else
                 send("");
         }
     }
-    
-    private void serveController(String[] location) 
-    throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException{
+
+    private void serveController(String[] location) throws InstantiationException, IllegalAccessException,
+            NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
         args = new String[0];
-        if(location.length == 0 || location.length == 1 && location[0].equals("")){
-            location = new String[]{""};
+        if (location.length == 0 || location.length == 1 && location[0].equals("")) {
+            location = new String[] { "" };
         }
-        try{
-            if(location.length > 0 && !location[0].equals("")){
-                classId = getClassnameIndex(location,getMethod());
-                String[] typedLocation = Stream.concat(Arrays.stream(new String[]{getMethod()}), Arrays.stream(location)).toArray(String[]::new);
-                wo = resolveClassName(classId+1,typedLocation);
+        try {
+            if (location.length > 0 && !location[0].equals("")) {
+                classId = getClassnameIndex(location, getMethod());
+                final String[] typedLocation = Stream
+                        .concat(Arrays.stream(new String[] { getMethod() }), Arrays.stream(location))
+                        .toArray(String[]::new);
+                wo = resolveClassName(classId + 1, typedLocation);
                 cls = Class.forName(wo.getClassname());
                 controller = cls.getDeclaredConstructor().newInstance();
 
-                String methodname = location.length>classId?wo.getMethodname():"main";
-                args = resolveMethodArgs(classId+1, location);
-                try{
+                final String methodname = location.length > classId ? wo.getMethodname() : "main";
+                args = resolveMethodArgs(classId + 1, location);
+                try {
                     method = controller.getClass().getDeclaredMethod(methodname);
-                }catch(NoSuchMethodException ex){
+                } catch (final NoSuchMethodException ex) {
                     args = resolveMethodArgs(classId, location);
                     method = controller.getClass().getDeclaredMethod("main");
                 }
-            }else{
-                try{
-                    //cls = Class.forName(httpDefaultName);
+            } else {
+                try {
+                    // cls = Class.forName(httpDefaultName);
                     cls = Class.forName(httpNotFoundName);
-                }catch(ClassNotFoundException eex){
-                    //cls = Class.forName(httpDefaultNameOriginal);
+                } catch (final ClassNotFoundException eex) {
+                    // cls = Class.forName(httpDefaultNameOriginal);
                     cls = Class.forName(httpNotFoundNameOriginal);
                 }
                 controller = cls.getDeclaredConstructor().newInstance();
                 method = controller.getClass().getDeclaredMethod("main");
             }
-            ((HttpController)controller).setEvent(this);
-            ((HttpController)controller).setArgs(args);
-            ((HttpController)controller).setInput(input);
-            invoke(controller,method);
-        }catch(ClassNotFoundException ex){
-            try{
+            ((HttpController) controller).setEvent(this);
+            ((HttpController) controller).setArgs(args);
+            ((HttpController) controller).setInput(input);
+            invoke(controller, method);
+        } catch (final ClassNotFoundException ex) {
+            try {
                 cls = Class.forName(httpNotFoundName);
-            }catch(ClassNotFoundException eex){
+            } catch (final ClassNotFoundException eex) {
                 cls = Class.forName(httpNotFoundNameOriginal);
             }
             controller = cls.getDeclaredConstructor().newInstance();
             method = controller.getClass().getDeclaredMethod("main");
-            //Method onClose = controller.getClass().getDeclaredMethod("onClose");
-            
-            ((HttpController)controller).setEvent(this);
-            ((HttpController)controller).setArgs(location);
-            ((HttpController)controller).setInput(input);
+            // Method onClose = controller.getClass().getDeclaredMethod("onClose");
+
+            ((HttpController) controller).setEvent(this);
+            ((HttpController) controller).setArgs(location);
+            ((HttpController) controller).setInput(input);
             setStatus(STATUS_NOT_FOUND);
             invoke(controller, method);
         }
     }
-    
+
     @Override
-    void onControllerRequest(StringBuilder url) {
+    void onControllerRequest(final StringBuilder url) {
         try {
             serveController(url.toString().split("/"));
             close();

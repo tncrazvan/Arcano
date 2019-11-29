@@ -25,23 +25,27 @@ public class EmailComposer extends SmtpMessageManager{
     
     
     public boolean submit() throws IOException{
-        String error, eodLine, eodSequence;
-        if(!isReady(read())) return false;
+        String error, eodLine;
+        if (!isReady(read()))
+            return false;
         sayHelo();
-        if(!isOk(read())) return false;
+        if (!isOk(read()))
+            return false;
         sayMailFrom(email.getSender());
-        if(!isOk(read())) return false;
-        
-        for(String recipient : email.getRecipients()){
+        if (!isOk(read()))
+            return false;
+
+        for (String recipient : email.getRecipients()) {
             sayRecipient(recipient);
-            
-            if(!isOk((error = read()))){
-                System.err.println("[WARNING] Server replied with: "+error);
+
+            if (!isOk((error = read()))) {
+                System.err.println("[WARNING] Server replied with: " + error);
             }
         }
         sayData();
-        if(!isEndDataWith((eodLine = read()))) return false;
-        eodSequence = getEndDataWithValue(eodLine);
+        if (!isEndDataWith((eodLine = read())))
+            return false;
+        getEndDataWithValue(eodLine);
         
         sayDataFrom(email.getSender());
         sayDataDate(Common.calendar.getTime().getTime());

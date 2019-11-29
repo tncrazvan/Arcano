@@ -11,7 +11,7 @@ public interface LoaderEventListener {
         public Function todo;
         
         @Override
-        public Void apply(Function<T,Void> todo) {
+        public Void apply(final Function<T, Void> todo) {
             this.todo = todo;
             return null;
         }

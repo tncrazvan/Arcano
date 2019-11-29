@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
  * @author Administrator
  */
 public class Minifier implements JsonTools{
-    private final HashMap<String,Long> updatesMap;
     private final String inputDirName;
     private final File assets;
     private final String outputDirectoryname = "minified";
@@ -23,8 +22,9 @@ public class Minifier implements JsonTools{
     private final File minifiedJS;
     private final File minifiedCSS;
     private File dir;
-    public Minifier(File assetsFile,String inputDirName,String outputSubDirName) throws IOException {
-        this.updatesMap = new HashMap<>();
+
+    public Minifier(File assetsFile, String inputDirName, String outputSubDirName) throws IOException {
+        new HashMap<>();
         this.assets = assetsFile;
         this.inputDirName = inputDirName;
         dir = new File(inputDirName+outputDirectoryname);

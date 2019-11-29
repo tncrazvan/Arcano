@@ -11,18 +11,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
-import com.github.tncrazvan.arcano.Http.HttpHeader;
+
+import javax.xml.bind.DatatypeConverter;
+
 import com.github.tncrazvan.arcano.Common;
 import com.github.tncrazvan.arcano.EventManager;
-import java.util.ArrayList;
-import javax.xml.bind.DatatypeConverter;
+import com.github.tncrazvan.arcano.Http.HttpHeader;
 
 /**
  *
  * @author Razvan
  */
 public abstract class WebSocketManager extends EventManager{
-    private static final ArrayList<WebSocketEvent> subscriptions = new ArrayList<>();
     protected final Socket client;
     protected final HttpHeader clientHeader;
     protected final BufferedReader reader;
@@ -118,20 +118,20 @@ public abstract class WebSocketManager extends EventManager{
 
     private final int FIRST_BYTE = 0, SECOND_BYTE = 1, LENGTH2 = 2, LENGTH8 = 3, MASK = 4, PAYLOAD = 5, DONE = 6;
     private int lengthKey = 0, reading = FIRST_BYTE, lengthIndex = 0, maskIndex = 0, payloadIndex = 0, payloadLength = 0;
-    private boolean fin,rsv1,rsv2,rsv3;
+    //private boolean fin,rsv1,rsv2,rsv3;
     private byte opcode;
     private byte[] payload = null,mask = null,length = null;
-    private final String base = "";
+    //private final String base = "";
     public void unmask(byte b) throws UnsupportedEncodingException, IOException{
         //System.out.println("=================================");
         switch (reading) {
             case FIRST_BYTE:
-                fin = ((b & 0x80) != 0);
-                rsv1 = ((b & 0x40) != 0);
-                rsv2 = ((b & 0x20) != 0);
-                rsv3 = ((b & 0x10) != 0);
+                //fin = ((b & 0x80) != 0);
+                //rsv1 = ((b & 0x40) != 0);
+                //rsv2 = ((b & 0x20) != 0);
+                //rsv3 = ((b & 0x10) != 0);
                 opcode = (byte)(b & 0x0F);
-                if(opcode == 0x8){
+                if(opcode == 0x8){ //fin
                     close();
                 }
                 mask = new byte[4];
