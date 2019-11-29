@@ -1,10 +1,12 @@
 package com.github.tncrazvan.arcano.Http;
 
+import com.github.tncrazvan.arcano.Http2Test;
 import java.io.IOException;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -15,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class HttpEventListener extends HttpRequestReader{
     private Matcher matcher;
-    private static final Pattern 
+    private static final Pattern
             upgradePattern = Pattern.compile("Upgrade"),
             keepAlivePattern = Pattern.compile("keep-alive"),
             websocketPattern = Pattern.compile("websocket"),
@@ -23,7 +25,7 @@ public class HttpEventListener extends HttpRequestReader{
     public HttpEventListener(Socket client) throws IOException, NoSuchAlgorithmException{
         super(client);
     }
-    
+
     @Override
     public void onRequest(HttpHeader clientHeader, byte[] input) {
         if(clientHeader != null && clientHeader.get("Connection")!=null){
@@ -60,7 +62,7 @@ public class HttpEventListener extends HttpRequestReader{
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE,null,ex);
                 }
-            } 
+            }
         }
     }
 }
