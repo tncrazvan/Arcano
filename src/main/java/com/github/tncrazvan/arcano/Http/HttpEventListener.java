@@ -1,6 +1,5 @@
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.Http2Test;
 import java.io.IOException;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
