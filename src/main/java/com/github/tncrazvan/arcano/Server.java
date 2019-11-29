@@ -1,24 +1,16 @@
 package com.github.tncrazvan.arcano;
 
-import static com.github.tncrazvan.arcano.Common.minifier;
-import static com.github.tncrazvan.arcano.Common.minify;
-import com.github.tncrazvan.asciitable.AsciiTable;
-import com.google.gson.JsonObject;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import com.github.tncrazvan.arcano.Http.HttpEventListener;
-import com.github.tncrazvan.arcano.SmtpServer.SmtpServer;
-import com.github.tncrazvan.arcano.Tool.JsonTools;
-import com.github.tncrazvan.arcano.Tool.Minifier;
-import java.io.File;
-import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.time.ZoneId;
@@ -27,6 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -34,6 +27,13 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+
+import com.github.tncrazvan.arcano.Http.HttpEventListener;
+import com.github.tncrazvan.arcano.SmtpServer.SmtpServer;
+import com.github.tncrazvan.arcano.Tool.JsonTools;
+import com.github.tncrazvan.arcano.Tool.Minifier;
+import com.github.tncrazvan.asciitable.AsciiTable;
+import com.google.gson.JsonObject;
 
 /**
  *
