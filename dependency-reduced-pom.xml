@@ -61,6 +61,13 @@
       <url>https://raw.githubusercontent.com/tncrazvan/AsciiTable/maven-repository</url>
     </repository>
   </repositories>
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>Java Arcano</name>
+      <url>https://maven.pkg.github.com/tncrazvan/arcano</url>
+    </repository>
+  </distributionManagement>
   <properties>
     <maven.compiler.target>1.8</maven.compiler.target>
     <maven.compiler.source>1.8</maven.compiler.source>

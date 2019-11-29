@@ -43,8 +43,7 @@ public class Server extends Common implements JsonTools{
     private static SmtpServer smtpServer;
     public static void main (String[] args) throws NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException, IOException{
         Server server = new Server();
-        //server.listen(args);
-        server.listen(new String[]{"C:/Users/Administrator/Projects/HtmlProjects/arcano.tech/http.json"});
+        server.listen(args);
     }
 
     public Server(Class<?>... classes) {
@@ -57,8 +56,7 @@ public class Server extends Common implements JsonTools{
             com.github.tncrazvan.arcano.Controller.Http.Unset.class,
 
             com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class,
-            com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApplicationProgramInterface.class,
-            com.github.tncrazvan.arcano.Controller.WebSocket.Test.class
+            com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApplicationProgramInterface.class
         );
         expose(classes);
     }

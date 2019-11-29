@@ -16,6 +16,14 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+    
+    <distributionManagement>
+        <repository>
+          <id>github</id>
+          <name>Java Arcano</name>
+          <url>https://maven.pkg.github.com/tncrazvan/arcano</url>
+        </repository>
+     </distributionManagement>
     <build>
         <plugins>
             <plugin>
