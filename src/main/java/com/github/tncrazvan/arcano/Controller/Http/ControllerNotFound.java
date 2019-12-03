@@ -17,38 +17,38 @@ import javax.script.ScriptException;
 public class ControllerNotFound extends HttpController{    
     private JavaScriptExecutor executor;
     public void main() throws ScriptException, IOException {
-        String filename = configDir+"/"+scripts+"/Http";
-        if(Files.exists(Path.of(filename))){
+        String dir = configDir+"/"+scripts+"/Http";
+        if(Files.exists(Path.of(dir))){
             if(args.length == 0){
-                if(Files.exists(Path.of(filename+"/.js"))){
+                if(Files.exists(Path.of(dir+"/.js"))){
                     executor = new JavaScriptExecutor();
-                    executor.execute(e, null, filename+"/.js", args, input);
+                    executor.execute(e, null, dir+"/.js", args, input);
                 }else{
                     e.send("");
                 }
             }else{
-                for(short i=0;i<args.length;i++){
-                    filename +="/"+args[i];
+                for(int i=args.length;i>=0;i--){
+                    String filename = dir + "/"+String.join("/", Arrays.copyOfRange(args, 0, i));
                     if(Files.exists(Path.of(filename+".js"))){
-                        String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                        String[] ar = Arrays.copyOfRange(args,i,args.length);
                         executor = new JavaScriptExecutor();
                         executor.execute(e, null, filename+".js", ar, input);
                         break;
                     }
                     if(Files.exists(Path.of(filename+".JS"))){
-                        String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                        String[] ar = Arrays.copyOfRange(args,i,args.length);
                         executor = new JavaScriptExecutor();
                         executor.execute(e, null, filename+".JS", ar, input);
                         break;
                     }
                     if(Files.exists(Path.of(filename+".jS"))){
-                        String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                        String[] ar = Arrays.copyOfRange(args,i,args.length);
                         executor = new JavaScriptExecutor();
                         executor.execute(e, null, filename+".jS", ar, input);
                         break;
                     }
                     if(Files.exists(Path.of(filename+".Js"))){
-                        String[] ar = i==args.length-1?new String[]{}:Arrays.copyOfRange(args,i+1,args.length);
+                        String[] ar = Arrays.copyOfRange(args,i,args.length);
                         executor = new JavaScriptExecutor();
                         executor.execute(e, null, filename+".Js", ar, input);
                         break;

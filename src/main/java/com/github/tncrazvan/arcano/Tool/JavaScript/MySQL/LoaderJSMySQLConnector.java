@@ -22,6 +22,8 @@ public interface LoaderJSMySQLConnector {
             dataSource.setUser(details.get("username").getAsString());
             dataSource.setPassword(details.get("password").getAsString());
             dataSource.setServerName(details.get("hostname").getAsString());
+            if(details.has("database"))
+                dataSource.setDatabaseName(details.get("database").getAsString());
             try {
                 if(mysql != null && !mysql.get().isClosed()){
                     mysql.get().close();

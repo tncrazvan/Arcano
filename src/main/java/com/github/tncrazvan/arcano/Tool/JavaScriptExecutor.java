@@ -49,7 +49,7 @@ public class JavaScriptExecutor extends Common
 
     private static String tail(final String dirname) {
         return "\nfunction header(key,value){server.setHeaderField(key,value);}function status(value){header(\"@Status\",value);}function send(data){try{data=JSON.parse(data);}catch(e){}server.send(data);}\nfunction require(filename){load('"
-                + dirname.replace("\\", "/") + "/'+filename);}\nmain();";
+                + dirname.replace("\\", "/") + "/'+filename);}function echo(value){return send(value);}\nmain();";
     }
 
     // Http
