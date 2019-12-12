@@ -1,4 +1,4 @@
-package com.github.tncrazvan.arcano.Tool.JavaScript.Http;
+package com.github.tncrazvan.arcano.Tool.Http;
 
 import static com.github.tncrazvan.arcano.Common.logger;
 import com.google.gson.JsonObject;
@@ -7,33 +7,33 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.logging.Level;
 
 /**
  *
  * @author Administrator
  */
-public interface LoaderJSHttp {
-    public class JSHttp{
-        public LoaderJSHttpResult.JSHttpResult get(String targetURL){
+public interface Fetch {
+        public default FetchResult get(String targetURL){
             return request("GET", targetURL, null, null);
         }
-        public LoaderJSHttpResult.JSHttpResult get(String targetURL, JsonObject headers){
+        public default FetchResult get(String targetURL, HashMap<String,String> headers){
             return request("GET", targetURL, null, headers);
         }
-        public LoaderJSHttpResult.JSHttpResult post(String targetURL){
+        public default FetchResult post(String targetURL){
             return request("POST", targetURL, null, null);
         }
-        public LoaderJSHttpResult.JSHttpResult post(String targetURL, String data){
+        public default FetchResult post(String targetURL, String data){
             return request("POST", targetURL, data, null);
         }
-        public LoaderJSHttpResult.JSHttpResult post(String targetURL, String data, JsonObject headers){
+        public default FetchResult post(String targetURL, String data, HashMap<String,String> headers){
             return request("POST", targetURL, data, headers);
         }
-        public LoaderJSHttpResult.JSHttpResult request(String method, String targetURL, String data) {
+        public default FetchResult request(String method, String targetURL, String data) {
             return request(method, targetURL, data, null);
         }
-        public LoaderJSHttpResult.JSHttpResult request(String method, String targetURL, String data, JsonObject headers) {
+        public default FetchResult request(String method, String targetURL, String data, HashMap<String,String> headers) {
             try {
                 //Create connection
                 URL url = new URL(targetURL);
@@ -42,7 +42,7 @@ public interface LoaderJSHttp {
                 
                 if(headers != null)
                     headers.keySet().forEach((key) -> {
-                        connection.setRequestProperty(key, headers.get(key).getAsString());
+                        connection.setRequestProperty(key, headers.get(key));
                     });
                 
                 connection.setUseCaches(false);
@@ -57,21 +57,11 @@ public interface LoaderJSHttp {
 
                 //Get Response  
                 InputStream is = connection.getInputStream();
-                /*BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-                StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
-                String line;
-                while ((line = rd.readLine()) != null) {
-                  response.append(line);
-                  response.append('\r');
-                }
-                rd.close();
-                return response.toString();*/
                 
-                return new LoaderJSHttpResult.JSHttpResult(is.readAllBytes());
+                return new FetchResult(is.readAllBytes());
             } catch (IOException e) {
                 logger.log(Level.SEVERE, null, e);
                 return null;
             }
         }
-    }
 }

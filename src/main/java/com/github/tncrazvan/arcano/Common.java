@@ -40,6 +40,7 @@ import com.github.tncrazvan.arcano.Tool.JsonTools;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.arcano.Bean.Match;
+import com.github.tncrazvan.arcano.Tool.Http.Fetch;
 import java.util.concurrent.ThreadPoolExecutor;
 import javax.script.ScriptEngine;
 
