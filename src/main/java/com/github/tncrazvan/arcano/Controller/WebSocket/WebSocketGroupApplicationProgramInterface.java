@@ -1,18 +1,18 @@
 package com.github.tncrazvan.arcano.Controller.WebSocket;
 
-import com.github.tncrazvan.arcano.Bean.Web;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.github.tncrazvan.arcano.Bean.WebPath;
 
 /**
  *
  * @author razvan
  */
-@Web(path = "/WebSocketGroupApplicationProgramInterface")
+@WebPath(name = "/WebSocketGroupApplicationProgramInterface")
 public class WebSocketGroupApplicationProgramInterface extends WebSocketController{
     private String groupName;
     private WebSocketGroup group;

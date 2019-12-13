@@ -29,12 +29,19 @@ public interface JsonTools {
     
     //Object to [...]
     default JsonObject toJsonObject(Object o){
-        return JSON_PARSER.toJsonTree(o).getAsJsonObject();
+        try{
+            return JSON_PARSER.toJsonTree(o).getAsJsonObject();
+        }catch(Exception e){
+            return null;
+        }
     }
     
     //Encode
-    default String jsonEncode(Object o){
+    default String jsonEncodeObject(Object o){
         return toJsonObject(o).toString();
+    }
+    default String jsonEncodeArray(String o){
+        return toJsonArray(o).toString();
     }
     
     //Decode

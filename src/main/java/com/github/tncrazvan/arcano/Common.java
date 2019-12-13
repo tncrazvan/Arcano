@@ -34,15 +34,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import com.github.tncrazvan.arcano.Bean.Web;
 import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import com.google.gson.JsonObject;
-import com.github.tncrazvan.arcano.Bean.Match;
-import com.github.tncrazvan.arcano.Tool.Http.Fetch;
+import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
-import javax.script.ScriptEngine;
+import com.github.tncrazvan.arcano.Bean.WebMethod;
+import com.github.tncrazvan.arcano.Bean.WebPath;
 
 /**
  * 
@@ -50,8 +49,6 @@ import javax.script.ScriptEngine;
  */
 public abstract class Common implements JsonTools{
     public static ThreadPoolExecutor executor;
-    //JavaScript Engine
-    public static ScriptEngine js = null;
     //settings object
     public static final Settings settings = new Settings();
     //settings values
@@ -190,22 +187,25 @@ public abstract class Common implements JsonTools{
             STATUS_NOT_EXTENDED = "510 Not Extended",
             STATUS_NETWORK_AUTHENTICATION_REQUIRED = "511 Network Authentication Required";
     
-    public static void expose(Class<?>... classes) {
+    public void expose(Class<?>... classes) {
         for(Class<?> cls : classes){
             try {
                 if(HttpController.class.isAssignableFrom(cls)){
-                    Web classRoute = (Web) cls.getAnnotation(Web.class);
-                    Match webFilter = (Match) cls.getAnnotation(Match.class);
+                    WebPath classRoute = (WebPath) cls.getAnnotation(WebPath.class);
+                    WebMethod classWebFilter = (WebMethod) cls.getAnnotation(WebMethod.class);
                     Method[] methods = cls.getDeclaredMethods();
                     for(Method method : methods){
-                        Web methodRoute = method.getAnnotation(Web.class);
+                        WebPath methodRoute = method.getAnnotation(WebPath.class);
                         if(methodRoute != null){
-                            String classPath = normalizePathSlashes(classRoute.path().trim());
-                            String methodPath = normalizePathSlashes(methodRoute.path().trim());
-                            String path = classPath.toLowerCase()+methodPath.toLowerCase();
+                            String classPath = normalizePathSlashes(classRoute.name().trim());
+                            String methodPath = normalizePathSlashes(methodRoute.name().trim());
+                            WebMethod methodWebFilter = (WebMethod) method.getAnnotation(WebMethod.class);
+                            if(methodWebFilter == null)
+                                methodWebFilter = classWebFilter;
+                            String path = (classPath.toLowerCase()+methodPath.toLowerCase()).replaceAll("/+", "/");
                             String type;
-                            if(webFilter != null){
-                                type = webFilter.method();
+                            if(methodWebFilter != null){
+                                type = methodWebFilter.name();
                             }else{
                                 type = "GET";
                             }
@@ -224,13 +224,13 @@ public abstract class Common implements JsonTools{
                         }
                     }
                 }else if(WebSocketController.class.isAssignableFrom(cls)){
-                    Web route = (Web) cls.getAnnotation(Web.class);
-                    Match webFilter = (Match) cls.getAnnotation(Match.class);
+                    WebPath route = (WebPath) cls.getAnnotation(WebPath.class);
+                    WebMethod webFilter = (WebMethod) cls.getAnnotation(WebMethod.class);
                     if(route != null){
-                        String path = normalizePathSlashes(route.path().toLowerCase());
+                        String path = normalizePathSlashes(route.name().toLowerCase());
                         String type;
                         if(webFilter != null){
-                            type = webFilter.method().toUpperCase();
+                            type = webFilter.name().toUpperCase();
                         }else{
                             type = "GET";
                         }
@@ -250,6 +250,10 @@ public abstract class Common implements JsonTools{
                 Logger.getLogger(HttpController.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+    
+    public static String uuid(){
+        return UUID.randomUUID().toString().replace("-", "");
     }
     
     public static String normalizePathSlashes(String path){

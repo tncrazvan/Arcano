@@ -85,7 +85,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             } else {
                 // if it's some other type of object...
                 final Object data = method.invoke(controller);
-                final HttpResponse response = new HttpResponse(null, data == null ? "" : data);
+                final HttpResponse response = new HttpResponse(new HashMap<String, String>(){{}}, data == null ? "" : data);
                 if (data == null)
                     response.setRaw(true);
 
@@ -109,7 +109,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     } else {
                         final Object content = response.getContent();
                         if (content != null) {
-                            final String tmp = new String((byte[]) content).trim();
+                            final String tmp = content.toString().trim();
                             if (responseWrapper) {
                                 setHeaderField("Content-Type", "application/json");
                                 send(("{\"result\": " + tmp + "}").getBytes(charset));
@@ -178,32 +178,20 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             location = new String[] { "" };
         }
         try {
-            if (location.length > 0 && !location[0].equals("")) {
-                classId = getClassnameIndex(location, getMethod());
-                final String[] typedLocation = Stream
-                        .concat(Arrays.stream(new String[] { getMethod() }), Arrays.stream(location))
-                        .toArray(String[]::new);
-                wo = resolveClassName(classId + 1, typedLocation);
-                cls = Class.forName(wo.getClassname());
-                controller = cls.getDeclaredConstructor().newInstance();
+            classId = getClassnameIndex(location, getMethod());
+            final String[] typedLocation = Stream
+                    .concat(Arrays.stream(new String[] { getMethod() }), Arrays.stream(location))
+                    .toArray(String[]::new);
+            wo = resolveClassName(classId + 1, typedLocation);
+            cls = Class.forName(wo.getClassname());
+            controller = cls.getDeclaredConstructor().newInstance();
 
-                final String methodname = location.length > classId ? wo.getMethodname() : "main";
-                args = resolveMethodArgs(classId + 1, location);
-                try {
-                    method = controller.getClass().getDeclaredMethod(methodname);
-                } catch (final NoSuchMethodException ex) {
-                    args = resolveMethodArgs(classId, location);
-                    method = controller.getClass().getDeclaredMethod("main");
-                }
-            } else {
-                try {
-                    // cls = Class.forName(httpDefaultName);
-                    cls = Class.forName(httpNotFoundName);
-                } catch (final ClassNotFoundException eex) {
-                    // cls = Class.forName(httpDefaultNameOriginal);
-                    cls = Class.forName(httpNotFoundNameOriginal);
-                }
-                controller = cls.getDeclaredConstructor().newInstance();
+            final String methodname = location.length > classId ? wo.getMethodname() : "main";
+            args = resolveMethodArgs(classId + 1, location);
+            try {
+                method = controller.getClass().getDeclaredMethod(methodname);
+            } catch (final NoSuchMethodException ex) {
+                args = resolveMethodArgs(classId, location);
                 method = controller.getClass().getDeclaredMethod("main");
             }
             ((HttpController) controller).setEvent(this);

@@ -1,6 +1,5 @@
 package com.github.tncrazvan.arcano.Controller.Http;
 
-import com.github.tncrazvan.arcano.Bean.Match;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
 import com.github.tncrazvan.arcano.Http.HttpEvent;
@@ -8,20 +7,21 @@ import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.Http.HttpSession;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
-import com.github.tncrazvan.arcano.Bean.Web;
+import com.github.tncrazvan.arcano.Bean.WebMethod;
+import com.github.tncrazvan.arcano.Bean.WebPath;
 
 /**
  *
  * @author Razvan
  */
-@Web(path="/set")
+@WebPath(name="/set")
 public class Set extends HttpController{
     private static final String 
             GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.",
             GROUPS_POLICY_NOT_DEFINED = "WebSocket groups policy is not defined by the server therefore by default it is disabled.";
 
-    @Web(path="/webSocketGroup")
-    @Match(method="POST")
+    @WebPath(name="/webSocketGroup")
+    @WebMethod(name="POST")
     public void webSocketGroup() throws UnsupportedEncodingException{
         if(settings.isset("groups")){
             JsonObject groups = settings.get("groups").getAsJsonObject();
@@ -51,8 +51,8 @@ public class Set extends HttpController{
         }
     }
     
-    @Web(path="/cookie")
-    @Match(method="POST")
+    @WebPath(name="/cookie")
+    @WebMethod(name="POST")
     public void cookie() throws UnsupportedEncodingException{
         String name = String.join("/", args);
         JsonObject data = toJsonObject(new String(input));

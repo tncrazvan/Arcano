@@ -1,6 +1,8 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.Common;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -22,7 +24,16 @@ public class HttpResponse extends Common{
         raw = false;
         type = content.getClass();
         try{
-            if(type == File.class){
+            if(type == JsonArray.class){
+                if(headers != null && !headers.containsKey("Content-Type")){
+                    headers.put("Content-Type", "application/json");
+                }
+                String tmp = ((JsonArray) content).toString();
+                if(headers != null && !headers.containsKey("Content-Length")){
+                    headers.put("Content-Length", String.valueOf(tmp.length()));
+                }
+                this.content = tmp;
+            }else if(type == File.class){
                 File file = (File) content;
                 if(headers != null && !headers.containsKey("Content-Type")){
                     headers.put("Content-Type", Common.resolveContentType(file.getName()));
@@ -39,7 +50,7 @@ public class HttpResponse extends Common{
                         || type == Long.class){
                 this.content = String.valueOf(content).getBytes(charset);
             }else{
-                this.content = jsonEncode(content).getBytes(charset);
+                this.content = jsonEncodeObject(content).getBytes(charset);
             }
         }catch(UnsupportedEncodingException ex){
             this.content = ex.getMessage().getBytes();

@@ -11,6 +11,7 @@ import com.github.tncrazvan.arcano.Http.HttpController;
 public class ControllerNotFound extends HttpController {  
     
     public String main() {
+        e.setStatus(STATUS_NOT_FOUND);
         return "";
     }
 }

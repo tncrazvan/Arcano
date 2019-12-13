@@ -9,14 +9,14 @@ import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.io.File;
-import com.github.tncrazvan.arcano.Bean.Web;
+import com.github.tncrazvan.arcano.Bean.WebPath;
 /**
  *
  * @author Razvan
  */
-@Web(path = "/get")
+@WebPath(name = "/get")
 public class Get extends HttpController{
-    @Web(path="/file")
+    @WebPath(name="/file")
     public HttpResponse file() throws IOException {
         return new HttpResponse(null,new File(webRoot+String.join("/", args)));
     }
@@ -33,7 +33,7 @@ public class Get extends HttpController{
         
     }
     
-    @Web(path="/allWebSocketGroups")
+    @WebPath(name="/allWebSocketGroups")
     public void allWebSocketGroups(){
         WebSocketGroup group;
         JsonArray arr = new JsonArray();
@@ -55,13 +55,13 @@ public class Get extends HttpController{
         e.send(arr.toString());
     }
     
-    @Web(path="/cookie")
+    @WebPath(name="/cookie")
     public void cookie() throws UnsupportedEncodingException{
         String name = String.join("/", args);
         if(e.issetCookie(name)){
             e.setContentType("application/json");
             
-            String jsonCookie = jsonEncode(new Cookie("Cookie", e.getCookie(name)));
+            String jsonCookie = jsonEncodeObject(new Cookie("Cookie", e.getCookie(name)));
             e.send(jsonCookie);
         }else{
             e.setStatus(STATUS_NOT_FOUND);
