@@ -1,6 +1,5 @@
 package com.github.tncrazvan.arcano.SmtpServer;
 
-import com.github.tncrazvan.arcano.Common;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,6 +9,12 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import static com.github.tncrazvan.arcano.Tool.Regex.regexMatch;
+import static com.github.tncrazvan.arcano.Tool.Regex.regexMatch;
+import static com.github.tncrazvan.arcano.Tool.Regex.regexExtractGroup;
+import static com.github.tncrazvan.arcano.Tool.Regex.regexExtractGroup;
+import static com.github.tncrazvan.arcano.Tool.Regex.regexExtract;
+import static com.github.tncrazvan.arcano.Tool.Regex.regexExtract;
 
 /**
  *
@@ -39,110 +44,110 @@ public abstract class SmtpMessageManager {
     }
     
     protected boolean isNewBoundary(String line, String id){
-        return Common.matchRegex(line, "(?<=^--)"+id);
+        return regexMatch(line, "(?<=^--)"+id);
     }
     protected boolean isLastBoundary(String line, String id){
-        return Common.matchRegex(line, "(?<=^--)"+id+"(?=--$)");
+        return regexMatch(line, "(?<=^--)"+id+"(?=--$)");
     }
     
     protected boolean isReady(String line){
-        return Common.matchRegex(line, "^220");
+        return regexMatch(line, "^220");
     }
     
     protected boolean isOk(String line)  {
-        return Common.matchRegex(line, "^250");
+        return regexMatch(line, "^250");
     }
     
     protected boolean isOkExtended(String line)  {
-        return Common.matchRegex(line, "^250-.+");
+        return regexMatch(line, "^250-.+");
     }
     
     protected boolean isOkSize(String line)  {
-        return Common.matchRegex(line, "^250-SIZE [0-9]+");
+        return regexMatch(line, "^250-SIZE [0-9]+");
     }
     
     protected boolean isOkPipelining(String line)  {
-        return Common.matchRegex(line, "^250-PIPELINING");
+        return regexMatch(line, "^250-PIPELINING");
     }
     
     protected boolean isOkHelp(String line)  {
-        return Common.matchRegex(line, "^250 HELP");
+        return regexMatch(line, "^250 HELP");
     }
     
     protected boolean isEndDataWith(String line)  {
-        return Common.matchRegex(line, "^354");
+        return regexMatch(line, "^354");
     }
     
     protected String getEndDataWithValue(String line){
-        return Common.extractRegexGroup(line, "(?<=\\s)[A-z0-9\\<\\>\\.]+",-1);
+        return regexExtractGroup(line, "(?<=\\s)[A-z0-9\\<\\>\\.]+",-1);
     }
     
     protected boolean isHelo(String line){
-        return Common.matchRegex(line, "^HELO");
+        return regexMatch(line, "^HELO");
     }
     
     protected boolean isEhlo(String line){
-        return Common.matchRegex(line, "^EHLO");
+        return regexMatch(line, "^EHLO");
     }
     
     protected boolean isMailFrom(String line){
-        return Common.matchRegex(line, "^MAIL FROM:");
+        return regexMatch(line, "^MAIL FROM:");
     }
     
     protected String getMailAddress(String line){
-        return Common.extractRegex(line, "(?<=\\z)[A-z0-9!#$%&'*+\\-\\/=?^_`{|}~.]+@[A-z0-9\\-.]+(?=\\>)");
+        return regexExtract(line, "(?<=\\z)[A-z0-9!#$%&'*+\\-\\/=?^_`{|}~.]+@[A-z0-9\\-.]+(?=\\>)");
     }
     
     protected boolean isRecipient(String line){
-        return Common.matchRegex(line, "^RCPT TO:");
+        return regexMatch(line, "^RCPT TO:");
     }
     
     
     protected boolean isData(String line){
-        return Common.matchRegex(line, "^DATA");
+        return regexMatch(line, "^DATA");
     }
     
     protected boolean isEndOfData(String line){
-        return Common.matchRegex(line, "^\\.$");
+        return regexMatch(line, "^\\.$");
     }
     
     protected boolean isQuit(String line){
-        return Common.matchRegex(line, "^QUIT");
+        return regexMatch(line, "^QUIT");
     }
     
     protected boolean isContentType(String line){
-        return Common.matchRegex(line, "^Content-Type");
+        return regexMatch(line, "^Content-Type");
     }
     protected String getContentType(String line){
-        return Common.extractRegex(line, "(?<=^Content-Type:\\s)[A-z0-9]+\\/[A-z0-9]+");
+        return regexExtract(line, "(?<=^Content-Type:\\s)[A-z0-9]+\\/[A-z0-9]+");
     }
     
     protected String getCharset(String line){
-        return Common.extractRegex(line, "(?<=charset=\\\")[A-z0-9\\-\\s]+(?=\\\")");
+        return regexExtract(line, "(?<=charset=\\\")[A-z0-9\\-\\s]+(?=\\\")");
     }
     
     protected boolean isSubject(String line){
-        return Common.matchRegex(line, "^Subject");
+        return regexMatch(line, "^Subject");
     }
     
     protected String getSubject(String line){
-        return Common.extractRegex(line, "(?<=^Subject:).*");
+        return regexExtract(line, "(?<=^Subject:).*");
     }
     
     protected String getBoundary(String line){
-        return Common.extractRegex(line, "(?<=boundary\\=\\\")[A-z0-9]+(?=\\\")");
+        return regexExtract(line, "(?<=boundary\\=\\\")[A-z0-9]+(?=\\\")");
     }
     
     protected boolean isFrom(String line){
-        return Common.matchRegex(line, "^From");
+        return regexMatch(line, "^From");
     }
     
     protected String getNickname(String line){
-        return Common.extractRegex(line, "(?<=From:).+(?=\\<)");
+        return regexExtract(line, "(?<=From:).+(?=\\<)");
     }
     
     protected String jumpOnceAndGetRemaining(String line){
-        return Common.extractRegex(line, "(?<=\\s).+");
+        return regexExtract(line, "(?<=\\s).+");
     }
     
     protected void say(int code, String extra){

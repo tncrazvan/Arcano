@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.SharedObject;
+import static com.github.tncrazvan.arcano.Tool.Time.time;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -13,13 +14,13 @@ import java.util.Map;
  *
  * @author Razvan
  */
-public class HttpHeader extends Common{
+public class HttpHeader extends SharedObject{
     private final Map<String, String> header = new HashMap();
     public Map<String, String[]> cookies = new HashMap();
     public HttpHeader(final boolean createSuccessHeader) {
         if (createSuccessHeader) {
             header.put("@Status", "HTTP/1.1 200 OK");
-            header.put("Date", httpDateFormat.format(time()));
+            header.put("Date", formatHttpDefaultDate.format(time()));
             header.put("Cache-Control", "no-store");
         }
     }
@@ -43,7 +44,7 @@ public class HttpHeader extends Common{
         // Thu, 01 Jan 1970 00:00:00 GMT
         return c[4] + ": " + key + "=" + c[0] + (c[1] == null ? "" : "; path=" + c[1])
                 + (c[2] == null ? "" : "; domain=" + c[2])
-                + (c[3] == null ? "" : "; expires=" + httpDateFormat.format(time)) + "\r\n";
+                + (c[3] == null ? "" : "; expires=" + formatHttpDefaultDate.format(time)) + "\r\n";
     }
 
     @Override
@@ -95,7 +96,7 @@ public class HttpHeader extends Common{
 
     public void setCookie(final String key, final String v, final String path, final String domain, final int expire)
             throws UnsupportedEncodingException {
-        setCookie(key, v, path, domain, httpDateFormat.format(time(expire)));
+        setCookie(key, v, path, domain, formatHttpDefaultDate.format(time(expire)));
     }
 
     public void setCookie(final String key, final String v, String path, final String domain, final String expire)

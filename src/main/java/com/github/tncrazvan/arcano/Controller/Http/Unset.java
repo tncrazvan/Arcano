@@ -8,7 +8,7 @@ import com.github.tncrazvan.arcano.Bean.WebPath;
  *
  * @author Razvan
  */
-@WebPath(name="/unset")
+@WebPath(name="/@unset")
 public class Unset extends HttpController{
     @WebPath(name="/cookie")
     public void cookie() throws UnsupportedEncodingException{

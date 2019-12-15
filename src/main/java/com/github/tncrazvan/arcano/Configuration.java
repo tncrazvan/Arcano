@@ -12,7 +12,7 @@ import java.nio.file.Paths;
  * Containst the settings file objects.
  * @author Razvan
  */
-public class Settings implements JsonTools{
+public class Configuration implements JsonTools{
     private JsonObject info = null;
     
     /**
@@ -21,7 +21,7 @@ public class Settings implements JsonTools{
      * @throws IOException 
      */
     public void parse(String settings) throws IOException{
-        info = toJsonObject(new String(Files.readAllBytes(Paths.get(settings))));
+        info = jsonObject(new String(Files.readAllBytes(Paths.get(settings))));
     }
     
     /**

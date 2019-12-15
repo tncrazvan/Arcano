@@ -29,17 +29,31 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import com.github.tncrazvan.arcano.Http.HttpEventListener;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.SmtpServer.SmtpServer;
+import com.github.tncrazvan.arcano.Tool.Action;
+import com.github.tncrazvan.arcano.Tool.FileSystem;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
 import com.github.tncrazvan.arcano.Tool.Minifier;
+import static com.github.tncrazvan.arcano.Tool.Regex.regexExtract;
 import com.github.tncrazvan.asciitable.AsciiTable;
 import com.google.gson.JsonObject;
+import java.util.regex.Pattern;
+import static com.github.tncrazvan.arcano.Tool.Regex.regexMatch;
+import com.github.tncrazvan.arcano.Tool.ServerFile;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 
 /**
  *
  * @author Razvan
  */
-public class Server extends Common implements JsonTools{
+public class Server extends SharedObject implements JsonTools{
     private static SmtpServer smtpServer;
     public static void main (String[] args) throws NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException, IOException{
         Server server = new Server();
@@ -76,29 +90,72 @@ public class Server extends Common implements JsonTools{
 
         configDir = new File(args[0]).getParent();
 
-        settings.parse(args[0]);
+        config.parse(args[0]);
 
-        if(settings.isset("scripts"))
-            scripts = settings.get("scripts").getAsString();
+        if(config.isset("scripts")){
+            scripts = config.getString("scripts");
+            final StringBuilder currentClassName = new StringBuilder("");
+            final StringBuilder currentFileName = new StringBuilder("");
+            ArrayList<Class<?>> list = new ArrayList<>();
+            FileSystem.explore(new ServerFile(configDir,scripts),true,new Action<File>() {
+                @Override
+                public boolean callback(File f) {
+                    if(f.isDirectory()){
+                        currentClassName.append(currentClassName.toString().equals("")?f.getName():"."+f.getName());
+                        currentFileName.append(currentFileName.toString().equals("")?f.getName():"/"+f.getName());
+                    }
+                    ServerFile file = new ServerFile(f);
+                    if(regexMatch(file.getName(), "\\.java", Pattern.CASE_INSENSITIVE)){
+                        try{
+                            // Prepare source somehow.
+                            String className = regexExtract(f.getName(),".*(?=\\.java(?=$))",Pattern.CASE_INSENSITIVE);
+                            // Save source in .java file.
+                            File root = new File("/java"); // On Windows running on C:\, this is C:\java.
+                            File sourceFile = new File(root, currentFileName+"/"+f.getName());
+                            sourceFile.getParentFile().mkdirs();
+                            Files.write(sourceFile.toPath(), file.read());
 
-        if(settings.isset("compress")){
-            compression = JSON_PARSER.fromJson(settings.get("compress").getAsJsonArray(), String[].class);
+                            // Compile source file.
+                            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+                            compiler.run(System.in, System.out, System.err, sourceFile.getPath());
+
+                            // Load and instantiate compiled class.
+                            URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
+                            Class<?> cls = Class.forName(currentClassName.toString()+"."+className, true, classLoader); // Should print "hello".
+                            currentClassName.replace(0, currentClassName.length(), "");
+                            Object instance = cls.getDeclaredConstructor().newInstance(); // Should print "world".
+                            list.add(instance.getClass());
+                        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | IOException ex) {
+                            LOGGER.log(Level.SEVERE, null, ex);
+                        }
+                    }
+                    return f.isDirectory();
+                }
+            });
+            
+            list.forEach((cls) -> {
+                this.expose(true,cls);
+            });
+        }
+        
+        if(config.isset("compress")){
+            compression = jsonParse(config.get("compress").getAsJsonArray(), String[].class);
         }else{
             compression = new String[]{};
         }
 
 
-        if(settings.isset("responseWrapper"))
-            responseWrapper = settings.get("responseWrapper").getAsBoolean();
+        if(config.isset("responseWrapper"))
+            responseWrapper = config.get("responseWrapper").getAsBoolean();
 
-        if(settings.isset("sendExceptions"))
-            sendExceptions = settings.get("sendExceptions").getAsBoolean();
+        if(config.isset("sendExceptions"))
+            sendExceptions = config.get("sendExceptions").getAsBoolean();
 
-        if(settings.isset("minify"))
-            minify = settings.getInt("minify");
+        if(config.isset("minify"))
+            minify = config.getInt("minify");
 
-        if(settings.isset("threadPoolSize"))
-            threadPoolSize = settings.getInt("threadPoolSize");
+        if(config.isset("threadPoolSize"))
+            threadPoolSize = config.getInt("threadPoolSize");
 
         if(threadPoolSize <= 0){
             executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
@@ -106,24 +163,24 @@ public class Server extends Common implements JsonTools{
             executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threadPoolSize);
         }
 
-        if(settings.isset("locale")){
-            String[] localeTmpString = settings.getString("locale").split("-");
+        if(config.isset("locale")){
+            String[] localeTmpString = config.getString("locale").split("-");
             locale = new Locale(localeTmpString[0],localeTmpString[1]);
         }
 
-        if(settings.isset("timezone"))
-            timezone = ZoneId.of(settings.getString("timezone"));
+        if(config.isset("timezone"))
+            timezone = ZoneId.of(config.getString("timezone"));
 
-        if(settings.isset("port"))
-            port = settings.getInt("port");
+        if(config.isset("port"))
+            port = config.getInt("port");
 
-        if(settings.isset("bindAddress"))
-            bindAddress = settings.getString("bindAddress");
-        else if(settings.isset("bindingAddress"))
-            bindAddress = settings.getString("bindingAddress");
+        if(config.isset("bindAddress"))
+            bindAddress = config.getString("bindAddress");
+        else if(config.isset("bindingAddress"))
+            bindAddress = config.getString("bindingAddress");
 
-        if(settings.isset("webRoot"))
-            webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+settings.getString("webRoot");
+        if(config.isset("webRoot"))
+            webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+config.getString("webRoot");
         else
             webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+webRoot;
 
@@ -133,8 +190,8 @@ public class Server extends Common implements JsonTools{
             webRoot +="/";
         }
 
-        if(settings.isset("assets"))
-            assets = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+settings.getString("assets");
+        if(config.isset("assets"))
+            assets = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+config.getString("assets");
         else
             assets = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+assets;
 
@@ -147,23 +204,23 @@ public class Server extends Common implements JsonTools{
         if(assetsFile.exists())
             minifier = new Minifier(assetsFile,webRoot,"minified");
 
-        if(settings.isset("charset"))
-            charset = settings.getString("charset");
+        if(config.isset("charset"))
+            charset = config.getString("charset");
 
-        if(settings.isset("timeout"))
-            timeout = settings.getInt("timeout");
+        if(config.isset("timeout"))
+            timeout = config.getInt("timeout");
 
-        if(settings.isset("sessionTtl"))
-            sessionTtl = settings.getInt("sessionTtl");
+        if(config.isset("sessionTtl"))
+            sessionTtl = config.getInt("sessionTtl");
 
-        if(settings.isset("wsMtu"))
-            wsMtu = settings.getInt("wsMtu");
+        if(config.isset("webSocketMtu"))
+            webSocketMtu = config.getInt("webSocketMtu");
 
-        if(settings.isset("httpMtu"))
-            httpMtu = settings.getInt("httpMtu");
+        if(config.isset("httpMtu"))
+            httpMtu = config.getInt("httpMtu");
 
-        if(settings.isset("entryPoint"))
-            entryPoint = settings.getString("entryPoint");
+        if(config.isset("entryPoint"))
+            entryPoint = config.getString("entryPoint");
 
         AsciiTable st = new AsciiTable();
         st.add("Key","Value");
@@ -175,7 +232,7 @@ public class Server extends Common implements JsonTools{
         st.add("charset",charset);
         st.add("timeout",""+timeout+" milliseconds");
         st.add("sessionTtl",""+sessionTtl+" seconds");
-        st.add("wsMtu",""+wsMtu+" bytes");
+        st.add("webSocketMtu",""+webSocketMtu+" bytes");
         st.add("httpMtu",""+httpMtu+" bytes");
         st.add("entryPoint",""+entryPoint);
         st.add("minify",minify+" milliseconds");
@@ -184,10 +241,10 @@ public class Server extends Common implements JsonTools{
         st.add("responseWrapper",responseWrapper?"True":"False");
 
         //checking for SMTP server
-        if(settings.isset("smtp")){
+        if(config.isset("smtp")){
             AsciiTable smtpt = new AsciiTable();
             smtpt.add("Attribute","Value");
-            JsonObject smtp = settings.get("smtp").getAsJsonObject();
+            JsonObject smtp = config.get("smtp").getAsJsonObject();
             if(smtp.has("allow")){
                 smtpAllowed = smtp.get("allow").getAsBoolean();
                 smtpt.add("allow",smtp.get("allow").getAsString());
@@ -211,8 +268,8 @@ public class Server extends Common implements JsonTools{
             st.add("smtp",smtpt.toString());
         }
 
-        if(settings.isset("groups")){
-            JsonObject groups = (JsonObject) settings.get("groups");
+        if(config.isset("groups")){
+            JsonObject groups = (JsonObject) config.get("groups");
             groupsAllowed = groups.get("allow").getAsBoolean();
         }
         AsciiTable gt = new AsciiTable();
@@ -220,8 +277,8 @@ public class Server extends Common implements JsonTools{
         gt.add("allow",groupsAllowed?"True":"False");
         st.add("groups",gt.toString());
 
-        if(settings.isset("certificate")){
-            JsonObject certificate_obj = settings.get("certificate").getAsJsonObject();
+        if(config.isset("certificate")){
+            JsonObject certificate_obj = config.get("certificate").getAsJsonObject();
 
 
             String certificate_name = certificate_obj.get("name").getAsString();
@@ -253,7 +310,7 @@ public class Server extends Common implements JsonTools{
 
             System.err.println(st.toString());
             while(listen){
-                executor.submit(new HttpEventListener(ssl.accept()));
+                executor.submit(new HttpEventListener(this,ssl.accept()));
             }
         }else{
             ServerSocket ss = new ServerSocket();
@@ -264,7 +321,7 @@ public class Server extends Common implements JsonTools{
 
             AsciiTable routesTable = new AsciiTable();
             routesTable.add("Path");
-            routes.entrySet().forEach((entry) -> {
+            ROUTES.entrySet().forEach((entry) -> {
                 routesTable.add(entry.getKey());
             });
             st.add("Routes",routesTable.toString());
@@ -272,7 +329,7 @@ public class Server extends Common implements JsonTools{
             System.out.println(st.toString());
 
             while(listen){
-                executor.submit(new HttpEventListener(ss.accept()));
+                executor.submit(new HttpEventListener(this,ss.accept()));
             }
         }
 

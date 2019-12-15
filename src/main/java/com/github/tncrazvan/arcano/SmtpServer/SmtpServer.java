@@ -1,6 +1,6 @@
 package com.github.tncrazvan.arcano.SmtpServer;
 
-import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.SharedObject;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -11,7 +11,7 @@ import java.util.logging.Level;
  *
  * @author razvan
  */
-public class SmtpServer extends Common implements Runnable{
+public class SmtpServer extends SharedObject implements Runnable{
 
     /**
      * @param args the command line arguments
@@ -38,7 +38,7 @@ public class SmtpServer extends Common implements Runnable{
                 EmailReader emailReader = new EmailReader(this,ss.accept(),listeners);
                 emailReader.parse();
             } catch (IOException ex) {
-                logger.log(Level.SEVERE,null,ex);
+                LOGGER.log(Level.SEVERE,null,ex);
             }
         }
     }

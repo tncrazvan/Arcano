@@ -8,8 +8,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import com.github.tncrazvan.arcano.Http.HttpHeader;
-import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.Http.HttpSession;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.WebObject;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -42,9 +43,9 @@ public class WebSocketEvent extends WebSocketManager{
             ((WebSocketController)controller).setArgs(args);
         }catch(ClassNotFoundException ex){
             try{
-                cls = Class.forName(wsNotFoundName);
+                cls = Class.forName(so.webSocketNotFoundName);
             }catch(ClassNotFoundException eex){
-                cls = Class.forName(wsNotFoundNameOriginal);
+                cls = Class.forName(so.webSocketNotFoundNameOriginal);
             }
             controller = cls.getDeclaredConstructor().newInstance();
             ((WebSocketController)controller).setArgs(location);
@@ -57,8 +58,8 @@ public class WebSocketEvent extends WebSocketManager{
         onCloseMethod = controller.getClass().getMethod("onClose");
     }
     
-    public WebSocketEvent(BufferedReader reader,Socket client,HttpHeader clientHeader) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
-        super(reader,client,clientHeader);
+    public WebSocketEvent(SharedObject so,BufferedReader reader,Socket client,HttpHeader clientHeader) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
+        super(so,reader,client,clientHeader);
         serveController(location.toString().split("/"));
     }
 
@@ -66,16 +67,16 @@ public class WebSocketEvent extends WebSocketManager{
     @Override
     protected void onOpen() {        
         try {
-            if(Common.WS_EVENTS.get(cls.getCanonicalName()) == null){
+            if(so.WEB_SOCKET_EVENTS.get(cls.getCanonicalName()) == null){
                 ArrayList<WebSocketEvent> tmp = new ArrayList<>();
                 tmp.add(this);
-                Common.WS_EVENTS.put(cls.getCanonicalName(), tmp);
+                so.WEB_SOCKET_EVENTS.put(cls.getCanonicalName(), tmp);
             }else{
-                Common.WS_EVENTS.get(cls.getCanonicalName()).add(this);
+                so.WEB_SOCKET_EVENTS.get(cls.getCanonicalName()).add(this);
             }
             onOpenMethod.invoke(controller);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            logger.log(Level.SEVERE,null,ex);
+            LOGGER.log(Level.SEVERE,null,ex);
         }
     }
 
@@ -84,7 +85,7 @@ public class WebSocketEvent extends WebSocketManager{
         try {
             onMessageMethod.invoke(controller,data);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            logger.log(Level.SEVERE,null,ex);
+            LOGGER.log(Level.SEVERE,null,ex);
         }
 
     }
@@ -92,10 +93,10 @@ public class WebSocketEvent extends WebSocketManager{
     @Override
     protected void onClose() {
         try {
-            Common.WS_EVENTS.get(cls.getCanonicalName()).remove(this);
+            so.WEB_SOCKET_EVENTS.get(cls.getCanonicalName()).remove(this);
             onCloseMethod.invoke(controller);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            logger.log(Level.SEVERE,null,ex);
+            LOGGER.log(Level.SEVERE,null,ex);
         }
     }
     

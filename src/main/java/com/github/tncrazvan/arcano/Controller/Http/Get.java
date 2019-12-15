@@ -10,15 +10,17 @@ import java.io.UnsupportedEncodingException;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.io.File;
 import com.github.tncrazvan.arcano.Bean.WebPath;
+import com.github.tncrazvan.arcano.Tool.JsonTools;
+import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
 /**
  *
  * @author Razvan
  */
-@WebPath(name = "/get")
-public class Get extends HttpController{
+@WebPath(name = "/@get")
+public class Get extends HttpController implements JsonTools{
     @WebPath(name="/file")
     public HttpResponse file() throws IOException {
-        return new HttpResponse(null,new File(webRoot+String.join("/", args)));
+        return new HttpResponse(null,new File(so.webRoot+String.join("/", args)));
     }
     
     class Cookie{
@@ -60,8 +62,7 @@ public class Get extends HttpController{
         String name = String.join("/", args);
         if(e.issetCookie(name)){
             e.setContentType("application/json");
-            
-            String jsonCookie = jsonEncodeObject(new Cookie("Cookie", e.getCookie(name)));
+            String jsonCookie = jsonStringify(new Cookie("Cookie", e.getCookie(name)));
             e.send(jsonCookie);
         }else{
             e.setStatus(STATUS_NOT_FOUND);

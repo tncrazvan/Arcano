@@ -8,7 +8,7 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
-import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.SharedObject;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -20,7 +20,7 @@ import javax.net.ssl.SSLSocket;
  *
  * @author Razvan
  */
-public abstract class HttpRequestReader extends Common implements Runnable{
+public abstract class HttpRequestReader extends SharedObject implements Runnable{
     protected Socket client=null;
     protected SSLSocket secureClient=null;
     protected BufferedReader reader=null;
@@ -120,7 +120,7 @@ public abstract class HttpRequestReader extends Common implements Runnable{
             try {
                 client.close();
             } catch (IOException ex1) {
-                logger.log(Level.SEVERE,null,ex);
+                LOGGER.log(Level.SEVERE,null,ex);
             }
         }
     }

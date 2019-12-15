@@ -1,12 +1,12 @@
 package com.github.tncrazvan.arcano.WebSocket;
 
-import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.SharedObject;
 
 /**
  *
  * @author razvan
  */
-public abstract class WebSocketController extends Common{
+public abstract class WebSocketController extends SharedObject{
     protected WebSocketEvent event,e;
     protected String[] args;
     

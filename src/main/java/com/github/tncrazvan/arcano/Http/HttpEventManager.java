@@ -7,8 +7,16 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.logging.Level;
 import com.github.tncrazvan.arcano.EventManager;
+import com.github.tncrazvan.arcano.SharedObject;
+import static com.github.tncrazvan.arcano.SharedObject.DEFLATE;
+import static com.github.tncrazvan.arcano.SharedObject.GZIP;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.Tool.Deflate;
 import com.github.tncrazvan.arcano.Tool.Gzip;
+import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
+import static com.github.tncrazvan.arcano.Tool.MultipartFormData.generateMultipartBoundary;
+import static com.github.tncrazvan.arcano.Tool.Status.STATUS_PARTIAL_CONTENT;
+import static com.github.tncrazvan.arcano.Tool.Time.time;
 import java.io.DataOutputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -26,8 +34,8 @@ public abstract class HttpEventManager extends EventManager{
     protected boolean isDir = false;
     private final String acceptEncoding;
     private final String encodingLabel;
-    public HttpEventManager(DataOutputStream output, HttpHeader clientHeader,Socket client,byte[] input) throws UnsupportedEncodingException {
-        super(client,clientHeader);
+    public HttpEventManager(SharedObject so,DataOutputStream output, HttpHeader clientHeader,Socket client,byte[] input) throws UnsupportedEncodingException {
+        super(so,client,clientHeader);
         this.output = output;
         this.input=input;
         if(this.clientHeader.isDefined("Accept-Encoding")){
@@ -50,7 +58,7 @@ public abstract class HttpEventManager extends EventManager{
         try {
             client.close();
         } catch (IOException ex) {
-            logger.log(Level.WARNING,null,ex);
+            LOGGER.log(Level.WARNING,null,ex);
         }
     }
     
@@ -86,11 +94,11 @@ public abstract class HttpEventManager extends EventManager{
     
     public boolean execute() throws IOException{
         findUserLanguages();
-        File f = new File(webRoot+location);
+        File f = new File(so.webRoot+location);
         if(f.exists()){
             if(!f.isDirectory()){
                 header.set("Content-Type", resolveContentType(location.toString()));
-                header.set("Last-Modified",httpDateFormat.format(time(f.lastModified())));
+                header.set("Last-Modified",so.formatHttpDefaultDate.format(time(f.lastModified())));
                 header.set("Last-Modified-Timestamp",f.lastModified()+"");
                 sendFileContents(f);
             }else{
@@ -127,7 +135,7 @@ public abstract class HttpEventManager extends EventManager{
     public void sendHeaders(){
         firstMessage = false;
         try {
-            output.write((header.toString()+"\r\n").getBytes(charset));
+            output.write((header.toString()+"\r\n").getBytes(so.charset));
             output.flush();
             alive = true;
         } catch (IOException ex) {
@@ -140,7 +148,7 @@ public abstract class HttpEventManager extends EventManager{
     public void send(byte[] data) {
         if(alive){
             try {
-                for(String cmpr : compression){
+                for(String cmpr : so.compression){
                     switch(cmpr){
                         case DEFLATE:
                             if(acceptEncoding.matches(".+"+cmpr+".*")){
@@ -184,9 +192,9 @@ public abstract class HttpEventManager extends EventManager{
             if(data == null)
                 data = "";
             
-            send(data.getBytes(charset));
+            send(data.getBytes(so.charset));
         } catch (UnsupportedEncodingException ex) {
-            logger.log(Level.SEVERE,null,ex);
+            LOGGER.log(Level.SEVERE,null,ex);
         }
     }
     
@@ -198,7 +206,7 @@ public abstract class HttpEventManager extends EventManager{
     }
     
     public void sendFileContents(String filename) throws IOException{
-        sendFileContents(new File(webRoot,filename));
+        sendFileContents(new File(so.webRoot,filename));
     }
     
     public void disableDefaultHeaders(){
@@ -226,7 +234,7 @@ public abstract class HttpEventManager extends EventManager{
                 int fileLength = (int) raf.length();
                 
                 if(clientHeader.isDefined("Range")){
-                    setStatus(HttpEvent.STATUS_PARTIAL_CONTENT);
+                    setStatus(STATUS_PARTIAL_CONTENT);
                     String[] ranges = clientHeader.get("Range").split("=")[1].split(",");
                     int[] rangeStart = new int[ranges.length];
                     int[] rangeEnd = new int[ranges.length];
@@ -263,20 +271,20 @@ public abstract class HttpEventManager extends EventManager{
                             dos.writeUTF("--"+boundary+"\r\n");
                             dos.writeUTF("Content-Type: "+ctype+"\r\n");
                             dos.writeUTF("Content-Range: bytes "+start+"-"+end+"/"+fileLength+"\r\n\r\n");
-                            if(end-start+1 > httpMtu){
+                            if(end-start+1 > so.httpMtu){
                                 int remainingBytes = end-start+1;
-                                buffer = new byte[httpMtu];
+                                buffer = new byte[so.httpMtu];
                                 raf.seek(start);
                                 while(remainingBytes > 0){
                                     raf.read(buffer);
                                     dos.write(buffer);
-                                    remainingBytes -= httpMtu;
+                                    remainingBytes -= so.httpMtu;
                                     if(remainingBytes < 0){
-                                        buffer = new byte[remainingBytes+httpMtu];
+                                        buffer = new byte[remainingBytes+so.httpMtu];
                                         dos.write(buffer);
                                         remainingBytes = 0;
                                     }else{
-                                        buffer = new byte[httpMtu];
+                                        buffer = new byte[so.httpMtu];
                                     }
                                 }
                                 
@@ -321,7 +329,7 @@ public abstract class HttpEventManager extends EventManager{
                 }
             }
         } catch (FileNotFoundException ex) {
-            logger.log(Level.INFO,null,ex);
+            LOGGER.log(Level.INFO,null,ex);
         } catch (IOException ex) {
             //ex.printStackTrace();
             System.out.println("Client "+client.getInetAddress().toString()+" disconnected before receiving the whole file ("+f.getName()+")");

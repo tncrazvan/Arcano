@@ -2,7 +2,7 @@ package com.github.tncrazvan.arcano;
 
 import com.github.tncrazvan.arcano.Http.HttpHeader;
 import com.github.tncrazvan.arcano.Http.HttpSession;
-import com.github.tncrazvan.arcano.Http.HttpSessionManager;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URLDecoder;
@@ -17,7 +17,7 @@ import java.util.Map;
  * and read cookie, and more.
  * @author razvan
  */
-public abstract class EventManager extends Common{
+public abstract class EventManager{
     protected final HttpHeader clientHeader;
     protected final Map<String,String> queryString = new HashMap<>();
     protected final StringBuilder location = new StringBuilder();
@@ -25,13 +25,16 @@ public abstract class EventManager extends Common{
     protected final HttpHeader header;
     protected final Socket client;
     protected HttpSession session = null;
-    public EventManager(Socket client, HttpHeader clientHeader) throws UnsupportedEncodingException {
+    public final SharedObject so;
+    public static final File root = new File("/java");
+    public EventManager(SharedObject so,Socket client, HttpHeader clientHeader) throws UnsupportedEncodingException {
+        this.so=so;
         this.client=client;
         header = new HttpHeader();
         this.clientHeader=clientHeader;
         String uri = clientHeader.get("@Resource");
         try{
-            uri = URLDecoder.decode(uri,charset);
+            uri = URLDecoder.decode(uri,so.charset);
         }catch(IllegalArgumentException ex){}
         
         String[] ruiParts = uri.split("\\?|\\&",2);
@@ -53,18 +56,18 @@ public abstract class EventManager extends Common{
     }
     
     public boolean issetSession() throws UnsupportedEncodingException{
-        return (issetCookie("sessionId") && HttpSessionManager.issetSession(getCookie("sessionId")));
+        return (issetCookie("sessionId") && so.sessions.issetSession(getCookie("sessionId")));
     }
     
     public HttpSession startSession() throws UnsupportedEncodingException{
-        session = HttpSessionManager.startSession(this);
+        session = so.sessions.startSession(this,so.sessionTtl);
         return session;
     }
     
     public void stopSession() throws UnsupportedEncodingException{
         if(session == null) session = startSession();
         if(issetSession())
-            HttpSessionManager.stopSession(session);
+            so.sessions.stopSession(session);
     }
     
     public Socket getClient(){
@@ -77,7 +80,7 @@ public abstract class EventManager extends Common{
         String tmp;
         for(int i=location.length;i>0;i--){
             tmp = httpMethod+"/"+String.join("/", Arrays.copyOf(location, i)).toLowerCase();
-            if(Common.routes.containsKey(tmp) && Common.routes.get(tmp).getHttpMethod().equals(httpMethod)){
+            if(SharedObject.ROUTES.containsKey(tmp) && SharedObject.ROUTES.get(tmp).getHttpMethod().equals(httpMethod)){
                 return i-1;
             }
         }
@@ -93,7 +96,7 @@ public abstract class EventManager extends Common{
                 classname += location[i];
         }
         
-        return Common.routes.get(classname);
+        return SharedObject.ROUTES.get(classname);
     }
     
     protected String[] resolveMethodArgs(int offset, String[] location){

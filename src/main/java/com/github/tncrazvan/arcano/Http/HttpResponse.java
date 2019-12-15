@@ -1,8 +1,11 @@
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.SharedObject;
+import com.github.tncrazvan.arcano.Tool.Action;
+import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
+import com.github.tncrazvan.arcano.Tool.JsonTools;
+import com.github.tncrazvan.arcano.Tool.ServerFile;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,12 +17,23 @@ import java.util.HashMap;
  *
  * @author Administrator
  */
-public class HttpResponse extends Common{
+public class HttpResponse extends SharedObject implements JsonTools{
     private final HashMap<String,String> headers;
     private Object content;
     private final Class<?> type;
     private boolean raw;
+    private Action<Void> action = null;
 
+    public HttpResponse then(Action<Void> action){
+        this.action = action;
+        return this;
+    }
+    
+    public void todo(){
+        if(action != null)
+            action.callback(null);
+    }
+    
     public HttpResponse(HashMap<String,String> headers, Object content) {
         raw = false;
         type = content.getClass();
@@ -33,10 +47,10 @@ public class HttpResponse extends Common{
                     headers.put("Content-Length", String.valueOf(tmp.length()));
                 }
                 this.content = tmp;
-            }else if(type == File.class){
+            }else if(type == File.class || type == ServerFile.class){
                 File file = (File) content;
                 if(headers != null && !headers.containsKey("Content-Type")){
-                    headers.put("Content-Type", Common.resolveContentType(file.getName()));
+                    headers.put("Content-Type", resolveContentType(file.getName()));
                 }
                 if(headers != null && !headers.containsKey("Content-Length")){
                     headers.put("Content-Length", String.valueOf(file.length()));
@@ -49,8 +63,10 @@ public class HttpResponse extends Common{
                         || type == Byte.class || type == Character.class || type == Short.class
                         || type == Long.class){
                 this.content = String.valueOf(content).getBytes(charset);
-            }else{
-                this.content = jsonEncodeObject(content).getBytes(charset);
+            }else if(type == byte[].class){
+                this.content = content;
+            }else {
+                this.content = jsonStringify(content).getBytes(charset);
             }
         }catch(UnsupportedEncodingException ex){
             this.content = ex.getMessage().getBytes();
@@ -76,8 +92,14 @@ public class HttpResponse extends Common{
         return headers;
     }
 
-    public Object getContent() {
+    public Object getContent(boolean todo) {
+        if(todo)
+            this.todo();
         return content;
+    }
+    
+    public Object getContent() {
+        return getContent(false);
     }
     
     public void setRaw(boolean value){

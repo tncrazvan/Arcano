@@ -1,13 +1,15 @@
 package com.github.tncrazvan.arcano.Tool;
 
-import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.SharedObject;
+import static com.github.tncrazvan.arcano.Tool.Base64.btoa;
+import static com.github.tncrazvan.arcano.Tool.Hashing.getSha512String;
 import com.google.gson.JsonObject;
 
 /**
  *
  * @author Administrator
  */
-public class JwtMessage extends Common implements JsonTools{
+public class JwtMessage extends SharedObject implements JsonTools{
     private static final String SECRET = "";
     private final JsonObject header = new JsonObject();
     private final JsonObject body;
@@ -16,10 +18,10 @@ public class JwtMessage extends Common implements JsonTools{
         header.addProperty("alg", "HS512");
         header.addProperty("typ", "JWT");
         this.body = body;
-        String header64 = btoa(this.header.toString());
-        String body64 = btoa(this.body.toString());
+        String header64 = btoa(this.header.toString(),charset);
+        String body64 = btoa(this.body.toString(),charset);
         this.contents = header64+"."+body64;
-        String token = btoa(getSha512String(this.contents, SECRET));
+        String token = btoa(getSha512String(this.contents, SECRET, charset),charset);
         
         this.contents = this.contents+"."+token;
     }
@@ -29,9 +31,9 @@ public class JwtMessage extends Common implements JsonTools{
     public JsonObject getHeader(){return header;}
     public JsonObject getBody(){return body;}
     
-    public static boolean verify(String message){
+    public static boolean verify(String message,String charset){
         String[] pieces = message.split("\\.");
         if(pieces.length < 3) return false;
-        return btoa(getSha512String(pieces[0]+"."+pieces[1], SECRET)).equals(pieces[2]);
+        return btoa(getSha512String(pieces[0]+"."+pieces[1], SECRET,charset),charset).equals(pieces[2]);
     }
 }

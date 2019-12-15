@@ -1,7 +1,9 @@
 package com.github.tncrazvan.arcano.WebSocket;
 
-import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.Http.HttpSession;
+import static com.github.tncrazvan.arcano.Tool.Hashing.getBCryptString;
+import static com.github.tncrazvan.arcano.Tool.Hashing.validateBCryptString;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +23,7 @@ public class WebSocketGroup {
     private String name;
 
     public WebSocketGroup(HttpSession session) {
-        this.key = Common.getBCryptString(session.id());
+        this.key = getBCryptString(session.id());
     }
     
     public void setGroupName(String name){
@@ -80,6 +82,6 @@ public class WebSocketGroup {
     }
     
     public boolean matchCreator(WebSocketEvent e){
-        return Common.validateBCryptString(e.session.id(), key);
+        return validateBCryptString(e.session.id(), key);
     }
 }

@@ -1,7 +1,8 @@
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.EventManager;
+import static com.github.tncrazvan.arcano.Tool.Hashing.getSha1String;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,15 +11,14 @@ import java.util.Map;
  *
  * @author razvan
  */
-public class HttpSession extends Common{
-    public static final Map<String,HttpSession> LIST = new HashMap<>();
+public class HttpSession extends SharedObject{
     private long time;
     private final String id;
     private final Map<String,Object> STORAGE = new HashMap<>();
     
     
     protected HttpSession(EventManager e) throws UnsupportedEncodingException {
-        id = getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random());
+        id = getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random(),charset);
         e.setCookie("sessionId", id, "/");
         this.time = System.currentTimeMillis();
     }

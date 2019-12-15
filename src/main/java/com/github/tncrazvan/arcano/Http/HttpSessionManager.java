@@ -2,18 +2,19 @@ package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.EventManager;
 import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
  * @author Razvan
  */
-public class HttpSessionManager extends HttpSession{
+public class HttpSessionManager {
+    public final Map<String,HttpSession> LIST = new HashMap<>();
     
-    private HttpSessionManager(EventManager e) throws UnsupportedEncodingException {
-        super(e);
-    }
+    public HttpSessionManager() {}
     
-    public static HttpSession startSession(EventManager e) throws UnsupportedEncodingException, UnsupportedEncodingException{
+    public HttpSession startSession(EventManager e,long sessionTtl) throws UnsupportedEncodingException, UnsupportedEncodingException{
         if(e.issetCookie("sessionId")){//if session_id is set
             final String sessionId = e.getCookie("sessionId");
             if(LIST.containsKey(sessionId)){//if session exists
@@ -32,19 +33,19 @@ public class HttpSessionManager extends HttpSession{
         return session;
     }
     
-    public static HttpSession getSession(String sessionId){
+    public HttpSession getSession(String sessionId){
         return LIST.get(sessionId);
     }
     
-    public static void setSession(HttpSession session){
+    public void setSession(HttpSession session){
         LIST.put(session.id(), session);
     }
     
-    public static boolean issetSession(String sessionId){
+    public boolean issetSession(String sessionId){
         return LIST.containsKey(sessionId);
     }
     
-    public static void stopSession(HttpSession session){
+    public void stopSession(HttpSession session){
         LIST.remove(session.id());
     }
 }

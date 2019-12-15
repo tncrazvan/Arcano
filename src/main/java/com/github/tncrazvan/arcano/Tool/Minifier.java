@@ -84,7 +84,7 @@ public class Minifier implements JsonTools{
         css = "";
         JsonArray arr = new JsonArray();
         try (FileInputStream fis = new FileInputStream(assets)) {
-            arr = toJsonArray(new String(fis.readAllBytes())).getAsJsonArray();
+            arr = jsonArray(new String(fis.readAllBytes()));
             fis.close();
         }
         size = arr.size();

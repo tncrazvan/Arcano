@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano.SmtpServer;
 
-import com.github.tncrazvan.arcano.Common;
+import com.github.tncrazvan.arcano.SharedObject;
+import static com.github.tncrazvan.arcano.Tool.MultipartFormData.generateMultipartBoundary;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -48,10 +49,10 @@ public class EmailComposer extends SmtpMessageManager{
         getEndDataWithValue(eodLine);
         
         sayDataFrom(email.getSender());
-        sayDataDate(Common.calendar.getTime().getTime());
+        sayDataDate(SharedObject.CALENDAR.getTime().getTime());
         sayDataSubject(email.getSubject());
         sayDataTo((String[]) email.getRecipients().toArray());
-        setMultipartBoundaryId(Common.generateMultipartBoundary());
+        setMultipartBoundaryId(generateMultipartBoundary());
         sayDataContentType(); // Content-Type:multipart/alternative
         sayNothing();
         sayDataFrames(email.getFrames());

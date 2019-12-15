@@ -1,6 +1,5 @@
 package com.github.tncrazvan.arcano.Tool.Http;
 
-import static com.github.tncrazvan.arcano.Common.logger;
 import com.google.gson.JsonObject;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -9,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.logging.Level;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 
 /**
  *
@@ -60,7 +60,7 @@ public interface Fetch {
                 
                 return new FetchResult(is.readAllBytes());
             } catch (IOException e) {
-                logger.log(Level.SEVERE, null, e);
+                LOGGER.log(Level.SEVERE, null, e);
                 return null;
             }
         }

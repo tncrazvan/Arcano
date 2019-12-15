@@ -1,6 +1,5 @@
 package com.github.tncrazvan.arcano.Tool.Http;
 
-import static com.github.tncrazvan.arcano.Common.charset;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -18,7 +17,7 @@ public class FetchResult{
         return data;
     }
 
-    public String getString() throws UnsupportedEncodingException{
+    public String getString(String charset) throws UnsupportedEncodingException{
         return new String(data,charset);
     }
 

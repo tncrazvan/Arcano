@@ -5,13 +5,13 @@
  */
 package com.github.tncrazvan.arcano.Tool;
 
-import static com.github.tncrazvan.arcano.Common.charset;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.util.Map;
 
@@ -21,19 +21,39 @@ import java.util.Map;
  */
 public class ServerFile extends File{
 
+    public ServerFile(File parent, File file){
+        super(parent,file.getAbsolutePath());
+    }
+    
+    public ServerFile(File file){
+        super(file.getAbsolutePath());
+    }
+    
+    public ServerFile(URI filename) {
+        super(filename);
+    }
+    
     public ServerFile(String filename) {
         super(filename);
     }
+    
+    public ServerFile(String parent,String filename) {
+        super(parent,filename);
+    }
 
+    public ServerFile(File parent,String filename) {
+        super(parent,filename);
+    }
 
     public byte[] read() throws FileNotFoundException, IOException{
-        FileInputStream fis = new FileInputStream(this);
-        byte[] result = fis.readAllBytes();
-        fis.close();
+        byte[] result;
+        try (FileInputStream fis = new FileInputStream(this)) {
+            result = fis.readAllBytes();
+        }
         return result;
     }
 
-    public void write(String contents) throws UnsupportedEncodingException, IOException{
+    public void write(String contents,String charset) throws UnsupportedEncodingException, IOException{
         write(contents.getBytes(charset));
     }
 

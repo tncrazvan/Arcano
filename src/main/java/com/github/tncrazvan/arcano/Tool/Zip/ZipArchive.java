@@ -5,8 +5,6 @@
  */
 package com.github.tncrazvan.arcano.Tool.Zip;
 
-import static com.github.tncrazvan.arcano.Common.charset;
-import static com.github.tncrazvan.arcano.Common.logger;
 import com.github.tncrazvan.arcano.Tool.ServerFile;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -15,6 +13,7 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 
 /**
  *
@@ -41,7 +40,7 @@ import java.util.zip.ZipOutputStream;
 
     }
 
-    public void addEntry(String filename, String contents) throws IOException{
+    public void addEntry(String filename, String contents, String charset) throws IOException{
         addEntry(filename, contents.getBytes(charset));
     }
 
@@ -62,7 +61,7 @@ import java.util.zip.ZipOutputStream;
                     out.write(e.data, 0, e.data.length);
                     out.closeEntry();
                 } catch (IOException ex) {
-                    logger.log(Level.SEVERE, null, ex);
+                    LOGGER.log(Level.SEVERE, null, ex);
                 }
             });
         }

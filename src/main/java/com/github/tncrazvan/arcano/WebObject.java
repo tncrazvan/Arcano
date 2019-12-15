@@ -8,11 +8,13 @@ public class WebObject {
     private String classname=null;
     private String methodname=null;
     private String httpMethod="GET";
+    private boolean isRuntime;
     
-    public WebObject(String classname, String methodname, String httpMethod) {
+    public WebObject(String classname, String methodname, String httpMethod, boolean isRuntime) {
         this.classname = classname;
         this.methodname = methodname;
         this.httpMethod = httpMethod;
+        this.isRuntime = isRuntime;
     }
     
     public void setClassname(String classname) {
@@ -37,5 +39,9 @@ public class WebObject {
     
     public String getHttpMethod(){
         return httpMethod;
+    }
+    
+    public boolean isRuntime(){
+        return isRuntime;
     }
 }
