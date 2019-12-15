@@ -29,24 +29,13 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import com.github.tncrazvan.arcano.Http.HttpEventListener;
-import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.SmtpServer.SmtpServer;
-import com.github.tncrazvan.arcano.Tool.Action;
-import com.github.tncrazvan.arcano.Tool.FileSystem;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
 import com.github.tncrazvan.arcano.Tool.Minifier;
-import com.github.tncrazvan.arcano.Tool.Regex;
 import com.github.tncrazvan.asciitable.AsciiTable;
 import com.google.gson.JsonObject;
-import java.util.regex.Pattern;
-import com.github.tncrazvan.arcano.Tool.ServerFile;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import javax.tools.JavaCompiler;
-import javax.tools.ToolProvider;
-import static com.github.tncrazvan.arcano.Tool.Regex.match;
 import java.util.Arrays;
 
 /**
@@ -56,26 +45,31 @@ import java.util.Arrays;
 public class Server extends SharedObject implements JsonTools{
     private static SmtpServer smtpServer;
     public static void main (String[] args) throws NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException, IOException{
-        Server server = new Server();
-        server.listen(args);
+        Server server = new Server(args);
     }
 
-    public Server(Class<?>... classes) {
-        expose(
-            com.github.tncrazvan.arcano.Controller.Http.App.class,
-            com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound.class,
-            com.github.tncrazvan.arcano.Controller.Http.Get.class,
-            com.github.tncrazvan.arcano.Controller.Http.Isset.class,
-            com.github.tncrazvan.arcano.Controller.Http.Set.class,
-            com.github.tncrazvan.arcano.Controller.Http.Unset.class,
-
-            com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class,
-            com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApplicationProgramInterface.class
-        );
-        expose(classes);
+    public Server(String[] args,Class<?>... classes) {
+        try {
+            expose(
+                    com.github.tncrazvan.arcano.Controller.Http.App.class,
+                    com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound.class,
+                    com.github.tncrazvan.arcano.Controller.Http.Get.class,
+                    com.github.tncrazvan.arcano.Controller.Http.Isset.class,
+                    com.github.tncrazvan.arcano.Controller.Http.Set.class,
+                    com.github.tncrazvan.arcano.Controller.Http.Unset.class,
+                    
+                    com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class,
+                    com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApplicationProgramInterface.class
+            );
+            expose(classes);
+            listen(args);
+        } catch (IOException | NoSuchAlgorithmException | ClassNotFoundException | URISyntaxException ex) {
+            Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
-
+    File root ;
+    URLClassLoader classLoader;
     /**
      * Starts the server listening.
      * @param args First argument must be the settings file. Check documentation to learn how to create a settings files.
@@ -85,6 +79,8 @@ public class Server extends SharedObject implements JsonTools{
      * @throws java.net.URISyntaxException
      */
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
+        root = new File("/java"); // On Windows running on C:\, this is C:\java.
+        classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
         char endchar;
         System.out.println("ARGS: "+Arrays.toString(args));
 
@@ -98,6 +94,11 @@ public class Server extends SharedObject implements JsonTools{
             compression = new String[]{};
         }
 
+        if(config.isset("classOrder")){
+            classOrder = jsonParse(config.get("classOrder").getAsJsonArray(), String[].class);
+        }else{
+            classOrder = new String[]{};
+        }
 
         if(config.isset("responseWrapper"))
             responseWrapper = config.get("responseWrapper").getAsBoolean();
@@ -142,8 +143,6 @@ public class Server extends SharedObject implements JsonTools{
         if(endchar != '/'){
             serverRoot +="/";
         }
-        
-        loadServerRoot();
         
         if(config.isset("webRoot"))
             webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+config.getString("webRoot");
@@ -372,48 +371,5 @@ public class Server extends SharedObject implements JsonTools{
         }
 
         return null;
-    }
-
-    private void loadServerRoot() {
-        ArrayList<Class<?>> list = new ArrayList<>();
-        ServerFile scriptsDir = new ServerFile(serverRoot,"src/main/java");
-        FileSystem.explore(scriptsDir,true,new Action<File>() {
-            @Override
-            public boolean callback(File f) {
-                if(f.isDirectory()) return true;
-                ServerFile file = new ServerFile(f);
-                if(match(file.getName(), "\\.java", Pattern.CASE_INSENSITIVE)){
-                    try{
-                        String relativePath = this.base.toURI().relativize(f.toURI()).getPath();
-                        String className = Regex.replace(Regex.extract(relativePath,".*(?=\\.java(?=$))",Pattern.CASE_INSENSITIVE), "\\/", ".");
-                        // Save source in .java file.
-                        File root = new File("/java"); // On Windows running on C:\, this is C:\java.
-                        File sourceFile = new File(root, relativePath);
-                        sourceFile.getParentFile().mkdirs();
-                        Files.write(sourceFile.toPath(), file.read());
-
-                        
-                        System.out.print("Compiling "+relativePath+"...");
-                        // Compile source file.
-                        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-                        System.out.println("[OK!]");
-                        compiler.run(System.in, System.out, System.err, sourceFile.getPath());
-
-                        // Load and instantiate compiled class.
-                        URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
-                        Class<?> cls = Class.forName(className, true, classLoader);
-                        list.add(cls);
-                    } catch (SecurityException | IllegalArgumentException | ClassNotFoundException | IOException ex) {
-                        System.out.println("[ERROR]");
-                        LOGGER.log(Level.SEVERE, null, ex);
-                    }
-                }
-                return f.isDirectory();
-            }
-        });
-
-        list.forEach((cls) -> {
-            this.expose(true,cls);
-        });
     }
 }

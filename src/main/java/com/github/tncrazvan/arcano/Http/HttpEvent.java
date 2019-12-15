@@ -190,12 +190,8 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     .concat(Arrays.stream(new String[] { getMethod() }), Arrays.stream(location))
                     .toArray(String[]::new);
             wo = resolveClassName(classId + 1, typedLocation);
-            if(wo.isRuntime()){
-                URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
-                cls = Class.forName(wo.getClassname(),true,classLoader);
-            }else{
-                cls = Class.forName(wo.getClassname());
-            }
+            cls = Class.forName(wo.getClassname());
+            
             controller = cls.getDeclaredConstructor().newInstance();
 
             final String methodname = location.length > classId ? wo.getMethodname() : "main";
@@ -212,19 +208,9 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             invoke(controller, method);
         } catch (final ClassNotFoundException ex) {
             try {
-                if(wo != null && wo.isRuntime()){
-                    URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
-                    cls = Class.forName(so.httpNotFoundName,true,classLoader);
-                }else{
-                    cls = Class.forName(so.httpNotFoundName);
-                }
+                cls = Class.forName(so.httpNotFoundName);
             } catch (final ClassNotFoundException eex) {
-                if(wo != null && wo.isRuntime()){
-                    URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
-                    cls = Class.forName(so.httpNotFoundNameOriginal,true,classLoader);
-                }else{
-                    cls = Class.forName(so.httpNotFoundNameOriginal);
-                }
+                cls = Class.forName(so.httpNotFoundNameOriginal);
             }
             controller = cls.getDeclaredConstructor().newInstance();
             method = controller.getClass().getDeclaredMethod("main");

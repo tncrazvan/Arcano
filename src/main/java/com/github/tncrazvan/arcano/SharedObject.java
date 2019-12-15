@@ -55,6 +55,7 @@ public abstract class SharedObject implements Strings{
     public int webSocketMtu = 65536;
     public int httpMtu = 65536;
     public String[] compression = new String[0];
+    public String[] classOrder = new String[0];
     public String configDir = "./http.json";
     public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
     public String assets = "../webapp/assets.json";
@@ -90,9 +91,6 @@ public abstract class SharedObject implements Strings{
     public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
     
     public void expose(Class<?>... classes) {
-        expose(false,classes);
-    }
-    public void expose(boolean isRuntime,Class<?>... classes) {
         for(Class<?> cls : classes){
             try {
                 if(HttpController.class.isAssignableFrom(cls)){
@@ -116,7 +114,7 @@ public abstract class SharedObject implements Strings{
                             }
                             
                             path = normalizePathSlashes(path);
-                            WebObject wo = new WebObject(cls.getCanonicalName(), method.getName(), type, isRuntime);
+                            WebObject wo = new WebObject(cls.getCanonicalName(), method.getName(), type);
                             ROUTES.put(type+path, wo);
                         }else if(cls.getAnnotation(NotFound.class) != null){
                             if(httpNotFoundNameOriginal == null)
@@ -139,7 +137,7 @@ public abstract class SharedObject implements Strings{
                         }else{
                             type = "GET";
                         }
-                        WebObject wo = new WebObject(cls.getCanonicalName(), null, type, isRuntime);
+                        WebObject wo = new WebObject(cls.getCanonicalName(), null, type);
                         wo.setHttpMethod("WS");
                         ROUTES.put("WS"+path, wo);
                     }else{
