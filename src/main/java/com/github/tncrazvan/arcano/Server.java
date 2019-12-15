@@ -35,19 +35,18 @@ import com.github.tncrazvan.arcano.Tool.Action;
 import com.github.tncrazvan.arcano.Tool.FileSystem;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
 import com.github.tncrazvan.arcano.Tool.Minifier;
-import static com.github.tncrazvan.arcano.Tool.Regex.regexExtract;
+import com.github.tncrazvan.arcano.Tool.Regex;
 import com.github.tncrazvan.asciitable.AsciiTable;
 import com.google.gson.JsonObject;
 import java.util.regex.Pattern;
-import static com.github.tncrazvan.arcano.Tool.Regex.regexMatch;
 import com.github.tncrazvan.arcano.Tool.ServerFile;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
+import static com.github.tncrazvan.arcano.Tool.Regex.match;
 
 /**
  *
@@ -94,24 +93,20 @@ public class Server extends SharedObject implements JsonTools{
 
         if(config.isset("scripts")){
             scripts = config.getString("scripts");
-            final StringBuilder currentClassName = new StringBuilder("");
-            final StringBuilder currentFileName = new StringBuilder("");
             ArrayList<Class<?>> list = new ArrayList<>();
-            FileSystem.explore(new ServerFile(configDir,scripts),true,new Action<File>() {
+            ServerFile scriptsDir = new ServerFile(configDir,scripts);
+            FileSystem.explore(scriptsDir,true,new Action<File>() {
                 @Override
                 public boolean callback(File f) {
-                    if(f.isDirectory()){
-                        currentClassName.append(currentClassName.toString().equals("")?f.getName():"."+f.getName());
-                        currentFileName.append(currentFileName.toString().equals("")?f.getName():"/"+f.getName());
-                    }
+                    if(f.isDirectory()) return true;
                     ServerFile file = new ServerFile(f);
-                    if(regexMatch(file.getName(), "\\.java", Pattern.CASE_INSENSITIVE)){
+                    if(match(file.getName(), "\\.java", Pattern.CASE_INSENSITIVE)){
                         try{
-                            // Prepare source somehow.
-                            String className = regexExtract(f.getName(),".*(?=\\.java(?=$))",Pattern.CASE_INSENSITIVE);
+                            String relativePath = this.base.toURI().relativize(f.toURI()).getPath();
+                            String className = Regex.replace(Regex.extract(relativePath,".*(?=\\.java(?=$))",Pattern.CASE_INSENSITIVE), "\\/", ".");
                             // Save source in .java file.
                             File root = new File("/java"); // On Windows running on C:\, this is C:\java.
-                            File sourceFile = new File(root, currentFileName+"/"+f.getName());
+                            File sourceFile = new File(root, relativePath);
                             sourceFile.getParentFile().mkdirs();
                             Files.write(sourceFile.toPath(), file.read());
 
@@ -121,11 +116,9 @@ public class Server extends SharedObject implements JsonTools{
 
                             // Load and instantiate compiled class.
                             URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
-                            Class<?> cls = Class.forName(currentClassName.toString()+"."+className, true, classLoader); // Should print "hello".
-                            currentClassName.replace(0, currentClassName.length(), "");
-                            Object instance = cls.getDeclaredConstructor().newInstance(); // Should print "world".
-                            list.add(instance.getClass());
-                        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException | ClassNotFoundException | IOException ex) {
+                            Class<?> cls = Class.forName(className, true, classLoader);
+                            list.add(cls);
+                        } catch (SecurityException | IllegalArgumentException | ClassNotFoundException | IOException ex) {
                             LOGGER.log(Level.SEVERE, null, ex);
                         }
                     }

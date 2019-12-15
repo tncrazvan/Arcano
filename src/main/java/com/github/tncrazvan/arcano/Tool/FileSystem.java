@@ -13,13 +13,23 @@ public interface FileSystem {
 
     static void explore(final File dir, final boolean recursive, final Action c) {
         if(!dir.isDirectory()) return;
+        if(c.base == null)
+            c.base = dir;
         final File[] files = dir.listFiles();
-        if(files != null)
+        if(files != null){
+            //lookup directories
             for (final File file : files) {
-                if(c.callback(file) && recursive){
+                if(file.isDirectory() && c.callback(file) && recursive){
                     explore(file, recursive, c);
                 }
             }
+            //lookup files
+            for (final File file : files) {
+                if(!file.isDirectory() && c.callback(file) && recursive){
+                    explore(file, recursive, c);
+                }
+            }
+        }
     }
     
     /**
