@@ -55,11 +55,11 @@ public abstract class SharedObject implements Strings{
     public int webSocketMtu = 65536;
     public int httpMtu = 65536;
     public String[] compression = new String[0];
-    public String scripts = null;
     public String configDir = "./http.json";
     public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
     public String assets = "../webapp/assets.json";
-    public String webRoot = "../webapp";
+    public String webRoot = "www";
+    public String serverRoot = "server";
     public String charset = "UTF-8";
     public String bindAddress = "::";
     public String httpDefaultNameOriginal = null;

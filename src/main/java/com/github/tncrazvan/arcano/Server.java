@@ -84,52 +84,12 @@ public class Server extends SharedObject implements JsonTools{
      * @throws java.net.URISyntaxException
      */
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
-
+        char endchar;
         //System.out.println(Arrays.toString(args));
 
         configDir = new File(args[0]).getParent();
 
         config.parse(args[0]);
-
-        if(config.isset("scripts")){
-            scripts = config.getString("scripts");
-            ArrayList<Class<?>> list = new ArrayList<>();
-            ServerFile scriptsDir = new ServerFile(configDir,scripts);
-            FileSystem.explore(scriptsDir,true,new Action<File>() {
-                @Override
-                public boolean callback(File f) {
-                    if(f.isDirectory()) return true;
-                    ServerFile file = new ServerFile(f);
-                    if(match(file.getName(), "\\.java", Pattern.CASE_INSENSITIVE)){
-                        try{
-                            String relativePath = this.base.toURI().relativize(f.toURI()).getPath();
-                            String className = Regex.replace(Regex.extract(relativePath,".*(?=\\.java(?=$))",Pattern.CASE_INSENSITIVE), "\\/", ".");
-                            // Save source in .java file.
-                            File root = new File("/java"); // On Windows running on C:\, this is C:\java.
-                            File sourceFile = new File(root, relativePath);
-                            sourceFile.getParentFile().mkdirs();
-                            Files.write(sourceFile.toPath(), file.read());
-
-                            // Compile source file.
-                            JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-                            compiler.run(System.in, System.out, System.err, sourceFile.getPath());
-
-                            // Load and instantiate compiled class.
-                            URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
-                            Class<?> cls = Class.forName(className, true, classLoader);
-                            list.add(cls);
-                        } catch (SecurityException | IllegalArgumentException | ClassNotFoundException | IOException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        }
-                    }
-                    return f.isDirectory();
-                }
-            });
-            
-            list.forEach((cls) -> {
-                this.expose(true,cls);
-            });
-        }
         
         if(config.isset("compress")){
             compression = jsonParse(config.get("compress").getAsJsonArray(), String[].class);
@@ -172,17 +132,31 @@ public class Server extends SharedObject implements JsonTools{
         else if(config.isset("bindingAddress"))
             bindAddress = config.getString("bindingAddress");
 
+        if(config.isset("serverRoot"))
+            serverRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+config.getString("serverRoot");
+        else
+            serverRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+serverRoot;
+        endchar = serverRoot.charAt(serverRoot.length()-1);
+
+        if(endchar != '/'){
+            serverRoot +="/";
+        }
+        
+        loadServerRoot();
+        
         if(config.isset("webRoot"))
             webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+config.getString("webRoot");
         else
             webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+webRoot;
-
-        char endchar = webRoot.charAt(webRoot.length()-1);
+        
+        endchar = webRoot.charAt(webRoot.length()-1);
 
         if(endchar != '/'){
             webRoot +="/";
         }
-
+        
+        
+        
         if(config.isset("assets"))
             assets = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+config.getString("assets");
         else
@@ -221,6 +195,7 @@ public class Server extends SharedObject implements JsonTools{
         st.add("timezone",""+timezone.toString());
         st.add("port",""+port);
         st.add("bindAddress",bindAddress);
+        st.add("serverRoot",serverRoot);
         st.add("webRoot",webRoot);
         st.add("charset",charset);
         st.add("timeout",""+timeout+" milliseconds");
@@ -396,5 +371,48 @@ public class Server extends SharedObject implements JsonTools{
         }
 
         return null;
+    }
+
+    private void loadServerRoot() {
+        ArrayList<Class<?>> list = new ArrayList<>();
+        ServerFile scriptsDir = new ServerFile(serverRoot,"src/main/java");
+        FileSystem.explore(scriptsDir,true,new Action<File>() {
+            @Override
+            public boolean callback(File f) {
+                if(f.isDirectory()) return true;
+                ServerFile file = new ServerFile(f);
+                if(match(file.getName(), "\\.java", Pattern.CASE_INSENSITIVE)){
+                    try{
+                        String relativePath = this.base.toURI().relativize(f.toURI()).getPath();
+                        String className = Regex.replace(Regex.extract(relativePath,".*(?=\\.java(?=$))",Pattern.CASE_INSENSITIVE), "\\/", ".");
+                        // Save source in .java file.
+                        File root = new File("/java"); // On Windows running on C:\, this is C:\java.
+                        File sourceFile = new File(root, relativePath);
+                        sourceFile.getParentFile().mkdirs();
+                        Files.write(sourceFile.toPath(), file.read());
+
+                        
+                        System.out.print("Compiling "+relativePath+"...");
+                        // Compile source file.
+                        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+                        System.out.println("[OK!]");
+                        compiler.run(System.in, System.out, System.err, sourceFile.getPath());
+
+                        // Load and instantiate compiled class.
+                        URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
+                        Class<?> cls = Class.forName(className, true, classLoader);
+                        list.add(cls);
+                    } catch (SecurityException | IllegalArgumentException | ClassNotFoundException | IOException ex) {
+                        System.out.println("[ERROR]");
+                        LOGGER.log(Level.SEVERE, null, ex);
+                    }
+                }
+                return f.isDirectory();
+            }
+        });
+
+        list.forEach((cls) -> {
+            this.expose(true,cls);
+        });
     }
 }
