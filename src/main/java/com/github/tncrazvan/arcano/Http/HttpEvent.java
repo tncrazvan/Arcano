@@ -212,14 +212,14 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             invoke(controller, method);
         } catch (final ClassNotFoundException ex) {
             try {
-                if(wo.isRuntime()){
+                if(wo != null && wo.isRuntime()){
                     URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
                     cls = Class.forName(so.httpNotFoundName,true,classLoader);
                 }else{
                     cls = Class.forName(so.httpNotFoundName);
                 }
             } catch (final ClassNotFoundException eex) {
-                if(wo.isRuntime()){
+                if(wo != null && wo.isRuntime()){
                     URLClassLoader classLoader = URLClassLoader.newInstance(new URL[] { root.toURI().toURL() });
                     cls = Class.forName(so.httpNotFoundNameOriginal,true,classLoader);
                 }else{
