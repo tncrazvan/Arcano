@@ -47,6 +47,7 @@ import java.util.ArrayList;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import static com.github.tncrazvan.arcano.Tool.Regex.match;
+import java.util.Arrays;
 
 /**
  *
@@ -85,7 +86,7 @@ public class Server extends SharedObject implements JsonTools{
      */
     public void listen(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
         char endchar;
-        //System.out.println(Arrays.toString(args));
+        System.out.println("ARGS: "+Arrays.toString(args));
 
         configDir = new File(args[0]).getParent();
 
