@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano;
 
-import com.github.tncrazvan.arcano.Http.HttpHeader;
+import com.github.tncrazvan.arcano.Http.HttpHeaders;
+import com.github.tncrazvan.arcano.Http.HttpRequest;
 import com.github.tncrazvan.arcano.Http.HttpSession;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -18,21 +19,21 @@ import java.util.Map;
  * @author razvan
  */
 public abstract class EventManager{
-    protected final HttpHeader clientHeader;
-    protected final Map<String,String> queryString = new HashMap<>();
+    protected final HttpRequest request;
+    protected final HashMap<String,String> queryString = new HashMap<>();
     protected final StringBuilder location = new StringBuilder();
     protected final Map<String,String> userLanguages = new HashMap<>();
-    protected final HttpHeader header;
+    protected final HttpHeaders headers;
     protected final Socket client;
     protected HttpSession session = null;
     public final SharedObject so;
     public static final File root = new File("/java");
-    public EventManager(SharedObject so,Socket client, HttpHeader clientHeader) throws UnsupportedEncodingException {
+    public EventManager(SharedObject so,Socket client, HttpRequest request) throws UnsupportedEncodingException {
         this.so=so;
         this.client=client;
-        header = new HttpHeader();
-        this.clientHeader=clientHeader;
-        String uri = clientHeader.get("@Resource");
+        this.headers = new HttpHeaders();
+        this.request=request;
+        String uri = request.getHttpHeaders().get("@Resource");
         try{
             uri = URLDecoder.decode(uri,so.charset);
         }catch(IllegalArgumentException ex){}
@@ -53,6 +54,10 @@ public abstract class EventManager{
                 }
             }
         }
+    }
+    
+    public StringBuilder getLocation(){
+        return location;
     }
     
     public boolean issetSession() throws UnsupportedEncodingException{
@@ -113,7 +118,7 @@ public abstract class EventManager{
      * @param key name of the query.
      * @return 
      */
-    public boolean issetUrlQuery(String key){
+    public boolean issetRequestQueryString(String key){
         return queryString.containsKey(key);
     }
     
@@ -122,7 +127,7 @@ public abstract class EventManager{
      * @param key name of the query.
      * @return the value of the query.
      */
-    public String getUrlQuery(String key){
+    public String getRequestQueryString(String key){
         return queryString.get(key);
     }
     
@@ -130,12 +135,12 @@ public abstract class EventManager{
      * Finds the languages of the client application.
      * The value is stored in EventManager#userLanguages.
      */
-    protected void findUserLanguages(){
-        if(clientHeader.get("Accept-Language") == null){
+    public void findRequestLanguages(){
+        if(request.getHttpHeaders().get("Accept-Language") == null){
             userLanguages.put("unknown", "unknown");
         }else{
             String[] tmp = new String[2];
-            String[] languages = clientHeader.get("Accept-Language").split(",");
+            String[] languages = request.getHttpHeaders().get("Accept-Language").split(",");
             userLanguages.put("DEFAULT-LANGUAGE", languages[0]);
             for(int i=1;i<languages.length;i++){
                 tmp=languages[i].split(";");
@@ -152,7 +157,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void unsetCookie(String key, String path, String domain) throws UnsupportedEncodingException{
-        header.setCookie(key,"deleted",path,domain,"0");
+        headers.setCookie(key,"deleted",path,domain,"0");
     }
     
     /**
@@ -162,7 +167,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void unsetCookie(String key, String path) throws UnsupportedEncodingException{
-        unsetCookie(key, path, clientHeader.get("Host"));
+        unsetCookie(key, path, request.getHttpHeaders().get("Host"));
     }
     
     /**
@@ -171,7 +176,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void unsetCookie(String key) throws UnsupportedEncodingException{
-        unsetCookie(key, "/", clientHeader.get("Host"));
+        unsetCookie(key, "/", request.getHttpHeaders().get("Host"));
     }
     
     /**
@@ -184,10 +189,10 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void setCookie(String name,String value, String path, String domain, int expire) throws UnsupportedEncodingException{
-        header.setCookie(name, value, path, domain, expire);
+        headers.setCookie(name, value, path, domain, expire);
     }
     public void setCookie(String name,String value, String path, String domain, String expire) throws UnsupportedEncodingException{
-        header.setCookie(name, value, path, domain, expire);
+        headers.setCookie(name, value, path, domain, expire);
     }
     
     /**
@@ -199,7 +204,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void setCookie(String name,String value, String path, String domain) throws UnsupportedEncodingException{
-        header.setCookie(name, value, path, domain);
+        headers.setCookie(name, value, path, domain);
     }
     
     /**
@@ -210,7 +215,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void setCookie(String name,String value, String path) throws UnsupportedEncodingException{
-        header.setCookie(name, value, path);
+        headers.setCookie(name, value, path);
     }
     
     /**
@@ -220,7 +225,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void setCookie(String name,String value) throws UnsupportedEncodingException{
-        header.setCookie(name, value);
+        headers.setCookie(name, value);
     }
     
     
@@ -231,7 +236,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public String getCookie(String name) throws UnsupportedEncodingException{
-        return clientHeader.getCookie(name);
+        return request.getHttpHeaders().getCookie(name);
     }
     
     /**
@@ -240,6 +245,6 @@ public abstract class EventManager{
      * @return true if cookie is set, otherwise false.
      */
     public boolean issetCookie(String key){
-        return clientHeader.issetCookie(key);
+        return request.getHttpHeaders().issetCookie(key);
     }
 }

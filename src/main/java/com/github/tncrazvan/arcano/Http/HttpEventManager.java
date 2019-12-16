@@ -16,7 +16,6 @@ import com.github.tncrazvan.arcano.Tool.Gzip;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
 import static com.github.tncrazvan.arcano.Tool.MultipartFormData.generateMultipartBoundary;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_PARTIAL_CONTENT;
-import static com.github.tncrazvan.arcano.Tool.Time.time;
 import java.io.DataOutputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -27,22 +26,20 @@ import java.io.UnsupportedEncodingException;
  */
 public abstract class HttpEventManager extends EventManager{
     private final DataOutputStream output;
-    //private HttpHeader header;
+    //private HttpHeaders headers;
     private boolean defaultHeaders=true;
     private boolean alive=true;
-    protected final byte[] input;
     protected boolean isDir = false;
     private final String acceptEncoding;
     private final String encodingLabel;
-    public HttpEventManager(SharedObject so,DataOutputStream output, HttpHeader clientHeader,Socket client,byte[] input) throws UnsupportedEncodingException {
-        super(so,client,clientHeader);
+    public HttpEventManager(SharedObject so,DataOutputStream output,Socket client, HttpRequest request) throws UnsupportedEncodingException {
+        super(so,client,request);
         this.output = output;
-        this.input=input;
-        if(this.clientHeader.isDefined("Accept-Encoding")){
-            acceptEncoding = this.clientHeader.get("Accept-Encoding");
+        if(this.request.getHttpHeaders().isDefined("Accept-Encoding")){
+            acceptEncoding = this.request.getHttpHeaders().get("Accept-Encoding");
             encodingLabel = "Content-Encoding";
-        }else if(this.clientHeader.isDefined("Transfer-Encoding")){
-            acceptEncoding = this.clientHeader.get("Transfer-Encoding");
+        }else if(this.request.getHttpHeaders().isDefined("Transfer-Encoding")){
+            acceptEncoding = this.request.getHttpHeaders().get("Transfer-Encoding");
             encodingLabel = "Transfer-Encoding";
         }else{
             acceptEncoding = "";
@@ -66,53 +63,53 @@ public abstract class HttpEventManager extends EventManager{
         return isDir;
     }
     
-    public void setHeaderField(String fieldName,String fieldContent){
-        header.set(fieldName, fieldContent);
+    public void setResponseHeaderField(String fieldName,String fieldContent){
+        headers.set(fieldName, fieldContent);
     }
     
-    public void setStatus(String status){
-        setHeaderField("@Status", status);
+    public void setResponseStatus(String status){
+        setResponseHeaderField("@Status", status);
     }
     
-    public String getHeaderField(String fieldName){
-        return header.get(fieldName);
+    public String getResponseHttpHeaders(String fieldName){
+        return headers.get(fieldName);
     }
-    public HttpHeader getHeader(){
-        return header;
+    public HttpHeaders getResponseHttpHeaders(){
+        return headers;
     }
-    public HttpHeader getClientHeader(){
-        return clientHeader;
+    public HttpHeaders getRequestHttpHeaders(){
+        return request.getHttpHeaders();
     }
     
-    public String getMethod(){
-        return clientHeader.get("Method");
+    public String getRequestMethod(){
+        return request.getHttpHeaders().get("Method");
     }
     
     public boolean isAlive(){
         return alive;
     }
     
-    public boolean execute() throws IOException{
-        findUserLanguages();
+    /*protected boolean execute() throws IOException{
+        findRequestLanguages();
         File f = new File(so.webRoot+location);
         if(f.exists()){
             if(!f.isDirectory()){
-                header.set("Content-Type", resolveContentType(location.toString()));
-                header.set("Last-Modified",so.formatHttpDefaultDate.format(time(f.lastModified())));
-                header.set("Last-Modified-Timestamp",f.lastModified()+"");
+                headers.set("Content-Type", resolveContentType(location.toString()));
+                headers.set("Last-Modified",so.formatHttpDefaultDate.format(time(f.lastModified())));
+                headers.set("Last-Modified-Timestamp",f.lastModified()+"");
                 sendFileContents(f);
             }else{
                 isDir = true;
-                header.set("Content-Type", "text/html");
+                headers.set("Content-Type", "text/html");
                 onControllerRequest(location);
             }
         }else{
-            header.set("Content-Type", "text/html");
+            headers.set("Content-Type", "text/html");
             onControllerRequest(location);
         }
         close();
         return true;
-    }
+    }*/
     
     
     
@@ -122,12 +119,12 @@ public abstract class HttpEventManager extends EventManager{
         return userLanguages;
     }
     
-    public String getUserDefaultLanguage(){
+    public String getRequestDefaultLanguage(){
         return userLanguages.get("DEFAULT-LANGUAGE");
     }
     
-    public String getUserAgent(){
-        return clientHeader.get("User-Agent");
+    public String getRequestUserAgent(){
+        return request.getHttpHeaders().get("User-Agent");
     }
     
     private boolean firstMessage = true;
@@ -135,7 +132,7 @@ public abstract class HttpEventManager extends EventManager{
     public void sendHeaders(){
         firstMessage = false;
         try {
-            output.write((header.toString()+"\r\n").getBytes(so.charset));
+            output.write((headers.toString()+"\r\n").getBytes(so.charset));
             output.flush();
             alive = true;
         } catch (IOException ex) {
@@ -153,14 +150,14 @@ public abstract class HttpEventManager extends EventManager{
                         case DEFLATE:
                             if(acceptEncoding.matches(".+"+cmpr+".*")){
                                 data = Deflate.deflate(data);
-                                this.header.set(encodingLabel, cmpr);
+                                this.headers.set(encodingLabel, cmpr);
                                 break;
                             }
                             break;
                         case GZIP:
                             if(acceptEncoding.matches(".+"+cmpr+".*")){
                                 data = Gzip.compress(data);
-                                this.header.set(encodingLabel, cmpr);
+                                this.headers.set(encodingLabel, cmpr);
                                 break;
                             }
                             break;
@@ -201,8 +198,8 @@ public abstract class HttpEventManager extends EventManager{
     public void send(int data){
         send(""+data);
     }
-    public void setContentType(String type){
-        header.set("Content-Type", type);
+    public void setResponseContentType(String type){
+        headers.set("Content-Type", type);
     }
     
     public void sendFileContents(String filename) throws IOException{
@@ -217,15 +214,15 @@ public abstract class HttpEventManager extends EventManager{
         defaultHeaders = true;
     }
     
-    public String getClientAddress(){
+    public String getRequestAddress(){
         return client.getInetAddress().toString();
     }
     
-    public int getClientPort(){
+    public int getRequestPort(){
         return client.getPort();
     }
     
-    private void sendFileContents(File f){
+    public void sendFileContents(File f){
         try {
             byte[] buffer;
             try (RandomAccessFile raf = new RandomAccessFile(f, "r"); 
@@ -233,9 +230,9 @@ public abstract class HttpEventManager extends EventManager{
                 
                 int fileLength = (int) raf.length();
                 
-                if(clientHeader.isDefined("Range")){
-                    setStatus(STATUS_PARTIAL_CONTENT);
-                    String[] ranges = clientHeader.get("Range").split("=")[1].split(",");
+                if(this.request.getHttpHeaders().isDefined("Range")){
+                    setResponseStatus(STATUS_PARTIAL_CONTENT);
+                    String[] ranges = this.request.getHttpHeaders().get("Range").split("=")[1].split(",");
                     int[] rangeStart = new int[ranges.length];
                     int[] rangeEnd = new int[ranges.length];
                     int lastIndex;
@@ -261,8 +258,8 @@ public abstract class HttpEventManager extends EventManager{
                         if(firstMessage && defaultHeaders){
                             firstMessage = false;
                             //header.set("Content-Length", ""+clength);
-                            header.set("Content-Type", "multipart/byteranges; boundary="+boundary);
-                            dos.writeUTF(header.toString());
+                            headers.set("Content-Type", "multipart/byteranges; boundary="+boundary);
+                            dos.writeUTF(headers.toString());
                         }
                         
                         for (int i = 0; i < rangeStart.length; i++) {
@@ -307,9 +304,9 @@ public abstract class HttpEventManager extends EventManager{
                         int len = end-start+1;
                         if(firstMessage && defaultHeaders){
                             firstMessage = false;
-                            header.set("Content-Range", "bytes "+start+"-"+end+"/"+fileLength);
-                            header.set("Content-Length", ""+len);
-                            dos.write((header.toString()+"\r\n").getBytes());
+                            headers.set("Content-Range", "bytes "+start+"-"+end+"/"+fileLength);
+                            headers.set("Content-Length", ""+len);
+                            dos.write((headers.toString()+"\r\n").getBytes());
                         }
                         buffer = new byte[end-start+1];
                         raf.seek(start);
@@ -319,8 +316,8 @@ public abstract class HttpEventManager extends EventManager{
                 }else{
                     if(firstMessage && defaultHeaders){
                         firstMessage = false;
-                        header.set("Content-Length", ""+fileLength);
-                        dos.write((header.toString()+"\r\n").getBytes());
+                        headers.set("Content-Length", ""+fileLength);
+                        dos.write((headers.toString()+"\r\n").getBytes());
                     }
                     buffer = new byte[fileLength];
                     raf.seek(0);

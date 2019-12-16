@@ -1,5 +1,6 @@
 package com.github.tncrazvan.arcano.Http;
 
+import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import java.io.DataOutputStream;
@@ -19,9 +20,7 @@ import com.github.tncrazvan.arcano.Tool.JsonTools;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_INTERNAL_SERVER_ERROR;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
 import com.google.gson.JsonObject;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
 
@@ -34,12 +33,12 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
     private String[] args;
     private Class<?> cls;
     private Object controller;
+    private Constructor<?> constructor;
     private WebObject wo;
     private int classId;
     
-    public HttpEvent(SharedObject so,final DataOutputStream output, final HttpHeader clientHeader, final Socket client,
-            final byte[] input) throws UnsupportedEncodingException {
-        super(so, output, clientHeader, client, input);
+    public HttpEvent(SharedObject so,final DataOutputStream output, final Socket client, HttpRequest request) throws UnsupportedEncodingException {
+        super(so, output, client, request);
     }
 
     private void invoke(final Object controller, final Method method) throws IllegalAccessException,
@@ -50,26 +49,26 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 method.invoke(controller);
             } else if (type == HttpResponse.class) {
                 final HttpResponse response = (HttpResponse) method.invoke(controller);
-                final HashMap<String, String> headers = response.getHeaders();
+                final HashMap<String, String> headers = response.getHashMapHeaders();
                 if (headers != null) {
                     final Iterator it = headers.entrySet().iterator();
                     while (it.hasNext()) {
                         final Map.Entry pair = (Map.Entry) it.next();
-                        setHeaderField((String) pair.getKey(), (String) pair.getValue());
+                        setResponseHeaderField((String) pair.getKey(), (String) pair.getValue());
                         it.remove(); // avoids a ConcurrentModificationException
                     }
                 }
                 if (response.isRaw()) {
-                    send((byte[]) response.getContent(true));
+                    send((byte[]) response.getContent());
                 } else {
                     type = response.getType();
                     if (type == String.class || type == Character.class) {
-                        final Object content = response.getContent(true);
+                        final Object content = response.getContent();
                         if (content != null) {
                             if (so.responseWrapper) {
                                 final JsonObject obj = new JsonObject();
                                 obj.addProperty("result", new String((byte[]) content));
-                                setHeaderField("Content-Type", "application/json");
+                                setResponseHeaderField("Content-Type", "application/json");
                                 send(obj.toString().getBytes(so.charset));
                             } else {
                                 send(new String((byte[]) content));
@@ -77,11 +76,11 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                         } else
                             send("");
                     } else {
-                        final Object content = response.getContent(true);
+                        final Object content = response.getContent();
                         if (content != null) {
                             final String tmp = new String((byte[]) content);
                             if (so.responseWrapper) {
-                                setHeaderField("Content-Type", "application/json");
+                                setResponseHeaderField("Content-Type", "application/json");
                                 send(("{\"result\": " + tmp + "}").getBytes(so.charset));
                             } else {
                                 send(tmp);
@@ -93,21 +92,21 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             } else {
                 // if it's some other type of object...
                 final Object data = method.invoke(controller);
-                final HttpResponse response = new HttpResponse(new HashMap<String, String>(){{}}, data == null ? "" : data);
+                final HttpResponse response = new HttpResponse(data == null ? "" : data);
                 if (data == null)
                     response.setRaw(true);
 
                 if (response.isRaw()) {
-                    send((byte[]) response.getContent(true));
+                    send((byte[]) response.getContent());
                 } else {
                     type = response.getType();
                     if (type == String.class || type == Character.class) {
-                        final Object content = response.getContent(true);
+                        final Object content = response.getContent();
                         if (content != null) {
                             if (so.responseWrapper) {
                                 final JsonObject obj = new JsonObject();
                                 obj.addProperty("result", new String((byte[]) content));
-                                setHeaderField("Content-Type", "application/json");
+                                setResponseHeaderField("Content-Type", "application/json");
                                 send(obj.toString().getBytes(so.charset));
                             } else {
                                 send(new String((byte[]) content));
@@ -115,11 +114,11 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                         } else
                             send("");
                     } else {
-                        final Object content = response.getContent(true);
+                        final Object content = response.getContent();
                         if (content != null) {
-                            final String tmp = content.toString().trim();
+                            final String tmp = new String((byte[]) content).trim();
                             if (so.responseWrapper) {
-                                setHeaderField("Content-Type", "application/json");
+                                setResponseHeaderField("Content-Type", "application/json");
                                 send(("{\"result\": " + tmp + "}").getBytes(so.charset));
                             } else {
                                 send(tmp);
@@ -131,14 +130,14 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 }
             }
         } catch (final InvocationTargetException e) {
-            setStatus(STATUS_INTERNAL_SERVER_ERROR);
+            setResponseStatus(STATUS_INTERNAL_SERVER_ERROR);
             if (so.sendExceptions) {
                 final String message = e.getTargetException().getMessage();
                 if (so.responseWrapper) {
                     final JsonObject obj = new JsonObject();
-                    final HttpResponse response = new HttpResponse(null, message == null ? "" : message);
-                    obj.addProperty("exception", new String((byte[]) (response.getContent(true))));
-                    setHeaderField("Content-Type", "application/json");
+                    final HttpResponse response = new HttpResponse(message == null ? "" : message);
+                    obj.addProperty("exception", new String((byte[]) (response.getContent())));
+                    setResponseHeaderField("Content-Type", "application/json");
                     try {
                         send(obj.toString().getBytes(so.charset));
                     } catch (final UnsupportedEncodingException ex) {
@@ -154,14 +153,14 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             } else
                 send("");
         } catch (UnsupportedEncodingException | IllegalAccessException | IllegalArgumentException e) {
-            setStatus(STATUS_INTERNAL_SERVER_ERROR);
+            setResponseStatus(STATUS_INTERNAL_SERVER_ERROR);
             if (so.sendExceptions) {
                 final String message = e.getMessage();
                 if (so.responseWrapper) {
                     final JsonObject obj = new JsonObject();
-                    final HttpResponse response = new HttpResponse(null, message == null ? "" : message);
-                    obj.addProperty("exception", new String((byte[]) (response.getContent(true))));
-                    setHeaderField("Content-Type", "application/json");
+                    final HttpResponse response = new HttpResponse(message == null ? "" : message);
+                    obj.addProperty("exception", new String((byte[]) (response.getContent())));
+                    setResponseHeaderField("Content-Type", "application/json");
                     try {
                         send(obj.toString().getBytes(so.charset));
                     } catch (final UnsupportedEncodingException ex) {
@@ -178,33 +177,56 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 send("");
         }
     }
+
     private void serveController(String[] location) throws InstantiationException, IllegalAccessException,
-            NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, MalformedURLException {
+            NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
         args = new String[0];
         if (location.length == 0 || location.length == 1 && location[0].equals("")) {
             location = new String[] { "" };
         }
         try {
-            classId = getClassnameIndex(location, getMethod());
-            final String[] typedLocation = Stream
-                    .concat(Arrays.stream(new String[] { getMethod() }), Arrays.stream(location))
-                    .toArray(String[]::new);
-            wo = resolveClassName(classId + 1, typedLocation);
-            cls = Class.forName(wo.getClassname());
-            
-            controller = cls.getDeclaredConstructor().newInstance();
+            if (location.length > 0 && !location[0].equals("")) {
+                classId = getClassnameIndex(location, getRequestMethod());
+                final String[] typedLocation = Stream
+                        .concat(Arrays.stream(new String[] { getRequestMethod() }), Arrays.stream(location))
+                        .toArray(String[]::new);
+                wo = resolveClassName(classId + 1, typedLocation);
+                cls = Class.forName(wo.getClassname());
+                constructor = getNoParametersConstructor(cls);
+                if(constructor == null){
+                    throw new InvalidControllerConstructorException(
+                            String
+                                    .format("\nController %s does not contain a valid constructor.\n"
+                                            + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                            + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!", 
+                                            wo.getClassname()
+                                    )
+                    );
+                }
+                controller = cls.getDeclaredConstructor().newInstance();
 
-            final String methodname = location.length > classId ? wo.getMethodname() : "main";
-            args = resolveMethodArgs(classId + 1, location);
-            try {
-                method = controller.getClass().getDeclaredMethod(methodname);
-            } catch (final NoSuchMethodException ex) {
-                args = resolveMethodArgs(classId, location);
+                final String methodname = location.length > classId ? wo.getMethodname() : "main";
+                args = resolveMethodArgs(classId + 1, location);
+                try {
+                    method = controller.getClass().getDeclaredMethod(methodname);
+                } catch (final NoSuchMethodException ex) {
+                    args = resolveMethodArgs(classId, location);
+                    method = controller.getClass().getDeclaredMethod("main");
+                }
+            } else {
+                try {
+                    // cls = Class.forName(httpDefaultName);
+                    cls = Class.forName(so.httpNotFoundName);
+                } catch (final ClassNotFoundException eex) {
+                    // cls = Class.forName(httpDefaultNameOriginal);
+                    cls = Class.forName(so.httpNotFoundNameOriginal);
+                }
+                controller = cls.getDeclaredConstructor().newInstance();
                 method = controller.getClass().getDeclaredMethod("main");
             }
             ((HttpController) controller).setEvent(this);
             ((HttpController) controller).setArgs(args);
-            ((HttpController) controller).setInput(input);
+            ((HttpController) controller).setInput(this.request.getContent());
             invoke(controller, method);
         } catch (final ClassNotFoundException ex) {
             try {
@@ -218,12 +240,23 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
 
             ((HttpController) controller).setEvent(this);
             ((HttpController) controller).setArgs(location);
-            ((HttpController) controller).setInput(input);
-            setStatus(STATUS_NOT_FOUND);
+            ((HttpController) controller).setInput(this.request.getContent());
+            setResponseStatus(STATUS_NOT_FOUND);
             invoke(controller, method);
+        } catch (InvalidControllerConstructorException ex) {
+            Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
+    private static Constructor<?> getNoParametersConstructor(Class<?> cls){
+        for (Constructor<?> constructor : cls.getDeclaredConstructors()) {
+            if(constructor.getParameterCount() == 0)
+                return constructor;
+        }
+        
+        return null;
+    }
+    
     @Override
     void onControllerRequest(final StringBuilder url) {
         try {
@@ -232,8 +265,6 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
             LOGGER.log(Level.WARNING, null, ex);
         } catch (IllegalArgumentException | InvocationTargetException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     } 

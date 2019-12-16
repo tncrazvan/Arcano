@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
-import com.github.tncrazvan.arcano.Http.HttpHeader;
+import com.github.tncrazvan.arcano.Http.HttpRequest;
 import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.Http.HttpSession;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
@@ -58,8 +58,8 @@ public class WebSocketEvent extends WebSocketManager{
         onCloseMethod = controller.getClass().getMethod("onClose");
     }
     
-    public WebSocketEvent(SharedObject so,BufferedReader reader,Socket client,HttpHeader clientHeader) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
-        super(so,reader,client,clientHeader);
+    public WebSocketEvent(SharedObject so,BufferedReader reader,Socket client,HttpRequest request) throws IOException, InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
+        super(so,reader,client,request);
         serveController(location.toString().split("/"));
     }
 

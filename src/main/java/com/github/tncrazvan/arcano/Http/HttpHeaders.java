@@ -14,23 +14,29 @@ import java.util.Map;
  *
  * @author Razvan
  */
-public class HttpHeader extends SharedObject{
-    private final Map<String, String> header = new HashMap();
+public class HttpHeaders extends SharedObject{
+    private final HashMap<String, String> headers = new HashMap();
     public Map<String, String[]> cookies = new HashMap();
-    public HttpHeader(final boolean createSuccessHeader) {
+    public HttpHeaders(final boolean createSuccessHeader) {
+        this(new HashMap<String,String>(){{}}, createSuccessHeader);
+    }
+    public HttpHeaders(HashMap<String, String> map,final boolean createSuccessHeader) {
         if (createSuccessHeader) {
-            header.put("@Status", "HTTP/1.1 200 OK");
-            header.put("Date", formatHttpDefaultDate.format(time()));
-            header.put("Cache-Control", "no-store");
+            headers.put("@Status", "HTTP/1.1 200 OK");
+            headers.put("Date", formatHttpDefaultDate.format(time()));
+            headers.put("Cache-Control", "no-store");
         }
     }
 
-    public HttpHeader() {
+    public HttpHeaders() {
         this(true);
+    }
+    public HttpHeaders(HashMap<String, String> map) {
+        this(new HashMap<String,String>(){{}}, true);
     }
 
     public String fieldToString(final String key) {
-        final String value = header.get(key);
+        final String value = headers.get(key);
 
         if (key.equals("@Resource") || key.equals("@Status") || value.equalsIgnoreCase(key)) {
             return value + "\r\n";
@@ -50,27 +56,27 @@ public class HttpHeader extends SharedObject{
     @Override
     public String toString() {
         String str = "";
-        str = header.keySet().stream().map((key) -> this.fieldToString(key)).reduce(str, String::concat);
+        str = headers.keySet().stream().map((key) -> this.fieldToString(key)).reduce(str, String::concat);
 
         str = cookies.keySet().stream().map((key) -> this.cookieToString(key)).reduce(str, String::concat);
         return str;
     }
 
     public boolean isDefined(final String key) {
-        return header.get(key) != null;
+        return headers.get(key) != null;
     }
 
     public void set(final String a, String b) {
         if (a.equals("@Status"))
             b = "HTTP/1.1 " + b;
-        header.put(a, b);
+        headers.put(a, b);
     }
 
     public String get(final String key) {
-        if (!header.containsKey(key)) {
+        if (!headers.containsKey(key)) {
             return null;
         }
-        return header.get(key).trim();
+        return headers.get(key).trim();
     }
 
     public boolean issetCookie(final String key) {
@@ -125,48 +131,56 @@ public class HttpHeader extends SharedObject{
         setCookie(key, v, "/", null, null);
     }
 
-    public Map<String, String> getMap() {
-        return header;
+    public HashMap<String, String> getHashMap() {
+        return headers;
     }
-
-    public static HttpHeader fromString(final String string) {
-        final HttpHeader header = new HttpHeader(false);
-        final String[] lines = string.split("\\r\\n");
-        final boolean end = false;
-        for (final String line : lines) {
-            if (line.equals("")) {
-                continue;
-            }
-            final String[] item = line.split(":\\s*", 2);
-            if (item.length > 1) {
-                if (item[0].equals("Cookie")) {
-                    final String[] c = item[1].split(";");
-                    for (final String c1 : c) {
-                        final String[] cookieInfo = c1.split("=(?!\\s|\\s|$)");
-                        if (cookieInfo.length > 1) {
-                            final String[] b = new String[5];
-                            b[0] = cookieInfo[1];
-                            b[1] = cookieInfo.length > 2 ? cookieInfo[2] : null;
-                            b[2] = cookieInfo.length > 3 ? cookieInfo[3] : null;
-                            b[3] = cookieInfo.length > 3 ? cookieInfo[3] : null;
-                            b[4] = "Cookie";
-                            header.cookies.put(cookieInfo[0], b);
-                        }
+    
+    public static HttpHeaders fromHashMap(HashMap<String,String> map){
+        return new HttpHeaders(map,false);
+    }
+    
+    public boolean parseLine(String line){
+        if (line.equals("")) {
+            return false;
+        }
+        final String[] item = line.split(":\\s*", 2);
+        if (item.length > 1) {
+            if (item[0].equals("Cookie")) {
+                final String[] c = item[1].split(";");
+                for (final String c1 : c) {
+                    final String[] cookieInfo = c1.split("=(?!\\s|\\s|$)");
+                    if (cookieInfo.length > 1) {
+                        final String[] b = new String[5];
+                        b[0] = cookieInfo[1];
+                        b[1] = cookieInfo.length > 2 ? cookieInfo[2] : null;
+                        b[2] = cookieInfo.length > 3 ? cookieInfo[3] : null;
+                        b[3] = cookieInfo.length > 3 ? cookieInfo[3] : null;
+                        b[4] = "Cookie";
+                        this.cookies.put(cookieInfo[0], b);
                     }
-                } else {
-                    header.set(item[0], item[1]);
                 }
             } else {
-                if (line.matches("^.+(?=\\s\\/).*HTTPS?\\/.*$")) {
-                    final String[] parts = line.split("\\s+");
-                    header.set("Method",parts[0]);
-                    header.set("@Resource",parts[1]);
-                    header.set("Version",parts[2]);
-                } else {
-                    header.set(line, null);
-                }
+                this.set(item[0], item[1]);
+            }
+        } else {
+            if (line.matches("^.+(?=\\s\\/).*HTTPS?\\/.*$")) {
+                final String[] parts = line.split("\\s+");
+                this.set("Method",parts[0]);
+                this.set("@Resource",parts[1]);
+                this.set("Version",parts[2]);
+            } else {
+                this.set(line, null);
             }
         }
-        return header;
+        return true;
+    }
+    
+    public static HttpHeaders fromString(final String string) {
+        final HttpHeaders headers = new HttpHeaders(false);
+        final String[] lines = string.split("\\r\\n");
+        for (final String line : lines) {
+            headers.parseLine(line);
+        }
+        return headers;
     }
 }

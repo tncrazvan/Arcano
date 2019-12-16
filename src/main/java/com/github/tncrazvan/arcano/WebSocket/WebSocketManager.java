@@ -17,7 +17,8 @@ import javax.xml.bind.DatatypeConverter;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.EventManager;
-import com.github.tncrazvan.arcano.Http.HttpHeader;
+import com.github.tncrazvan.arcano.Http.HttpHeaders;
+import com.github.tncrazvan.arcano.Http.HttpRequest;
 import static com.github.tncrazvan.arcano.Tool.Hashing.getSha1Bytes;
 import static com.github.tncrazvan.arcano.Tool.Hashing.getSha1String;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_SWITCHING_PROTOCOLS;
@@ -28,25 +29,25 @@ import static com.github.tncrazvan.arcano.Tool.Status.STATUS_SWITCHING_PROTOCOLS
  */
 public abstract class WebSocketManager extends EventManager{
     protected final Socket client;
-    protected final HttpHeader clientHeader;
+    protected final HttpRequest request;
     protected final BufferedReader reader;
     protected final String requestId;
     protected final OutputStream outputStream;
     private final Map<String,String> userLanguages = new HashMap<>();
     private boolean connected = true;
-    //private final HttpHeader header;
-    public WebSocketManager(SharedObject so,BufferedReader reader, Socket client, HttpHeader clientHeader) throws IOException {
-        super(so,client,clientHeader);
+    //private final HttpHeaders headers;
+    public WebSocketManager(SharedObject so,BufferedReader reader, Socket client, HttpRequest request) throws IOException {
+        super(so,client,request);
+        this.request=request;
         this.client=client;
-        this.clientHeader=clientHeader;
         this.reader=reader;
         this.requestId = getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis(),so.charset);
         this.outputStream = client.getOutputStream();
-        //header = new HttpHeader();
+        //header = new HttpHeaders();
     }
 
-    public HttpHeader getClientHeader(){
-        return clientHeader;
+    public HttpHeaders getClientHeader(){
+        return request.getHttpHeaders();
     }
 
     @Override
@@ -63,7 +64,7 @@ public abstract class WebSocketManager extends EventManager{
     }
 
     public String getUserAgent(){
-        return clientHeader.get("User-Agent");
+        return this.request.getHttpHeaders().get("User-Agent");
     }
 
     public void execute(){
@@ -71,13 +72,13 @@ public abstract class WebSocketManager extends EventManager{
             @Override
             public void run() {
                 try {
-                    String acceptKey = DatatypeConverter.printBase64Binary(getSha1Bytes(clientHeader.get("Sec-WebSocket-Key") + so.WEBSOCKET_ACCEPT_KEY,so.charset));
+                    String acceptKey = DatatypeConverter.printBase64Binary(getSha1Bytes(request.getHttpHeaders().get("Sec-WebSocket-Key") + SharedObject.WEBSOCKET_ACCEPT_KEY,so.charset));
                     
-                    header.set("@Status", STATUS_SWITCHING_PROTOCOLS);
-                    header.set("Connection","Upgrade");
-                    header.set("Upgrade","websocket");
-                    header.set("Sec-WebSocket-Accept",acceptKey);
-                    outputStream.write((header.toString()+"\r\n").getBytes());
+                    headers.set("@Status", STATUS_SWITCHING_PROTOCOLS);
+                    headers.set("Connection","Upgrade");
+                    headers.set("Upgrade","websocket");
+                    headers.set("Sec-WebSocket-Accept",acceptKey);
+                    outputStream.write((headers.toString()+"\r\n").getBytes());
                     outputStream.flush();
                     onOpen();
                     InputStream read = client.getInputStream();

@@ -18,7 +18,7 @@ import java.util.HashMap;
  * @author Administrator
  */
 public class HttpResponse extends SharedObject implements JsonTools{
-    private final HashMap<String,String> headers;
+    private final HttpHeaders headers;
     private Object content;
     private final Class<?> type;
     private boolean raw;
@@ -34,7 +34,23 @@ public class HttpResponse extends SharedObject implements JsonTools{
             action.callback(null);
     }
     
-    public HttpResponse(HashMap<String,String> headers, Object content) {
+    public HttpResponse(final HttpHeaders headers,final Object content){
+        this((HashMap<String, String>) headers.getHashMap(), content);
+    }
+    
+    public HttpResponse(final Object content){
+        this(new HashMap<String,String>(){{}}, content);
+    }
+    
+    public HttpResponse(final HttpHeaders headers){
+        this((HashMap<String,String>)headers.getHashMap(), null);
+    }
+    
+    public HttpResponse(final HashMap<String,String> headers){
+        this(headers, null);
+    }
+    
+    public HttpResponse(final HashMap<String,String> headers,final Object content) {
         raw = false;
         type = content.getClass();
         try{
@@ -85,10 +101,14 @@ public class HttpResponse extends SharedObject implements JsonTools{
         }
         
         
-        this.headers = headers;
+        this.headers = new HttpHeaders(headers);
     }
 
-    public HashMap<String, String> getHeaders() {
+    public HashMap<String, String> getHashMapHeaders() {
+        return headers.getHashMap();
+    }
+    
+    public HttpHeaders getHttpHeaders(){
         return headers;
     }
 

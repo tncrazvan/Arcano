@@ -31,24 +31,24 @@ public class Set extends HttpController implements JsonTools{
                 if(groups.get("allow").getAsBoolean()){
                     HttpSession session = e.startSession();
                     WebSocketGroup group = new WebSocketGroup(session);
-                    if(e.issetUrlQuery("visibility")){
-                        group.setVisibility(Integer.parseInt(e.getUrlQuery("visibility")));
+                    if(e.issetRequestQueryString("visibility")){
+                        group.setVisibility(Integer.parseInt(e.getRequestQueryString("visibility")));
                     }
-                    if(e.issetUrlQuery("name")){
-                        group.setGroupName(e.getUrlQuery("name"));
+                    if(e.issetRequestQueryString("name")){
+                        group.setGroupName(e.getRequestQueryString("name"));
                     }
                     WebSocketGroupApplicationProgramInterface.GROUP_MANAGER.addGroup(group);
                     e.send(group.getKey());
                 }else{
-                    e.setStatus(STATUS_NOT_FOUND);
+                    e.setResponseStatus(STATUS_NOT_FOUND);
                     e.send(GROUPS_NOT_ALLOWED);
                 }
             }else{
-                e.setStatus(STATUS_NOT_FOUND);
+                e.setResponseStatus(STATUS_NOT_FOUND);
                 e.send(GROUPS_NOT_ALLOWED);
             }
         }else{
-            e.setStatus(STATUS_NOT_FOUND);
+            e.setResponseStatus(STATUS_NOT_FOUND);
             e.send(GROUPS_POLICY_NOT_DEFINED);
         }
     }
@@ -59,9 +59,9 @@ public class Set extends HttpController implements JsonTools{
         String name = String.join("/", args);
         JsonObject data = jsonObject(new String(input));
         try{
-            e.setCookie(name, data.get("value").getAsString(), e.getUrlQuery("path"), e.getUrlQuery("path"), Integer.parseInt(e.getUrlQuery("expire")));
+            e.setCookie(name, data.get("value").getAsString(), e.getRequestQueryString("path"), e.getRequestQueryString("path"), Integer.parseInt(e.getRequestQueryString("expire")));
         }catch(NumberFormatException ex){
-            e.setCookie(name, data.get("value").getAsString(), e.getUrlQuery("path"), e.getUrlQuery("path"), e.getUrlQuery("expire"));
+            e.setCookie(name, data.get("value").getAsString(), e.getRequestQueryString("path"), e.getRequestQueryString("path"), e.getRequestQueryString("expire"));
         }
     }
 }

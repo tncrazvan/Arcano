@@ -20,9 +20,9 @@ public class Isset extends HttpController{
         String url = String.join("/", args);
         File f = new File(so.webRoot,url);
         if(f.exists()){
-            e.setStatus(STATUS_FOUND);
+            e.setResponseStatus(STATUS_FOUND);
         }else{
-            e.setStatus(STATUS_NOT_FOUND);
+            e.setResponseStatus(STATUS_NOT_FOUND);
         }
         e.flush();
     }
@@ -31,9 +31,9 @@ public class Isset extends HttpController{
     public void cookie(){
             String name = String.join("/",args);
             if(e.issetCookie(name)){
-                e.setStatus(STATUS_FOUND);
+                e.setResponseStatus(STATUS_FOUND);
             }else{
-                e.setStatus(STATUS_NOT_FOUND);
+                e.setResponseStatus(STATUS_NOT_FOUND);
             }
            e.flush();
     }

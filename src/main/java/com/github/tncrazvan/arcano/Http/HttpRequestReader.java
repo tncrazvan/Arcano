@@ -27,7 +27,7 @@ public abstract class HttpRequestReader extends SharedObject implements Runnable
     protected BufferedWriter writer=null;
     protected final DataOutputStream output;
     protected final DataInputStream input;
-    private StringBuilder outputString = new StringBuilder();
+    private final StringBuilder outputString = new StringBuilder();
     public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
         this.client=client;
         reader = new BufferedReader(
@@ -67,7 +67,7 @@ public abstract class HttpRequestReader extends SharedObject implements Runnable
             if(outputString.length() == 0){
                 client.close();
             }else{
-                HttpHeader clientHeader = HttpHeader.fromString(outputString.toString().trim());
+                HttpHeaders clientHeader = HttpHeaders.fromString(outputString.toString().trim());
                 //outputString = new StringBuilder();
                 ArrayList<byte[]> inputList = new ArrayList<>();
                 int length = 0;
@@ -113,7 +113,7 @@ public abstract class HttpRequestReader extends SharedObject implements Runnable
                         inputBytes[pos] = bytes[i];
                     }
                 }
-                this.onRequest(clientHeader,inputBytes);
+                this.onRequest(new HttpRequest(clientHeader,inputBytes));
             }
             
         } catch (IOException ex) {
@@ -126,6 +126,6 @@ public abstract class HttpRequestReader extends SharedObject implements Runnable
     }
     
     
-    public abstract void onRequest(HttpHeader clientHeader, byte[] input);
+    public abstract void onRequest(HttpRequest request);
     
 }

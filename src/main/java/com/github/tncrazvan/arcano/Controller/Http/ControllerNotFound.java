@@ -12,7 +12,7 @@ import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
 public class ControllerNotFound extends HttpController {  
     
     public String main() {
-        e.setStatus(STATUS_NOT_FOUND);
+        e.setResponseStatus(STATUS_NOT_FOUND);
         return "";
     }
 }

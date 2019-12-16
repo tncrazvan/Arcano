@@ -20,7 +20,7 @@ import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
 public class Get extends HttpController implements JsonTools{
     @WebPath(name="/file")
     public HttpResponse file() throws IOException {
-        return new HttpResponse(null,new File(so.webRoot+String.join("/", args)));
+        return new HttpResponse(new File(so.webRoot+String.join("/", args)));
     }
     
     class Cookie{
@@ -61,11 +61,11 @@ public class Get extends HttpController implements JsonTools{
     public void cookie() throws UnsupportedEncodingException{
         String name = String.join("/", args);
         if(e.issetCookie(name)){
-            e.setContentType("application/json");
+            e.setResponseContentType("application/json");
             String jsonCookie = jsonStringify(new Cookie("Cookie", e.getCookie(name)));
             e.send(jsonCookie);
         }else{
-            e.setStatus(STATUS_NOT_FOUND);
+            e.setResponseStatus(STATUS_NOT_FOUND);
             e.flush();
         }
     }

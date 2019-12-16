@@ -27,9 +27,9 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
                 //if "ALLOW" is true
                 if(groups.get("allow").getAsBoolean()){ //ws groups are allowed
                     //if query "?join" is present in the request URL
-                    if(e.issetUrlQuery("join")){
+                    if(e.issetRequestQueryString("join")){
                         //use that query value as the group's name
-                        groupName = e.getUrlQuery("join");
+                        groupName = e.getRequestQueryString("join");
                         //if the group exists in this controller
                         if(GROUP_MANAGER.groupExists(groupName)){
                             //NOTE: GROUP_MANAGER is relative to the controller,

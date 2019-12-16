@@ -114,7 +114,7 @@ public abstract class SharedObject implements Strings{
                             }
                             
                             path = normalizePathSlashes(path);
-                            WebObject wo = new WebObject(cls.getCanonicalName(), method.getName(), type);
+                            WebObject wo = new WebObject(cls.getName(), method.getName(), type);
                             ROUTES.put(type+path, wo);
                         }else if(cls.getAnnotation(NotFound.class) != null){
                             if(httpNotFoundNameOriginal == null)
