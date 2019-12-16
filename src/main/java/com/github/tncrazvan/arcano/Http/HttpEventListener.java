@@ -8,7 +8,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,19 +23,16 @@ public class HttpEventListener extends HttpRequestReader{
             UPGRADE_PATTERN = Pattern.compile("Upgrade"),
             WEB_SOCKET_PATTERN = Pattern.compile("websocket"),
             HTTP2_PATTERN = Pattern.compile("h2c");
-    private final SharedObject so;
     public HttpEventListener(SharedObject so, final Socket client) throws IOException, NoSuchAlgorithmException{
-        super(client);
-        this.so=so;
+        super(so,client);
     }
 
     @Override
-    public void onRequest(final HttpRequest request) {
-        HttpHeaders clientHeader = request.getHttpHeaders();
-        if(clientHeader != null && clientHeader.get("Connection")!=null){
-            matcher = UPGRADE_PATTERN.matcher(clientHeader.get("Connection"));
+    public void onRequest() {
+        if(request.headers != null && request.headers.get("Connection")!=null){
+            matcher = UPGRADE_PATTERN.matcher(request.headers.get("Connection"));
             if(matcher.find()){
-                matcher = WEB_SOCKET_PATTERN.matcher(clientHeader.get("Upgrade"));
+                matcher = WEB_SOCKET_PATTERN.matcher(request.headers.get("Upgrade"));
                 //WebSocket connection
                 if(matcher.find()){
                     try {
@@ -50,10 +46,10 @@ public class HttpEventListener extends HttpRequestReader{
                     } catch (InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
                         LOGGER.log(Level.SEVERE,null,ex);
                     } catch (ClassNotFoundException | IllegalArgumentException | InvocationTargetException ex) {
-                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
+                        LOGGER.log(Level.SEVERE, null, ex);
                     }
                 }else{
-                    matcher = HTTP2_PATTERN.matcher(clientHeader.get("Upgrade"));
+                    matcher = HTTP2_PATTERN.matcher(request.headers.get("Upgrade"));
                     // Http 2.x connection
                     if(matcher.find()){
                         System.out.println("Http 2.0 connection detected. Not yet implemented.");
@@ -63,28 +59,33 @@ public class HttpEventListener extends HttpRequestReader{
                 try {
                     client.setSoTimeout(timeout);
                     //default connection, assuming it's Http 1.x
-                    HttpEvent e = new HttpEvent(so,output,client,request);
-                    StringBuilder location = e.getLocation();
-                    HttpHeaders headers = e.getResponseHttpHeaders();
-                    e.findRequestLanguages();
+                    
+                    //HttpHeaders headers = controller.getResponseHttpHeaders();
                     File f = new File(so.webRoot+location);
                     if(f.exists()){
                         if(!f.isDirectory()){
-                            headers.set("Content-Type", resolveContentType(location.toString()));
-                            headers.set("Last-Modified",so.formatHttpDefaultDate.format(time(f.lastModified())));
-                            headers.set("Last-Modified-Timestamp",f.lastModified()+"");
-                            e.sendFileContents(f);
+                            HttpController controller = new HttpController();
+                            controller.setHttpHeaders(new HttpHeaders());
+                            controller.setSharedObject(so);
+                            controller.setDataOutputStream(output);
+                            controller.setSocket(client);
+                            controller.setHttpRequest(request);
+                            controller.initEventManager();
+                            controller.initHttpEventManager();
+                            controller.findRequestLanguages();
+                            
+                            controller.setResponseHeaderField("Content-Type", resolveContentType(location.toString()));
+                            controller.setResponseHeaderField("Last-Modified",so.formatHttpDefaultDate.format(time(f.lastModified())));
+                            controller.setResponseHeaderField("Last-Modified-Timestamp",f.lastModified()+"");
+                            controller.sendFileContents(f);
                         }else{
-                            e.isDir = true;
-                            headers.set("Content-Type", "text/html");
-                            e.onControllerRequest(location);
+                            //String httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName
+                            HttpController.onControllerRequest(this);
                         }
                     }else{
-                        headers.set("Content-Type", "text/html");
-                        e.onControllerRequest(location);
+                        //controller.setResponseHeaderField("Content-Type", "text/html");
+                        HttpController.onControllerRequest(this);
                     }
-                    e.close();
-                    
                 } catch (final IOException ex) {
                     LOGGER.log(Level.SEVERE,null,ex);
                 }

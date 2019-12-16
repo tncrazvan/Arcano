@@ -1,13 +1,10 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
-import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import java.io.DataOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.Socket;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,19 +26,8 @@ import java.util.logging.Logger;
  * @author Razvan
  */
 public class HttpEvent extends HttpEventManager implements JsonTools{
-    private Method method;
-    private String[] args;
-    private Class<?> cls;
-    private Object controller;
-    private Constructor<?> constructor;
-    private WebObject wo;
-    private int classId;
-    
-    public HttpEvent(SharedObject so,final DataOutputStream output, final Socket client, HttpRequest request) throws UnsupportedEncodingException {
-        super(so, output, client, request);
-    }
 
-    private void invoke(final Object controller, final Method method) throws IllegalAccessException,
+    public void invoke(final Object controller, final Method method) throws IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, InvocationTargetException {
         try {
             Class<?> type = method.getReturnType();
@@ -178,17 +164,28 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         }
     }
 
-    private void serveController(String[] location) throws InstantiationException, IllegalAccessException,
-            NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException {
+    private static HttpController serveController(HttpRequestReader reader) throws InstantiationException, IllegalAccessException,
+            NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException {
+        
+        String[] location = reader.location.toString().split("/");
+        String httpMethod = reader.request.headers.get("Method");
+        
+        Method method;
+        String[] args;
+        Class<?> cls;
+        HttpController controller = null;
+        Constructor<?> constructor;
+        WebObject wo;
+        int classId;
         args = new String[0];
         if (location.length == 0 || location.length == 1 && location[0].equals("")) {
             location = new String[] { "" };
         }
         try {
             if (location.length > 0 && !location[0].equals("")) {
-                classId = getClassnameIndex(location, getRequestMethod());
+                classId = getClassnameIndex(location, httpMethod);
                 final String[] typedLocation = Stream
-                        .concat(Arrays.stream(new String[] { getRequestMethod() }), Arrays.stream(location))
+                        .concat(Arrays.stream(new String[] { httpMethod }), Arrays.stream(location))
                         .toArray(String[]::new);
                 wo = resolveClassName(classId + 1, typedLocation);
                 cls = Class.forName(wo.getClassname());
@@ -203,7 +200,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                                     )
                     );
                 }
-                controller = cls.getDeclaredConstructor().newInstance();
+                controller = (HttpController)cls.getDeclaredConstructor().newInstance();
 
                 final String methodname = location.length > classId ? wo.getMethodname() : "main";
                 args = resolveMethodArgs(classId + 1, location);
@@ -216,36 +213,47 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             } else {
                 try {
                     // cls = Class.forName(httpDefaultName);
-                    cls = Class.forName(so.httpNotFoundName);
+                    cls = Class.forName(reader.so.httpNotFoundName);
                 } catch (final ClassNotFoundException eex) {
                     // cls = Class.forName(httpDefaultNameOriginal);
-                    cls = Class.forName(so.httpNotFoundNameOriginal);
+                    cls = Class.forName(reader.so.httpNotFoundNameOriginal);
                 }
-                controller = cls.getDeclaredConstructor().newInstance();
+                controller = (HttpController) cls.getDeclaredConstructor().newInstance();
                 method = controller.getClass().getDeclaredMethod("main");
             }
-            ((HttpController) controller).setEvent(this);
-            ((HttpController) controller).setArgs(args);
-            ((HttpController) controller).setInput(this.request.getContent());
-            invoke(controller, method);
+            controller.setHttpHeaders(new HttpHeaders());
+            controller.setSharedObject(reader.so);
+            controller.setDataOutputStream(reader.output);
+            controller.setSocket(reader.client);
+            controller.setHttpRequest(reader.request);
+            controller.initEventManager();
+            controller.initHttpEventManager();
+            controller.findRequestLanguages();
+            controller.setArgs(args);
+            controller.invoke(controller, method);
         } catch (final ClassNotFoundException ex) {
             try {
-                cls = Class.forName(so.httpNotFoundName);
+                cls = Class.forName(reader.so.httpNotFoundName);
             } catch (final ClassNotFoundException eex) {
-                cls = Class.forName(so.httpNotFoundNameOriginal);
+                cls = Class.forName(reader.so.httpNotFoundNameOriginal);
             }
-            controller = cls.getDeclaredConstructor().newInstance();
+            controller = (HttpController) cls.getDeclaredConstructor().newInstance();
             method = controller.getClass().getDeclaredMethod("main");
-            // Method onClose = controller.getClass().getDeclaredMethod("onClose");
-
-            ((HttpController) controller).setEvent(this);
-            ((HttpController) controller).setArgs(location);
-            ((HttpController) controller).setInput(this.request.getContent());
-            setResponseStatus(STATUS_NOT_FOUND);
-            invoke(controller, method);
+            controller.setHttpHeaders(new HttpHeaders());
+            controller.setResponseStatus(STATUS_NOT_FOUND);
+            controller.setSharedObject(reader.so);
+            controller.setDataOutputStream(reader.output);
+            controller.setSocket(reader.client);
+            controller.setHttpRequest(reader.request);
+            controller.initEventManager();
+            controller.initHttpEventManager();
+            controller.findRequestLanguages();
+            controller.setArgs(args);
+            controller.invoke(controller, method);
         } catch (InvalidControllerConstructorException ex) {
-            Logger.getLogger(HttpEvent.class.getName()).log(Level.SEVERE, null, ex);
+            LOGGER.log(Level.SEVERE, null, ex);
         }
+        return (HttpController) controller;
     }
     
     private static Constructor<?> getNoParametersConstructor(Class<?> cls){
@@ -257,14 +265,14 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         return null;
     }
     
-    @Override
-    void onControllerRequest(final StringBuilder url) {
+    //public static void onControllerRequest(final StringBuilder url,String httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName) {
+    public static void onControllerRequest(HttpRequestReader reader) {
         try {
-            serveController(url.toString().split("/"));
-            close();
+            HttpController controller = serveController(reader);
+            if(controller != null ) controller.close();
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
             LOGGER.log(Level.WARNING, null, ex);
-        } catch (IllegalArgumentException | InvocationTargetException ex) {
+        } catch (IllegalArgumentException | InvocationTargetException | UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     } 

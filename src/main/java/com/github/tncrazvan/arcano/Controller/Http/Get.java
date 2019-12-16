@@ -2,7 +2,7 @@ package com.github.tncrazvan.arcano.Controller.Http;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
+import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi;
 import java.io.IOException;
 import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
@@ -40,10 +40,10 @@ public class Get extends HttpController implements JsonTools{
         WebSocketGroup group;
         JsonArray arr = new JsonArray();
         for(String key : 
-        WebSocketGroupApplicationProgramInterface
+        WebSocketGroupApi
         .GROUP_MANAGER
         .getAllGroups().keySet()){
-            group = WebSocketGroupApplicationProgramInterface
+            group = WebSocketGroupApi
                             .GROUP_MANAGER
                             .getGroup(key);
             if(group.getVisibility() == WebSocketGroup.PUBLIC){
@@ -54,19 +54,19 @@ public class Get extends HttpController implements JsonTools{
             }
             
         }
-        e.send(arr.toString());
+        send(arr.toString());
     }
     
     @WebPath(name="/cookie")
     public void cookie() throws UnsupportedEncodingException{
         String name = String.join("/", args);
-        if(e.issetCookie(name)){
-            e.setResponseContentType("application/json");
-            String jsonCookie = jsonStringify(new Cookie("Cookie", e.getCookie(name)));
-            e.send(jsonCookie);
+        if(issetCookie(name)){
+            setResponseContentType("application/json");
+            String jsonCookie = jsonStringify(new Cookie("Cookie", getCookie(name)));
+            send(jsonCookie);
         }else{
-            e.setResponseStatus(STATUS_NOT_FOUND);
-            e.flush();
+            setResponseStatus(STATUS_NOT_FOUND);
+            flush();
         }
     }
 }

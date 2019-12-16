@@ -7,12 +7,12 @@ package com.github.tncrazvan.arcano;
 public class WebObject {
     private String classname=null;
     private String methodname=null;
-    private String httpMethod="GET";
+    private String type="GET";
     
     public WebObject(String classname, String methodname, String httpMethod) {
         this.classname = classname;
         this.methodname = methodname;
-        this.httpMethod = httpMethod;
+        this.type = httpMethod;
     }
     
     public void setClassname(String classname) {
@@ -24,7 +24,7 @@ public class WebObject {
     }
 
     public void setHttpMethod(String httpMethod) {
-        this.httpMethod = httpMethod;
+        this.type = httpMethod;
     }
     
     public String getClassname(){
@@ -35,7 +35,7 @@ public class WebObject {
         return methodname;
     }
     
-    public String getHttpMethod(){
-        return httpMethod;
+    public String getType(){
+        return type;
     }
 }

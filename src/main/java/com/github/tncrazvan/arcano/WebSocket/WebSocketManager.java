@@ -28,8 +28,6 @@ import static com.github.tncrazvan.arcano.Tool.Status.STATUS_SWITCHING_PROTOCOLS
  * @author Razvan
  */
 public abstract class WebSocketManager extends EventManager{
-    protected final Socket client;
-    protected final HttpRequest request;
     protected final BufferedReader reader;
     protected final String requestId;
     protected final OutputStream outputStream;
@@ -37,7 +35,9 @@ public abstract class WebSocketManager extends EventManager{
     private boolean connected = true;
     //private final HttpHeaders headers;
     public WebSocketManager(SharedObject so,BufferedReader reader, Socket client, HttpRequest request) throws IOException {
-        super(so,client,request);
+        this.setSharedObject(so);
+        this.setSocket(client);
+        this.setHttpRequest(request);
         this.request=request;
         this.client=client;
         this.reader=reader;
@@ -47,7 +47,7 @@ public abstract class WebSocketManager extends EventManager{
     }
 
     public HttpHeaders getClientHeader(){
-        return request.getHttpHeaders();
+        return request.headers;
     }
 
     @Override
@@ -64,7 +64,7 @@ public abstract class WebSocketManager extends EventManager{
     }
 
     public String getUserAgent(){
-        return this.request.getHttpHeaders().get("User-Agent");
+        return this.request.headers.get("User-Agent");
     }
 
     public void execute(){
@@ -72,7 +72,7 @@ public abstract class WebSocketManager extends EventManager{
             @Override
             public void run() {
                 try {
-                    String acceptKey = DatatypeConverter.printBase64Binary(getSha1Bytes(request.getHttpHeaders().get("Sec-WebSocket-Key") + SharedObject.WEBSOCKET_ACCEPT_KEY,so.charset));
+                    String acceptKey = DatatypeConverter.printBase64Binary(getSha1Bytes(request.headers.get("Sec-WebSocket-Key") + SharedObject.WEBSOCKET_ACCEPT_KEY,so.charset));
                     
                     headers.set("@Status", STATUS_SWITCHING_PROTOCOLS);
                     headers.set("Connection","Upgrade");

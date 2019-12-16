@@ -13,6 +13,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.net.SocketTimeoutException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import javax.net.ssl.SSLSocket;
 
@@ -21,14 +22,18 @@ import javax.net.ssl.SSLSocket;
  * @author Razvan
  */
 public abstract class HttpRequestReader extends SharedObject implements Runnable{
-    protected Socket client=null;
+    protected final Socket client;
     protected SSLSocket secureClient=null;
-    protected BufferedReader reader=null;
-    protected BufferedWriter writer=null;
+    protected final BufferedReader reader;
+    protected final BufferedWriter writer;
     protected final DataOutputStream output;
     protected final DataInputStream input;
     private final StringBuilder outputString = new StringBuilder();
-    public HttpRequestReader(Socket client) throws NoSuchAlgorithmException, IOException {
+    public HttpRequest request = null;
+    public final StringBuilder location = new StringBuilder();
+    public final SharedObject so;
+    public HttpRequestReader(SharedObject so, Socket client) throws NoSuchAlgorithmException, IOException {
+        this.so = so;
         this.client=client;
         reader = new BufferedReader(
                 new InputStreamReader(
@@ -113,7 +118,16 @@ public abstract class HttpRequestReader extends SharedObject implements Runnable
                         inputBytes[pos] = bytes[i];
                     }
                 }
-                this.onRequest(new HttpRequest(clientHeader,inputBytes));
+                this.request = new HttpRequest(clientHeader,inputBytes);
+                String uri = request.headers.get("@Resource");
+                try{
+                    uri = URLDecoder.decode(uri,so.charset);
+                }catch(IllegalArgumentException ex){
+                    return;
+                }
+                String[] uriParts = uri.split("\\?|\\&",2);
+                location.append(uriParts[0].replaceAll("^\\/", ""));
+                this.onRequest();
             }
             
         } catch (IOException ex) {
@@ -126,6 +140,6 @@ public abstract class HttpRequestReader extends SharedObject implements Runnable
     }
     
     
-    public abstract void onRequest(HttpRequest request);
+    public abstract void onRequest();
     
 }

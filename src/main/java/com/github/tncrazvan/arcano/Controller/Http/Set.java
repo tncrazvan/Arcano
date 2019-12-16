@@ -1,8 +1,6 @@
 package com.github.tncrazvan.arcano.Controller.Http;
 
-import com.google.gson.JsonObject;
-import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApplicationProgramInterface;
-import com.github.tncrazvan.arcano.Http.HttpEvent;
+import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi;
 import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.Http.HttpSession;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
@@ -11,6 +9,7 @@ import com.github.tncrazvan.arcano.Bean.WebMethod;
 import com.github.tncrazvan.arcano.Bean.WebPath;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
+import com.google.gson.JsonObject;
 
 /**
  *
@@ -29,27 +28,27 @@ public class Set extends HttpController implements JsonTools{
             JsonObject groups = so.config.get("groups").getAsJsonObject();
             if(groups.has("allow")){
                 if(groups.get("allow").getAsBoolean()){
-                    HttpSession session = e.startSession();
+                    HttpSession session = startSession();
                     WebSocketGroup group = new WebSocketGroup(session);
-                    if(e.issetRequestQueryString("visibility")){
-                        group.setVisibility(Integer.parseInt(e.getRequestQueryString("visibility")));
+                    if(issetRequestQueryString("visibility")){
+                        group.setVisibility(Integer.parseInt(getRequestQueryString("visibility")));
                     }
-                    if(e.issetRequestQueryString("name")){
-                        group.setGroupName(e.getRequestQueryString("name"));
+                    if(issetRequestQueryString("name")){
+                        group.setGroupName(getRequestQueryString("name"));
                     }
-                    WebSocketGroupApplicationProgramInterface.GROUP_MANAGER.addGroup(group);
-                    e.send(group.getKey());
+                    WebSocketGroupApi.GROUP_MANAGER.addGroup(group);
+                    send(group.getKey());
                 }else{
-                    e.setResponseStatus(STATUS_NOT_FOUND);
-                    e.send(GROUPS_NOT_ALLOWED);
+                    setResponseStatus(STATUS_NOT_FOUND);
+                    send(GROUPS_NOT_ALLOWED);
                 }
             }else{
-                e.setResponseStatus(STATUS_NOT_FOUND);
-                e.send(GROUPS_NOT_ALLOWED);
+                setResponseStatus(STATUS_NOT_FOUND);
+                send(GROUPS_NOT_ALLOWED);
             }
         }else{
-            e.setResponseStatus(STATUS_NOT_FOUND);
-            e.send(GROUPS_POLICY_NOT_DEFINED);
+            setResponseStatus(STATUS_NOT_FOUND);
+            send(GROUPS_POLICY_NOT_DEFINED);
         }
     }
     
@@ -57,11 +56,11 @@ public class Set extends HttpController implements JsonTools{
     @WebMethod(name="POST")
     public void cookie() throws UnsupportedEncodingException{
         String name = String.join("/", args);
-        JsonObject data = jsonObject(new String(input));
+        JsonObject data = jsonObject(new String(request.content));
         try{
-            e.setCookie(name, data.get("value").getAsString(), e.getRequestQueryString("path"), e.getRequestQueryString("path"), Integer.parseInt(e.getRequestQueryString("expire")));
+            setCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), Integer.parseInt(getRequestQueryString("expire")));
         }catch(NumberFormatException ex){
-            e.setCookie(name, data.get("value").getAsString(), e.getRequestQueryString("path"), e.getRequestQueryString("path"), e.getRequestQueryString("expire"));
+            setCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), getRequestQueryString("expire"));
         }
     }
 }

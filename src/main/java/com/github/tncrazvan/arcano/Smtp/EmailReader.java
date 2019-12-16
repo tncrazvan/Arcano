@@ -1,4 +1,4 @@
-package com.github.tncrazvan.arcano.SmtpServer;
+package com.github.tncrazvan.arcano.Smtp;
 
 import java.io.IOException;
 import java.net.Socket;

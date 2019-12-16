@@ -23,6 +23,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import com.github.tncrazvan.arcano.Bean.WebMethod;
 import com.github.tncrazvan.arcano.Bean.WebPath;
 import com.github.tncrazvan.arcano.Http.HttpSessionManager;
+import com.github.tncrazvan.arcano.Smtp.SmtpController;
 import com.github.tncrazvan.arcano.Tool.Strings;
 import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
 
@@ -148,9 +149,37 @@ public abstract class SharedObject implements Strings{
                             webSocketNotFoundName = cls.getCanonicalName();
                         }
                     }
+                }else if(SmtpController.class.isAssignableFrom(cls)){
+                    WebPath classRoute = (WebPath) cls.getAnnotation(WebPath.class);
+                    WebMethod classWebFilter = (WebMethod) cls.getAnnotation(WebMethod.class);
+                    Method[] methods = cls.getDeclaredMethods();
+                    for(Method method : methods){
+                        WebPath methodRoute = method.getAnnotation(WebPath.class);
+                        if(methodRoute != null){
+                            String classPath = normalizePathSlashes(classRoute.name().trim());
+                            String methodPath = normalizePathSlashes(methodRoute.name().trim());
+                            WebMethod methodWebFilter = (WebMethod) method.getAnnotation(WebMethod.class);
+                            if(methodWebFilter == null)
+                                methodWebFilter = classWebFilter;
+                            String path = (classPath.toLowerCase()+methodPath.toLowerCase()).replaceAll("/+", "/");
+                            String type = "SMTP";
+
+                            path = normalizePathSlashes(path);
+                            WebObject wo = new WebObject(cls.getName(), method.getName(), type);
+                            ROUTES.put(type+path, wo);
+                        }else if(cls.getAnnotation(NotFound.class) != null){
+                            if(httpNotFoundNameOriginal == null)
+                                httpNotFoundNameOriginal = cls.getCanonicalName();
+                            httpNotFoundName = cls.getCanonicalName();
+                        }else if(cls.getAnnotation(Default.class) != null){
+                            if(httpDefaultNameOriginal == null)
+                                httpDefaultNameOriginal = cls.getCanonicalName();
+                            httpDefaultName = cls.getCanonicalName();
+                        }
+                    }
                 }
             } catch (SecurityException | IllegalArgumentException  ex) {
-                Logger.getLogger(HttpController.class.getName()).log(Level.SEVERE, null, ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }
     }

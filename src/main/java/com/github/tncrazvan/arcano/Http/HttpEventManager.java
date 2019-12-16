@@ -3,11 +3,8 @@ package com.github.tncrazvan.arcano.Http;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.Socket;
-import java.util.Map;
 import java.util.logging.Level;
 import com.github.tncrazvan.arcano.EventManager;
-import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.DEFLATE;
 import static com.github.tncrazvan.arcano.SharedObject.GZIP;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
@@ -25,27 +22,29 @@ import java.io.UnsupportedEncodingException;
  * @author Razvan
  */
 public abstract class HttpEventManager extends EventManager{
-    private final DataOutputStream output;
+    private DataOutputStream output;
     //private HttpHeaders headers;
     private boolean defaultHeaders=true;
     private boolean alive=true;
     protected boolean isDir = false;
-    private final String acceptEncoding;
-    private final String encodingLabel;
-    public HttpEventManager(SharedObject so,DataOutputStream output,Socket client, HttpRequest request) throws UnsupportedEncodingException {
-        super(so,client,request);
+    private String acceptEncoding;
+    private String encodingLabel;
+    
+    public void setDataOutputStream(DataOutputStream output){
         this.output = output;
-        if(this.request.getHttpHeaders().isDefined("Accept-Encoding")){
-            acceptEncoding = this.request.getHttpHeaders().get("Accept-Encoding");
+    }
+    
+    public void initHttpEventManager(){
+        if(this.request.headers.isDefined("Accept-Encoding")){
+            acceptEncoding = this.request.headers.get("Accept-Encoding");
             encodingLabel = "Content-Encoding";
-        }else if(this.request.getHttpHeaders().isDefined("Transfer-Encoding")){
-            acceptEncoding = this.request.getHttpHeaders().get("Transfer-Encoding");
+        }else if(this.request.headers.isDefined("Transfer-Encoding")){
+            acceptEncoding = this.request.headers.get("Transfer-Encoding");
             encodingLabel = "Transfer-Encoding";
         }else{
             acceptEncoding = "";
             encodingLabel = "";
         }
-        
     }
     
     /**
@@ -59,12 +58,24 @@ public abstract class HttpEventManager extends EventManager{
         }
     }
     
+    public void isDirectory(boolean value){
+        isDir=value;
+    }
+    
     public boolean isDirectory(){
         return isDir;
     }
     
     public void setResponseHeaderField(String fieldName,String fieldContent){
         headers.set(fieldName, fieldContent);
+    }
+    
+    public String getResponseHeaderField(String fieldName){
+        return headers.get(fieldName);
+    }
+    
+    public boolean issetResponseHeaderField(String fieldName){
+        return headers.isDefined(fieldName);
     }
     
     public void setResponseStatus(String status){
@@ -76,13 +87,6 @@ public abstract class HttpEventManager extends EventManager{
     }
     public HttpHeaders getResponseHttpHeaders(){
         return headers;
-    }
-    public HttpHeaders getRequestHttpHeaders(){
-        return request.getHttpHeaders();
-    }
-    
-    public String getRequestMethod(){
-        return request.getHttpHeaders().get("Method");
     }
     
     public boolean isAlive(){
@@ -112,20 +116,6 @@ public abstract class HttpEventManager extends EventManager{
     }*/
     
     
-    
-    abstract void onControllerRequest(StringBuilder location);
-    
-    public Map<String,String> getUserLanguages(){
-        return userLanguages;
-    }
-    
-    public String getRequestDefaultLanguage(){
-        return userLanguages.get("DEFAULT-LANGUAGE");
-    }
-    
-    public String getRequestUserAgent(){
-        return request.getHttpHeaders().get("User-Agent");
-    }
     
     private boolean firstMessage = true;
     
@@ -198,9 +188,16 @@ public abstract class HttpEventManager extends EventManager{
     public void send(int data){
         send(""+data);
     }
+    
     public void setResponseContentType(String type){
         headers.set("Content-Type", type);
     }
+    
+    public String getResponseContentType(){
+        return headers.get("Content-Type");
+    }
+    
+    
     
     public void sendFileContents(String filename) throws IOException{
         sendFileContents(new File(so.webRoot,filename));
@@ -214,14 +211,6 @@ public abstract class HttpEventManager extends EventManager{
         defaultHeaders = true;
     }
     
-    public String getRequestAddress(){
-        return client.getInetAddress().toString();
-    }
-    
-    public int getRequestPort(){
-        return client.getPort();
-    }
-    
     public void sendFileContents(File f){
         try {
             byte[] buffer;
@@ -230,9 +219,9 @@ public abstract class HttpEventManager extends EventManager{
                 
                 int fileLength = (int) raf.length();
                 
-                if(this.request.getHttpHeaders().isDefined("Range")){
+                if(this.request.headers.isDefined("Range")){
                     setResponseStatus(STATUS_PARTIAL_CONTENT);
-                    String[] ranges = this.request.getHttpHeaders().get("Range").split("=")[1].split(",");
+                    String[] ranges = this.request.headers.get("Range").split("=")[1].split(",");
                     int[] rangeStart = new int[ranges.length];
                     int[] rangeEnd = new int[ranges.length];
                     int lastIndex;

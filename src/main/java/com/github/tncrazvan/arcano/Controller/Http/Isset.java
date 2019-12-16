@@ -20,21 +20,21 @@ public class Isset extends HttpController{
         String url = String.join("/", args);
         File f = new File(so.webRoot,url);
         if(f.exists()){
-            e.setResponseStatus(STATUS_FOUND);
+            setResponseStatus(STATUS_FOUND);
         }else{
-            e.setResponseStatus(STATUS_NOT_FOUND);
+            setResponseStatus(STATUS_NOT_FOUND);
         }
-        e.flush();
+        flush();
     }
     
     @WebPath(name="/cookie")
     public void cookie(){
-            String name = String.join("/",args);
-            if(e.issetCookie(name)){
-                e.setResponseStatus(STATUS_FOUND);
-            }else{
-                e.setResponseStatus(STATUS_NOT_FOUND);
-            }
-           e.flush();
+        String name = String.join("/",args);
+        if(issetCookie(name)){
+            setResponseStatus(STATUS_FOUND);
+        }else{
+            setResponseStatus(STATUS_NOT_FOUND);
+        }
+       flush();
     }
 }

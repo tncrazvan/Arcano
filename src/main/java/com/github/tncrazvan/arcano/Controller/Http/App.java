@@ -12,7 +12,7 @@ import java.io.IOException;
 @Default
 public class App extends HttpController {
     public HttpResponse main() throws IOException {
-        Get request = new Get();
+        final Get request = new Get();
         request.setArgs(so.entryPoint.split("/"));
         return request.file();
     }

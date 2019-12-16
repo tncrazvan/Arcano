@@ -13,8 +13,8 @@ import java.util.HashMap;
  */
 
 public class HttpRequest {
-    private final HttpHeaders headers;
-    private final byte[] content;
+    public final HttpHeaders headers;
+    public final byte[] content;
 
     public HttpRequest(final HashMap<String,String> headers, final byte[] content) {
         this(new HttpHeaders(headers), content);
@@ -23,17 +23,5 @@ public class HttpRequest {
     public HttpRequest(final HttpHeaders headers, final byte[] content) {
         this.headers = headers;
         this.content = content;
-    }
-    
-    public HashMap<String, String> getMapHeaders() {
-        return headers.getHashMap();
-    }
-    
-    public HttpHeaders getHttpHeaders(){
-        return headers;
-    }
-
-    public byte[] getContent() {
-        return content;
     }
 }

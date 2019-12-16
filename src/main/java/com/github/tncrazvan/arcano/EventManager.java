@@ -19,32 +19,43 @@ import java.util.Map;
  * @author razvan
  */
 public abstract class EventManager{
-    protected final HttpRequest request;
-    protected final HashMap<String,String> queryString = new HashMap<>();
-    protected final StringBuilder location = new StringBuilder();
-    protected final Map<String,String> userLanguages = new HashMap<>();
-    protected final HttpHeaders headers;
-    protected final Socket client;
+    protected HttpRequest request;
+    protected HashMap<String,String> queryString = new HashMap<>();
+    protected StringBuilder location = new StringBuilder();
+    protected Map<String,String> userLanguages = new HashMap<>();
+    protected HttpHeaders headers;
+    protected Socket client;
     protected HttpSession session = null;
-    public final SharedObject so;
+    public SharedObject so;
     public static final File root = new File("/java");
-    public EventManager(SharedObject so,Socket client, HttpRequest request) throws UnsupportedEncodingException {
+    
+    public void setHttpHeaders(HttpHeaders headers){
+        this.headers=headers;
+    }
+    
+    public void setSharedObject(SharedObject so){
         this.so=so;
+    }
+    public void setSocket(Socket client){
         this.client=client;
-        this.headers = new HttpHeaders();
+    }
+    public void setHttpRequest(HttpRequest request){
         this.request=request;
-        String uri = request.getHttpHeaders().get("@Resource");
+    }
+    
+    public void initEventManager() throws UnsupportedEncodingException {
+        String uri = request.headers.get("@Resource");
         try{
             uri = URLDecoder.decode(uri,so.charset);
         }catch(IllegalArgumentException ex){}
         
-        String[] ruiParts = uri.split("\\?|\\&",2);
         String[] tmp,object;
+        String[] uriParts = uri.split("\\?|\\&",2);
         
-        location.append(ruiParts[0].replaceAll("^\\/", ""));
+        location.append(uriParts[0].replaceAll("^\\/", ""));
         
-        if(ruiParts.length > 1){
-            tmp = ruiParts[1].split("\\&");
+        if(uriParts.length > 1){
+            tmp = uriParts[1].split("\\&");
             for (String part : tmp) {
                 object = part.split("=", 2);
                 if(object.length > 1){
@@ -81,18 +92,18 @@ public abstract class EventManager{
     
     
     //FOR HTTP
-    protected int getClassnameIndex(String[] location,String httpMethod) throws ClassNotFoundException{
+    protected static int getClassnameIndex(String[] location,String httpMethod) throws ClassNotFoundException{
         String tmp;
         for(int i=location.length;i>0;i--){
             tmp = httpMethod+"/"+String.join("/", Arrays.copyOf(location, i)).toLowerCase();
-            if(SharedObject.ROUTES.containsKey(tmp) && SharedObject.ROUTES.get(tmp).getHttpMethod().equals(httpMethod)){
+            if(SharedObject.ROUTES.containsKey(tmp) && SharedObject.ROUTES.get(tmp).getType().equals(httpMethod)){
                 return i-1;
             }
         }
         throw new ClassNotFoundException();
     }
     
-    protected WebObject resolveClassName(int classId,String[] location){
+    protected static WebObject resolveClassName(int classId,String[] location){
         String classname = "";
         for(int i=0;i<=classId;i++){
             if(i>0) {
@@ -104,7 +115,7 @@ public abstract class EventManager{
         return SharedObject.ROUTES.get(classname);
     }
     
-    protected String[] resolveMethodArgs(int offset, String[] location){
+    protected static String[] resolveMethodArgs(int offset, String[] location){
         String[] args = new String[0];
         if(location.length-1>offset-1){
             int length = location.length-offset;
@@ -136,17 +147,50 @@ public abstract class EventManager{
      * The value is stored in EventManager#userLanguages.
      */
     public void findRequestLanguages(){
-        if(request.getHttpHeaders().get("Accept-Language") == null){
+        if(request.headers.get("Accept-Language") == null){
             userLanguages.put("unknown", "unknown");
         }else{
             String[] tmp = new String[2];
-            String[] languages = request.getHttpHeaders().get("Accept-Language").split(",");
+            String[] languages = request.headers.get("Accept-Language").split(",");
             userLanguages.put("DEFAULT-LANGUAGE", languages[0]);
             for(int i=1;i<languages.length;i++){
                 tmp=languages[i].split(";");
                 userLanguages.put(tmp[0], tmp[1]);
             }
         }
+    }
+    
+    public String getRequestDefaultLanguage(){
+        return userLanguages.get("DEFAULT-LANGUAGE");
+    }
+    
+    public Map<String,String> getUserLanguages(){
+        return userLanguages;
+    }
+    
+    public HttpHeaders getRequestHttpHeaders(){
+        return request.headers;
+    }
+    
+    public String getRequestHeaderField(String key){
+        return request.headers.get(key);
+    }
+    
+    public String getRequestMethod(){
+        return request.headers.get("Method");
+    }
+    
+    
+    public String getRequestUserAgent(){
+        return request.headers.get("User-Agent");
+    }
+    
+    public String getRequestAddress(){
+        return client.getInetAddress().toString();
+    }
+    
+    public int getRequestPort(){
+        return client.getPort();
     }
     
     /**
@@ -167,7 +211,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void unsetCookie(String key, String path) throws UnsupportedEncodingException{
-        unsetCookie(key, path, request.getHttpHeaders().get("Host"));
+        unsetCookie(key, path, request.headers.get("Host"));
     }
     
     /**
@@ -176,7 +220,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void unsetCookie(String key) throws UnsupportedEncodingException{
-        unsetCookie(key, "/", request.getHttpHeaders().get("Host"));
+        unsetCookie(key, "/", request.headers.get("Host"));
     }
     
     /**
@@ -236,7 +280,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public String getCookie(String name) throws UnsupportedEncodingException{
-        return request.getHttpHeaders().getCookie(name);
+        return request.headers.getCookie(name);
     }
     
     /**
@@ -245,6 +289,6 @@ public abstract class EventManager{
      * @return true if cookie is set, otherwise false.
      */
     public boolean issetCookie(String key){
-        return request.getHttpHeaders().issetCookie(key);
+        return request.headers.issetCookie(key);
     }
 }

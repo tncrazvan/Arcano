@@ -2,7 +2,6 @@ package com.github.tncrazvan.arcano.Controller.WebSocket;
 
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,10 +11,10 @@ import com.github.tncrazvan.arcano.Bean.WebPath;
  *
  * @author razvan
  */
-@WebPath(name = "/WebSocketGroupApplicationProgramInterface")
-public class WebSocketGroupApplicationProgramInterface extends WebSocketController{
+@WebPath(name = "/WebSocketGroupApi")
+public class WebSocketGroupApi extends WebSocketController{
     private String groupName;
-    private WebSocketGroup group;
+    private com.github.tncrazvan.arcano.WebSocket.WebSocketGroup group;
     
     @Override
     public void onOpen() {
@@ -33,7 +32,7 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
                         //if the group exists in this controller
                         if(GROUP_MANAGER.groupExists(groupName)){
                             //NOTE: GROUP_MANAGER is relative to the controller,
-                            //in this case relative to: "WebSocketGroupApplicationProgramInterface",
+                            //in this case relative to: "WebSocketGroupApi",
                             //so any other controller will have a different GROUP_MANAGER
                             //with different groups. EVEN THOUGH THE GROUPS INSIDE THE GROUP_MANAGER
                             //COULD HAVE THE SAME NAMES (very low chance)
@@ -43,12 +42,12 @@ public class WebSocketGroupApplicationProgramInterface extends WebSocketControll
                             //save the pointer in a local variable
                             group = GROUP_MANAGER.getGroup(groupName);
                             //if the group is public
-                            if(group.getVisibility() == WebSocketGroup.PUBLIC){
+                            if(group.getVisibility() == com.github.tncrazvan.arcano.WebSocket.WebSocketGroup.PUBLIC){
                                 try {
                                     //add this client to the group
                                     group.addClient(e);
                                 } catch (UnsupportedEncodingException ex) {
-                                    Logger.getLogger(WebSocketGroupApplicationProgramInterface.class.getName()).log(Level.SEVERE, null, ex);
+                                    Logger.getLogger(WebSocketGroupApi.class.getName()).log(Level.SEVERE, null, ex);
                                 }
                             }else{
                                 //if the group is not public, close the connection

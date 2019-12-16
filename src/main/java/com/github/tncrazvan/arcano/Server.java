@@ -29,7 +29,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import com.github.tncrazvan.arcano.Http.HttpEventListener;
-import com.github.tncrazvan.arcano.SmtpServer.SmtpServer;
+import com.github.tncrazvan.arcano.Smtp.SmtpServer;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
 import com.github.tncrazvan.arcano.Tool.Minifier;
 import com.github.tncrazvan.asciitable.AsciiTable;
@@ -59,7 +59,7 @@ public class Server extends SharedObject implements JsonTools{
                     com.github.tncrazvan.arcano.Controller.Http.Unset.class,
                     
                     com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class,
-                    com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApplicationProgramInterface.class
+                    com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi.class
             );
             expose(classes);
             listen(args);
@@ -221,11 +221,17 @@ public class Server extends SharedObject implements JsonTools{
                     if(smtp.has("bindAddress")){
                         smtpBindAddress = smtp.get("bindAddress").getAsString();
                     }
+                    int smtpPort = 25;
+                    if(smtp.has("smtpPort")){
+                        smtpPort = smtp.get("smtpPort").getAsInt();
+                    }
                     smtpt.add("bind address",smtpBindAddress);
+                    smtpt.add("port",""+smtpPort);
                     if(smtp.has("hostname")){
                         String smtpHostname = smtp.get("hostname").getAsString();
                         smtpt.add("hostname",smtpHostname);
-                        smtpServer = new SmtpServer(new ServerSocket(),smtpBindAddress,25,smtpHostname);
+                        smtpServer = new SmtpServer(new ServerSocket(),smtpBindAddress,smtpPort,smtpHostname);
+                        
                         executor.submit(smtpServer);
                     }else{
                         System.err.println("\n[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
