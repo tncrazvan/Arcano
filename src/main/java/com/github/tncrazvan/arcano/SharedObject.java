@@ -119,12 +119,12 @@ public abstract class SharedObject implements Strings{
                             ROUTES.put(type+path, wo);
                         }else if(cls.getAnnotation(NotFound.class) != null){
                             if(httpNotFoundNameOriginal == null)
-                                httpNotFoundNameOriginal = cls.getCanonicalName();
-                            httpNotFoundName = cls.getCanonicalName();
+                                httpNotFoundNameOriginal = cls.getName();
+                            httpNotFoundName = cls.getName();
                         }else if(cls.getAnnotation(Default.class) != null){
                             if(httpDefaultNameOriginal == null)
-                                httpDefaultNameOriginal = cls.getCanonicalName();
-                            httpDefaultName = cls.getCanonicalName();
+                                httpDefaultNameOriginal = cls.getName();
+                            httpDefaultName = cls.getName();
                         }
                     }
                 }else if(WebSocketController.class.isAssignableFrom(cls)){
@@ -138,15 +138,15 @@ public abstract class SharedObject implements Strings{
                         }else{
                             type = "GET";
                         }
-                        WebObject wo = new WebObject(cls.getCanonicalName(), null, type);
+                        WebObject wo = new WebObject(cls.getName(), null, type);
                         wo.setHttpMethod("WS");
                         ROUTES.put("WS"+path, wo);
                     }else{
                         NotFound nf = (NotFound) cls.getAnnotation(NotFound.class);
                         if(nf != null){
                             if(webSocketNotFoundNameOriginal == null)
-                                webSocketNotFoundNameOriginal = cls.getCanonicalName();
-                            webSocketNotFoundName = cls.getCanonicalName();
+                                webSocketNotFoundNameOriginal = cls.getName();
+                            webSocketNotFoundName = cls.getName();
                         }
                     }
                 }else if(SmtpController.class.isAssignableFrom(cls)){
@@ -169,12 +169,12 @@ public abstract class SharedObject implements Strings{
                             ROUTES.put(type+path, wo);
                         }else if(cls.getAnnotation(NotFound.class) != null){
                             if(httpNotFoundNameOriginal == null)
-                                httpNotFoundNameOriginal = cls.getCanonicalName();
-                            httpNotFoundName = cls.getCanonicalName();
+                                httpNotFoundNameOriginal = cls.getName();
+                            httpNotFoundName = cls.getName();
                         }else if(cls.getAnnotation(Default.class) != null){
                             if(httpDefaultNameOriginal == null)
-                                httpDefaultNameOriginal = cls.getCanonicalName();
-                            httpDefaultName = cls.getCanonicalName();
+                                httpDefaultNameOriginal = cls.getName();
+                            httpDefaultName = cls.getName();
                         }
                     }
                 }

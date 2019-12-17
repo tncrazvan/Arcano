@@ -3,6 +3,7 @@ package com.github.tncrazvan.arcano.Http;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
 import static com.github.tncrazvan.arcano.Tool.Time.time;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
@@ -13,6 +14,7 @@ import java.util.regex.Pattern;
 
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
 import java.io.File;
+import java.util.logging.Logger;
 /**
  *
  * @author Razvan
@@ -36,17 +38,24 @@ public class HttpEventListener extends HttpRequestReader{
                 //WebSocket connection
                 if(matcher.find()){
                     try {
-                        new WebSocketEvent(so, reader, client, request).execute();
-                    }catch(final IOException e){
+                        WebSocketController.serveController(this);
+                        /*try {
+                        new WebSocketController(so, bufferedReader, client, request).execute();
+                        }catch(final IOException e){
                         try {
-                            client.close();
+                        client.close();
                         } catch (final IOException ex) {
-                            LOGGER.log(Level.SEVERE,null,ex);
-                        }
-                    } catch (InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
                         LOGGER.log(Level.SEVERE,null,ex);
-                    } catch (ClassNotFoundException | IllegalArgumentException | InvocationTargetException ex) {
+                        }
+                        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
+                        LOGGER.log(Level.SEVERE,null,ex);
+                        } catch (ClassNotFoundException | IllegalArgumentException | InvocationTargetException ex) {
                         LOGGER.log(Level.SEVERE, null, ex);
+                        }*/
+                    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException ex) {
+                        LOGGER.log(Level.SEVERE, null, ex);
+                    } catch (IOException ex) {
+                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }else{
                     matcher = HTTP2_PATTERN.matcher(request.headers.get("Upgrade"));

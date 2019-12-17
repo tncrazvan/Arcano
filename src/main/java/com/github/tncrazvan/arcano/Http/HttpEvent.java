@@ -18,7 +18,6 @@ import static com.github.tncrazvan.arcano.Tool.Status.STATUS_INTERNAL_SERVER_ERR
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
 import com.google.gson.JsonObject;
 import java.lang.reflect.Constructor;
-import java.util.logging.Logger;
 
 
 /**

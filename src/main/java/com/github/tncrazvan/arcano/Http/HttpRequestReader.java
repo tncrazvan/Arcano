@@ -22,24 +22,24 @@ import javax.net.ssl.SSLSocket;
  * @author Razvan
  */
 public abstract class HttpRequestReader extends SharedObject implements Runnable{
-    protected final Socket client;
-    protected SSLSocket secureClient=null;
-    protected final BufferedReader reader;
-    protected final BufferedWriter writer;
-    protected final DataOutputStream output;
-    protected final DataInputStream input;
-    private final StringBuilder outputString = new StringBuilder();
+    public final Socket client;
+    public SSLSocket secureClient=null;
+    public final BufferedReader bufferedReader;
+    public final BufferedWriter bufferedWriter;
+    public final DataOutputStream output;
+    public final DataInputStream input;
+    public final StringBuilder outputString = new StringBuilder();
     public HttpRequest request = null;
     public final StringBuilder location = new StringBuilder();
     public final SharedObject so;
     public HttpRequestReader(SharedObject so, Socket client) throws NoSuchAlgorithmException, IOException {
         this.so = so;
         this.client=client;
-        reader = new BufferedReader(
+        bufferedReader = new BufferedReader(
                 new InputStreamReader(
                         client
                                 .getInputStream()));
-        writer = new BufferedWriter(
+        bufferedWriter = new BufferedWriter(
                 new OutputStreamWriter(
                         client
                                 .getOutputStream()));

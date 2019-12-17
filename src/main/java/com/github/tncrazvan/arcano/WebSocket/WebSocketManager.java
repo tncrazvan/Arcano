@@ -18,34 +18,33 @@ import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.EventManager;
 import com.github.tncrazvan.arcano.Http.HttpHeaders;
-import com.github.tncrazvan.arcano.Http.HttpRequest;
 import static com.github.tncrazvan.arcano.Tool.Hashing.getSha1Bytes;
 import static com.github.tncrazvan.arcano.Tool.Hashing.getSha1String;
-import static com.github.tncrazvan.arcano.Tool.Status.STATUS_SWITCHING_PROTOCOLS;
+import com.github.tncrazvan.arcano.Tool.Status;
 
 /**
  *
  * @author Razvan
  */
 public abstract class WebSocketManager extends EventManager{
-    protected final BufferedReader reader;
-    protected final String requestId;
-    protected final OutputStream outputStream;
+    protected BufferedReader br;
+    protected String requestId;
+    protected OutputStream outputStream;
     private final Map<String,String> userLanguages = new HashMap<>();
     private boolean connected = true;
+    private WebSocketMessage message;
     //private final HttpHeaders headers;
-    public WebSocketManager(SharedObject so,BufferedReader reader, Socket client, HttpRequest request) throws IOException {
-        this.setSharedObject(so);
-        this.setSocket(client);
-        this.setHttpRequest(request);
-        this.request=request;
-        this.client=client;
-        this.reader=reader;
+    public WebSocketManager() {
+        
+    }
+    public void setBufferedReader(BufferedReader br){
+        this.br=br;
+    }
+    public void init() throws IOException{
         this.requestId = getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis(),so.charset);
         this.outputStream = client.getOutputStream();
-        //header = new HttpHeaders();
     }
-
+    
     public HttpHeaders getClientHeader(){
         return request.headers;
     }
@@ -74,13 +73,13 @@ public abstract class WebSocketManager extends EventManager{
                 try {
                     String acceptKey = DatatypeConverter.printBase64Binary(getSha1Bytes(request.headers.get("Sec-WebSocket-Key") + SharedObject.WEBSOCKET_ACCEPT_KEY,so.charset));
                     
-                    headers.set("@Status", STATUS_SWITCHING_PROTOCOLS);
+                    headers.set("@Status", Status.STATUS_SWITCHING_PROTOCOLS);
                     headers.set("Connection","Upgrade");
                     headers.set("Upgrade","websocket");
                     headers.set("Sec-WebSocket-Accept",acceptKey);
                     outputStream.write((headers.toString()+"\r\n").getBytes());
                     outputStream.flush();
-                    onOpen();
+                    manageOnOpen();
                     InputStream read = client.getInputStream();
                     while(connected){
                         unmask((byte) read.read());
@@ -187,7 +186,9 @@ public abstract class WebSocketManager extends EventManager{
                 break;
             case PAYLOAD:
                 if(payload.length == 0){
-                    onMessage(payload);
+                    this.message = new WebSocketMessage();
+                    this.message.data = payload;
+                    manageOnMessage(this.message);
                     break;
                 }
                 try{
@@ -199,7 +200,9 @@ public abstract class WebSocketManager extends EventManager{
                 if(payloadIndex == payload.length){
                     reading = DONE;
 
-                    onMessage(payload);
+                    this.message = new WebSocketMessage();
+                    this.message.data = payload;
+                    manageOnMessage(this.message);
                     lengthKey = 0;
                     reading = FIRST_BYTE;
                     lengthIndex = 0;
@@ -218,7 +221,7 @@ public abstract class WebSocketManager extends EventManager{
         try {
             connected = false;
             client.close();
-            onClose();
+            manageOnClose();
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE,null,ex);
         }
@@ -307,31 +310,20 @@ public abstract class WebSocketManager extends EventManager{
         }
     }
 
-    public void send(byte[] data,WebSocketGroup group){
-        send(data, group, true);
+    public void send(WebSocketMessage message,WebSocketGroup group){
+        send(message, group, true);
     }
-    public void send(byte[] data, WebSocketGroup group,boolean binary){
+    public void send(WebSocketMessage message, WebSocketGroup group,boolean binary){
         group.getMap().keySet().forEach((key) -> {
             final WebSocketEvent client = group.getMap().get(key);
             if((WebSocketManager)client != this){
-                client.send(data,binary);
+                client.send(message.data,binary);
             }
         });
     }
 
-    public void send(String data, WebSocketGroup group){
-        try {
-            send(data.getBytes(so.charset),group,false);
-        } catch (UnsupportedEncodingException ex) {
-            LOGGER.log(Level.SEVERE,null,ex);
-        }
 
-    }
-
-
-
-
-    protected abstract void onOpen();
-    protected abstract void onMessage(byte[] data);
-    protected abstract void onClose();
+    protected abstract void manageOnOpen();
+    protected abstract void manageOnMessage(WebSocketMessage payload);
+    protected abstract void manageOnClose();
 }
