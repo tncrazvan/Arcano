@@ -34,6 +34,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 method.invoke(controller);
             } else if (type == HttpResponse.class) {
                 final HttpResponse response = (HttpResponse) method.invoke(controller);
+                response.resolve(so);
                 final HashMap<String, String> headers = response.getHashMapHeaders();
                 if (headers != null) {
                     final Iterator it = headers.entrySet().iterator();
@@ -78,6 +79,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 // if it's some other type of object...
                 final Object data = method.invoke(controller);
                 final HttpResponse response = new HttpResponse(data == null ? "" : data);
+                response.resolve(so);
                 if (data == null)
                     response.setRaw(true);
 
@@ -121,6 +123,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 if (so.responseWrapper) {
                     final JsonObject obj = new JsonObject();
                     final HttpResponse response = new HttpResponse(message == null ? "" : message);
+                    response.resolve(so);
                     obj.addProperty("exception", new String((byte[]) (response.getContent())));
                     setResponseHeaderField("Content-Type", "application/json");
                     try {
@@ -144,6 +147,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 if (so.responseWrapper) {
                     final JsonObject obj = new JsonObject();
                     final HttpResponse response = new HttpResponse(message == null ? "" : message);
+                    response.resolve(so);
                     obj.addProperty("exception", new String((byte[]) (response.getContent())));
                     setResponseHeaderField("Content-Type", "application/json");
                     try {

@@ -24,6 +24,7 @@ import com.github.tncrazvan.arcano.Bean.WebMethod;
 import com.github.tncrazvan.arcano.Bean.WebPath;
 import com.github.tncrazvan.arcano.Http.HttpSessionManager;
 import com.github.tncrazvan.arcano.Smtp.SmtpController;
+import com.github.tncrazvan.arcano.Tool.Status;
 import com.github.tncrazvan.arcano.Tool.Strings;
 import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
 
@@ -57,6 +58,9 @@ public abstract class SharedObject implements Strings{
     public int httpMtu = 65536;
     public String[] compression = new String[0];
     public String[] classOrder = new String[0];
+    public HashMap<String,String> headers = new HashMap<String,String>(){{
+        put("@Status",Status.STATUS_SUCCESS);
+    }};
     public String configDir = "./http.json";
     public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
     public String assets = "../webapp/assets.json";
@@ -77,9 +81,9 @@ public abstract class SharedObject implements Strings{
     //LOCALE & DATES
     public static final Calendar CALENDAR = Calendar.getInstance();
     public static final Date DATE = new Date();
-    public Locale locale = Locale.getDefault();
-    public ZoneId timezone = ZoneId.systemDefault();
-    public DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", locale).withZone(timezone);
+    public static Locale locale = Locale.getDefault();
+    public static ZoneId timezone = ZoneId.systemDefault();
+    public static DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", locale).withZone(timezone);
     //LOGGING
     public static final Logger LOGGER = Logger.getLogger(SharedObject.class.getName());
     //WEBSOCKETS OBJECTS

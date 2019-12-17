@@ -233,10 +233,10 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void setCookie(String name,String value, String path, String domain, int expire) throws UnsupportedEncodingException{
-        headers.setCookie(name, value, path, domain, expire);
+        headers.setCookie(name, value, path, domain, expire, so.charset);
     }
     public void setCookie(String name,String value, String path, String domain, String expire) throws UnsupportedEncodingException{
-        headers.setCookie(name, value, path, domain, expire);
+        headers.setCookie(name, value, path, domain, expire, so.charset);
     }
     
     /**
@@ -248,18 +248,19 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void setCookie(String name,String value, String path, String domain) throws UnsupportedEncodingException{
-        headers.setCookie(name, value, path, domain);
+        headers.setCookie(name, value, path, domain, so.charset);
     }
     
     /**
      * Notices the client to set the given cookie.
      * @param name name of the cookie.
      * @param value value of the cookie.
+     * @param charset
      * @param path path of the cookie.
      * @throws java.io.UnsupportedEncodingException
      */
-    public void setCookie(String name,String value, String path) throws UnsupportedEncodingException{
-        headers.setCookie(name, value, path);
+    public void setCookie(String name,String value, String path) throws UnsupportedEncodingException, UnsupportedEncodingException, UnsupportedEncodingException{
+        headers.setCookie(name, value, path, so.charset);
     }
     
     /**
@@ -268,8 +269,8 @@ public abstract class EventManager{
      * @param value value of the cookie.
      * @throws java.io.UnsupportedEncodingException
      */
-    public void setCookie(String name,String value) throws UnsupportedEncodingException{
-        headers.setCookie(name, value);
+    public void setCookie(String name, String value) throws UnsupportedEncodingException {
+        headers.setCookie(name, value, so.charset);
     }
     
     
@@ -280,7 +281,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public String getCookie(String name) throws UnsupportedEncodingException{
-        return request.headers.getCookie(name);
+        return request.headers.getCookie(name, so.charset);
     }
     
     /**

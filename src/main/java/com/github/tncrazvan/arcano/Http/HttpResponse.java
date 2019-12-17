@@ -17,7 +17,7 @@ import java.util.HashMap;
  *
  * @author Administrator
  */
-public class HttpResponse extends SharedObject implements JsonTools{
+public class HttpResponse implements JsonTools{
     private final HttpHeaders headers;
     private Object content;
     private final Class<?> type;
@@ -53,23 +53,28 @@ public class HttpResponse extends SharedObject implements JsonTools{
     public HttpResponse(final HashMap<String,String> headers,final Object content) {
         raw = false;
         type = content.getClass();
+        this.headers = new HttpHeaders(headers);
+        this.content = content;
+    }
+    
+    public void resolve(SharedObject so){
         try{
             if(type == JsonArray.class){
-                if(headers != null && !headers.containsKey("Content-Type")){
-                    headers.put("Content-Type", "application/json");
+                if(headers != null && !headers.isDefined("Content-Type")){
+                    headers.set("Content-Type", "application/json");
                 }
                 String tmp = ((JsonArray) content).toString();
-                if(headers != null && !headers.containsKey("Content-Length")){
-                    headers.put("Content-Length", String.valueOf(tmp.length()));
+                if(headers != null && !headers.isDefined("Content-Length")){
+                    headers.set("Content-Length", String.valueOf(tmp.length()));
                 }
                 this.content = tmp;
             }else if(type == File.class || type == ServerFile.class){
                 File file = (File) content;
-                if(headers != null && !headers.containsKey("Content-Type")){
-                    headers.put("Content-Type", resolveContentType(file.getName()));
+                if(headers != null && !headers.isDefined("Content-Type")){
+                    headers.set("Content-Type", resolveContentType(file.getName()));
                 }
-                if(headers != null && !headers.containsKey("Content-Length")){
-                    headers.put("Content-Length", String.valueOf(file.length()));
+                if(headers != null && !headers.isDefined("Content-Length")){
+                    headers.set("Content-Length", String.valueOf(file.length()));
                 }
                 FileInputStream fis = new FileInputStream(file);
                 this.content = fis.readAllBytes();
@@ -78,30 +83,27 @@ public class HttpResponse extends SharedObject implements JsonTools{
                         || type == Double.class || type == Boolean.class
                         || type == Byte.class || type == Character.class || type == Short.class
                         || type == Long.class){
-                this.content = String.valueOf(content).getBytes(charset);
+                this.content = String.valueOf(content).getBytes(so.charset);
             }else if(type == byte[].class){
                 this.content = content;
             }else {
-                this.content = jsonStringify(content).getBytes(charset);
+                this.content = jsonStringify(content).getBytes(so.charset);
             }
         }catch(UnsupportedEncodingException ex){
             this.content = ex.getMessage().getBytes();
         } catch (FileNotFoundException ex) {
             try{
-                this.content = ex.getMessage().getBytes(charset);
+                this.content = ex.getMessage().getBytes(so.charset);
             }catch(UnsupportedEncodingException ex1){
                 this.content = ex1.getMessage().getBytes();
             }
         } catch (IOException ex) {
             try{
-                this.content = ex.getMessage().getBytes(charset);
+                this.content = ex.getMessage().getBytes(so.charset);
             }catch(UnsupportedEncodingException ex1){
                 this.content = ex1.getMessage().getBytes();
             }
         }
-        
-        
-        this.headers = new HttpHeaders(headers);
     }
 
     public HashMap<String, String> getHashMapHeaders() {

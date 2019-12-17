@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * @author Razvan
  */
-public class HttpHeaders extends SharedObject{
+public class HttpHeaders {
     private final HashMap<String, String> headers = new HashMap();
     public Map<String, String[]> cookies = new HashMap();
     public HttpHeaders(final boolean createSuccessHeader) {
@@ -23,7 +23,7 @@ public class HttpHeaders extends SharedObject{
     public HttpHeaders(HashMap<String, String> map,final boolean createSuccessHeader) {
         if (createSuccessHeader) {
             headers.put("@Status", "HTTP/1.1 200 OK");
-            headers.put("Date", formatHttpDefaultDate.format(time()));
+            headers.put("Date", SharedObject.formatHttpDefaultDate.format(time()));
             headers.put("Cache-Control", "no-store");
         }
         
@@ -54,7 +54,7 @@ public class HttpHeaders extends SharedObject{
         // Thu, 01 Jan 1970 00:00:00 GMT
         return c[4] + ": " + key + "=" + c[0] + (c[1] == null ? "" : "; path=" + c[1])
                 + (c[2] == null ? "" : "; domain=" + c[2])
-                + (c[3] == null ? "" : "; expires=" + formatHttpDefaultDate.format(time)) + "\r\n";
+                + (c[3] == null ? "" : "; expires=" + SharedObject.formatHttpDefaultDate.format(time)) + "\r\n";
     }
 
     @Override
@@ -101,15 +101,21 @@ public class HttpHeaders extends SharedObject{
         final String[] cookie = cookies.get(key);
         if (cookie == null)
             return null;
+        return URLDecoder.decode(cookie[0]);
+    }
+    public String getCookie(final String key, String charset) throws UnsupportedEncodingException {
+        final String[] cookie = cookies.get(key);
+        if (cookie == null)
+            return null;
         return URLDecoder.decode(cookie[0], charset);
     }
 
-    public void setCookie(final String key, final String v, final String path, final String domain, final int expire)
+    public void setCookie(final String key, final String v, final String path, final String domain, final int expire, String charset)
             throws UnsupportedEncodingException {
-        setCookie(key, v, path, domain, formatHttpDefaultDate.format(time(expire)));
+        setCookie(key, v, path, domain, SharedObject.formatHttpDefaultDate.format(time(expire)),charset);
     }
 
-    public void setCookie(final String key, final String v, String path, final String domain, final String expire)
+    public void setCookie(final String key, final String v, String path, final String domain, final String expire, String charset)
             throws UnsupportedEncodingException {
         if (path == null)
             path = "/";
@@ -122,17 +128,17 @@ public class HttpHeaders extends SharedObject{
         cookies.put(key.trim(), b);
     }
 
-    public void setCookie(final String key, final String v, final String path, final String domain)
+    public void setCookie(final String key, final String v, final String path, final String domain, String charset)
             throws UnsupportedEncodingException {
-        setCookie(key, v, path, domain, null);
+        setCookie(key, v, path, domain, null,charset);
     }
 
-    public void setCookie(final String key, final String v, final String path) throws UnsupportedEncodingException {
-        setCookie(key, v, path, null, null);
+    public void setCookie(final String key, final String v, final String path, String charset) throws UnsupportedEncodingException {
+        setCookie(key, v, path, null, null,charset);
     }
 
-    public void setCookie(final String key, final String v) throws UnsupportedEncodingException {
-        setCookie(key, v, "/", null, null);
+    public void setCookie(final String key, final String v, String charset) throws UnsupportedEncodingException {
+        setCookie(key, v, "/", null, null,charset);
     }
 
     public HashMap<String, String> getHashMap() {
