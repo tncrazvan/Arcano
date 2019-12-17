@@ -53,9 +53,8 @@ public class HttpHeaders {
         return key + ": " + value + "\r\n";
     }
     
-    public static final Locale locale = Locale.US;
-    public static final ZoneId newyork = ZoneId.of("America/New_York");
-    private static final DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z",locale).withZone(newyork);
+    private static ZoneId londonTimezone = ZoneId.of("Europe/London");
+    private static DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z",Locale.US).withZone(londonTimezone);
     public String cookieToString(final String key) {
         final String[] c = cookies.get(key);
         final LocalDateTime time = (c[3] == null ? null : time(Integer.parseInt(c[3]) * 1000L));

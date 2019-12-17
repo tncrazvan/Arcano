@@ -83,6 +83,7 @@ public abstract class SharedObject implements Strings{
     public static final Date DATE = new Date();
     public static Locale locale = Locale.getDefault();
     public static ZoneId timezone = ZoneId.systemDefault();
+    public static ZoneId londonTimezone = ZoneId.of("Europe/London");
     public static DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", locale).withZone(timezone);
     //LOGGING
     public static final Logger LOGGER = Logger.getLogger(SharedObject.class.getName());
