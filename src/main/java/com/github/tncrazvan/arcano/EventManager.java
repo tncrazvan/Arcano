@@ -201,7 +201,7 @@ public abstract class EventManager{
      * @throws java.io.UnsupportedEncodingException
      */
     public void unsetCookie(String key, String path, String domain) throws UnsupportedEncodingException{
-        headers.setCookie(key,"deleted",path,domain,"0");
+        headers.setCookie(key,"deleted",path,domain,"0",so.charset);
     }
     
     /**

@@ -1,13 +1,18 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.SharedObject;
+import static com.github.tncrazvan.arcano.SharedObject.locale;
+import static com.github.tncrazvan.arcano.SharedObject.timezone;
 import static com.github.tncrazvan.arcano.Tool.Time.time;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -47,14 +52,17 @@ public class HttpHeaders {
         }
         return key + ": " + value + "\r\n";
     }
-
+    
+    public static final Locale locale = Locale.US;
+    public static final ZoneId newyork = ZoneId.of("America/New_York");
+    private static final DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z",locale).withZone(newyork);
     public String cookieToString(final String key) {
         final String[] c = cookies.get(key);
         final LocalDateTime time = (c[3] == null ? null : time(Integer.parseInt(c[3]) * 1000L));
         // Thu, 01 Jan 1970 00:00:00 GMT
         return c[4] + ": " + key + "=" + c[0] + (c[1] == null ? "" : "; path=" + c[1])
                 + (c[2] == null ? "" : "; domain=" + c[2])
-                + (c[3] == null ? "" : "; expires=" + SharedObject.formatHttpDefaultDate.format(time)) + "\r\n";
+                + (c[3] == null ? "" : "; expires=" + formatHttpDefaultDate.format(time)) + "\r\n";
     }
 
     @Override
