@@ -26,13 +26,17 @@ public class HttpHeaders extends SharedObject{
             headers.put("Date", formatHttpDefaultDate.format(time()));
             headers.put("Cache-Control", "no-store");
         }
+        
+        map.forEach((key, value) -> {
+            headers.put(key, value);
+        });
     }
 
     public HttpHeaders() {
         this(true);
     }
     public HttpHeaders(HashMap<String, String> map) {
-        this(new HashMap<String,String>(){{}}, true);
+        this(map, true);
     }
 
     public String fieldToString(final String key) {
