@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,7 +16,6 @@ import javax.xml.bind.DatatypeConverter;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.EventManager;
-import com.github.tncrazvan.arcano.Http.HttpHeaders;
 import static com.github.tncrazvan.arcano.Tool.Hashing.getSha1Bytes;
 import static com.github.tncrazvan.arcano.Tool.Hashing.getSha1String;
 import com.github.tncrazvan.arcano.Tool.Status;
@@ -30,40 +28,24 @@ public abstract class WebSocketManager extends EventManager{
     protected BufferedReader br;
     protected String requestId;
     protected OutputStream outputStream;
-    private final Map<String,String> userLanguages = new HashMap<>();
     private boolean connected = true;
     private WebSocketMessage message;
     //private final HttpHeaders headers;
-    public WebSocketManager() {
-        
-    }
+    public WebSocketManager() {}
     public void setBufferedReader(BufferedReader br){
         this.br=br;
     }
-    public void init() throws IOException{
+    protected void init() throws IOException{
         this.requestId = getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis(),so.charset);
         this.outputStream = client.getOutputStream();
     }
-    
-    public HttpHeaders getClientHeader(){
-        return request.headers;
-    }
 
-    @Override
-    public Socket getClient(){
-        return client;
-    }
-
-    public Map<String,String> getUserLanguages(){
-        return userLanguages;
-    }
-
+    /**
+     * Get the default language of the user agent that made the request.
+     * @return a String that identifies the language.
+     */
     public String getUserDefaultLanguage(){
         return userLanguages.get("DEFAULT-LANGUAGE");
-    }
-
-    public String getUserAgent(){
-        return this.request.headers.get("User-Agent");
     }
 
     public void execute(){
@@ -217,6 +199,9 @@ public abstract class WebSocketManager extends EventManager{
 
     }
 
+    /**
+     * Close the WebSocket connection.
+     */
     public void close(){
         try {
             connected = false;
@@ -226,6 +211,10 @@ public abstract class WebSocketManager extends EventManager{
             LOGGER.log(Level.SEVERE,null,ex);
         }
     }
+    /**
+     * Send data to the client.
+     * @param data data to be sent to the client.
+     */
     public void send(String data){
         try {
             send(data.getBytes(so.charset), false);
@@ -233,9 +222,20 @@ public abstract class WebSocketManager extends EventManager{
             LOGGER.log(Level.SEVERE,null,ex);
         }
     }
+    /**
+     * Send data to the client.
+     * @param data data to be sent to the client.
+     */
     public void send(byte[] data){
         send(data, true);
     }
+    /**
+     * Send data to the client.
+     * @param data data to be sent to the client.
+     * @param binary the WebSocket standard requires the server to specify when the content of the message should be trated as binary or not. 
+     * If this value is true, the server will set the binary flag to 0x82 otherwise it will be set to 0x81.
+     * Note that this won't encode or convert your data in any way. 
+    */
     public void send(byte[] data,boolean binary){
         int offset = 0, maxLength = so.webSocketMtu-1;
         if(data.length > maxLength){
@@ -286,43 +286,80 @@ public abstract class WebSocketManager extends EventManager{
         }
 
     }
-
+    /**
+     * Send data to the client.
+     * @param data data to be sent to the client.
+     */
     public void send(int data){
         send(""+data);
     }
 
-
-    public void broadcast(String msg,Object o){
+    /**
+     * Broadcast data to all connected clients except for some of them.
+     * @param data payload to send.
+     * @param ignores list of clients to ignore. The server won't send the payload to these clients.
+     */
+    public void broadcast(String data,WebSocketController[] ignores){
         try {
-            broadcast(msg.getBytes(so.charset),o,false);
+            broadcast(data.getBytes(so.charset),ignores,false);
         } catch (UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE,null,ex);
         }
     }
-    public void broadcast(byte[] data,Object o){
-        broadcast(data, o, true);
+    /**
+     * Broadcast data to all connected clients except for some of them.
+     * @param data payload to send.
+     * @param ignores list of clients to ignore. The server won't send the payload to these clients.
+     */
+    public void broadcast(byte[] data,WebSocketController[] ignores){
+        broadcast(data, ignores, true);
     }
-    public void broadcast(byte[] data,Object o,boolean binary){
-        for (WebSocketEvent e : so.WEB_SOCKET_EVENTS.get(o.getClass().getCanonicalName())) {
-            if(e!=this){
-                e.send(data,binary);
+    /**
+     * Broadcast data to all connected clients except for some of them.
+     * @param data payload to send.
+     * @param ignores list of clients to ignore. The server won't send the payload to these clients.
+     * @param binary the WebSocket standard requires the server to specify when the content of the message should be trated as binary or not. 
+     * If this value is true, the server will set the binary flag to 0x82 otherwise it will be set to 0x81.
+     * Note that this won't encode or convert your data in any way. 
+     */
+    public void broadcast(byte[] data,WebSocketController[] ignores,boolean binary){
+        boolean skip;
+        for (WebSocketEvent e : so.WEB_SOCKET_EVENTS.get(ignores.getClass().getCanonicalName())) {
+            skip = false;
+            for (Object ignore : ignores) {
+                if(ignore == this){
+                    skip = true;
+                    break;
+                }
             }
+            if(!skip) e.send(data,binary);
         }
     }
-
-    public void send(WebSocketMessage message,WebSocketGroup group){
-        send(message, group, true);
+    /**
+     * Send data to a WebSocketGroup.
+     * @param data data to be sent to the group.
+     * @param group the group of clients that should receive the payload.
+     */
+    public void send(WebSocketMessage data,WebSocketGroup group){
+        send(data, group, true);
     }
-    public void send(WebSocketMessage message, WebSocketGroup group,boolean binary){
+    /**
+     * Send data to a WebSocketGroup.
+     * @param data data to be sent to the group.
+     * @param group the group of clients that should receive the payload.
+     * @param binary the WebSocket standard requires the server to specify when the content of the message should be trated as binary or not. 
+     * If this value is true, the server will set the binary flag to 0x82 otherwise it will be set to 0x81.
+     * Note that this won't encode or convert your data in any way. 
+     */
+    public void send(WebSocketMessage data, WebSocketGroup group,boolean binary){
+        
         group.getMap().keySet().forEach((key) -> {
-            final WebSocketEvent client = group.getMap().get(key);
-            if((WebSocketManager)client != this){
-                client.send(message.data,binary);
+            final WebSocketController c = group.getMap().get(key);
+            if((WebSocketManager)c != this){
+                c.send(data.data,binary);
             }
         });
     }
-
-
     protected abstract void manageOnOpen();
     protected abstract void manageOnMessage(WebSocketMessage payload);
     protected abstract void manageOnClose();

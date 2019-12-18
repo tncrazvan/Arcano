@@ -25,7 +25,7 @@ public abstract class EventManager{
     protected Map<String,String> userLanguages = new HashMap<>();
     protected HttpHeaders headers;
     protected Socket client;
-    protected HttpSession session = null;
+    public HttpSession session = null;
     public SharedObject so;
     public static final File root = new File("/java");
     
@@ -75,17 +75,46 @@ public abstract class EventManager{
         return (issetCookie("sessionId") && so.sessions.issetSession(getCookie("sessionId")));
     }
     
+    /**
+     * Start an HttpSession.
+     * This method will request the client to set a "sessionId" cookie which will identify this session.
+     * If the client already has a VALID sessionId, then that sessionId is used instead, thus fetching an existing session instead of creating a new one.
+     * This means that you can safely call this method multiple times and can expect it to return the same HttpSession (unless the session itself has expired meanwhile) object.
+     * The session's Time To Live is set to the SharedObject.sessionTtl, which has its value set directly from the configuration file.
+     * Here's an example of a configuration file that sets the sessino's Time To Live to 60 minutes:
+     * {
+     *  "port": 80,
+     *  "serverRoot":"server",
+     *  "webRoot":"www",
+     *  "charset":"UTF-8",
+     *  ...
+     *  "sessionTtl": 3600,
+     *  ...
+     *  "threadPoolSize": 3,
+     *  "sendExceptions": true,
+     *  "responseWrapper": false
+     * }
+     * @return 
+     */
     public HttpSession startSession() {
         session = so.sessions.startSession(this,so.sessionTtl);
         return session;
     }
     
+    /**
+     * Stops the current HttpSession of the client if it has one.
+     * This will also delete the client's "sessionId" cookie.
+     */
     public void stopSession(){
         if(session == null) session = startSession();
         if(issetSession())
             so.sessions.stopSession(session);
     }
     
+    /**
+     * Get the Socket connection to the client.
+     * @return 
+     */
     public Socket getClient(){
         return client;
     }
@@ -200,7 +229,7 @@ public abstract class EventManager{
      * @param domain domain of the cookie
      */
     public void unsetCookie(String key, String path, String domain){
-        headers.setCookie(key,"deleted",path,domain,"0",so.charset);
+        headers.setCookie(key,"deleted",path,domain,0,so.charset);
     }
     
     /**
@@ -229,9 +258,6 @@ public abstract class EventManager{
      * @param expire time to live of the cookie.
      */
     public void setCookie(String name,String value, String path, String domain, int expire){
-        headers.setCookie(name, value, path, domain, expire, so.charset);
-    }
-    public void setCookie(String name,String value, String path, String domain, String expire){
         headers.setCookie(name, value, path, domain, expire, so.charset);
     }
     

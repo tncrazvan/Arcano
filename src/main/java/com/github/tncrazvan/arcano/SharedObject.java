@@ -1,6 +1,5 @@
 package com.github.tncrazvan.arcano;
 
-import com.github.tncrazvan.arcano.Bean.Default;
 import com.github.tncrazvan.arcano.Bean.NotFound;
 import com.github.tncrazvan.arcano.Tool.Minifier;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
@@ -27,6 +26,7 @@ import com.github.tncrazvan.arcano.Smtp.SmtpController;
 import com.github.tncrazvan.arcano.Tool.Status;
 import com.github.tncrazvan.arcano.Tool.Strings;
 import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
+import com.github.tncrazvan.arcano.Bean.IsDefaultController;
 
 /**
  * 
@@ -126,7 +126,7 @@ public abstract class SharedObject implements Strings{
                             if(httpNotFoundNameOriginal == null)
                                 httpNotFoundNameOriginal = cls.getName();
                             httpNotFoundName = cls.getName();
-                        }else if(cls.getAnnotation(Default.class) != null){
+                        }else if(cls.getAnnotation(IsDefaultController.class) != null){
                             if(httpDefaultNameOriginal == null)
                                 httpDefaultNameOriginal = cls.getName();
                             httpDefaultName = cls.getName();
@@ -176,7 +176,7 @@ public abstract class SharedObject implements Strings{
                             if(httpNotFoundNameOriginal == null)
                                 httpNotFoundNameOriginal = cls.getName();
                             httpNotFoundName = cls.getName();
-                        }else if(cls.getAnnotation(Default.class) != null){
+                        }else if(cls.getAnnotation(IsDefaultController.class) != null){
                             if(httpDefaultNameOriginal == null)
                                 httpDefaultNameOriginal = cls.getName();
                             httpDefaultName = cls.getName();

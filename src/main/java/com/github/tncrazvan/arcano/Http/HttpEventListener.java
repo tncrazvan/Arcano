@@ -14,10 +14,8 @@ import java.util.regex.Pattern;
 import java.io.File;
 import java.util.logging.Logger;
 import static com.github.tncrazvan.arcano.Tool.Time.now;
-import static io.arcano.Common.time;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
-import static javax.swing.text.html.HTML.Tag.HEAD;
 /**
  *
  * @author Razvan

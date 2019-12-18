@@ -57,10 +57,6 @@ public class Set extends HttpController implements JsonTools{
     public void cookie(){
         String name = String.join("/", args);
         JsonObject data = jsonObject(new String(request.content));
-        try{
-            setCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), Integer.parseInt(getRequestQueryString("expire")));
-        }catch(NumberFormatException ex){
-            setCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), getRequestQueryString("expire"));
-        }
+        setCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), Integer.parseInt(getRequestQueryString("expire")));
     }
 }

@@ -24,11 +24,19 @@ public class HttpResponse implements JsonTools{
     private boolean raw;
     private Action<Void> action = null;
 
+    /**
+     * Executes an action after the getContent(true) gets called.
+     * @param action the action to execute.
+     * @return the current HttpResponse.
+     */
     public HttpResponse then(Action<Void> action){
         this.action = action;
         return this;
     }
     
+    /**
+     * Executes the specified action.
+     */
     public void todo(){
         if(action != null)
             action.callback(null);
@@ -106,32 +114,63 @@ public class HttpResponse implements JsonTools{
         }
     }
 
+    /**
+     * Get the headers of this response as a HashMap.
+     * @return 
+     */
     public HashMap<String, String> getHashMapHeaders() {
         return headers.getHashMap();
     }
     
+    /**
+     * Get the HttpHeaders of this response.
+     * @return 
+     */
     public HttpHeaders getHttpHeaders(){
         return headers;
     }
 
+    /**
+     * Get the payload of the response and execute the action if so specified.
+     * You can specify the action by calling "then(Action a)" on the current HttpResponse object.
+     * @param todo if true the action will be executed other the action won't be executed.
+     * @return the payload of the response.
+     */
     public Object getContent(boolean todo) {
         if(todo)
             this.todo();
         return content;
     }
-    
+    /**
+     * Get the payload of the response.
+     * @return the payload of the response.
+     */
     public Object getContent() {
         return getContent(false);
     }
     
+    /**
+     * Specifies wether or not the payload should be treated as raw binary data or not.
+     * @param value if true the payload will be treated as raw binary data, otherwise it will be treated as a String.
+     */
     public void setRaw(boolean value){
         raw = value;
     }
     
+    /**
+     * Check is the payload is meant to be treated as raw binary data or not.
+     * @return true if the content is meant to be raw, false otherwise.
+     */
     public boolean isRaw(){
         return raw;
     }
     
+    /**
+     * Get the type of the payload.
+     * This is mainly an utility for the server.
+     * It helps converting JSON objects, arrays, Strings and other objects accordingly.
+     * @return the Class<?> of the payload.
+     */
     public Class<?> getType(){
         return type;
     }

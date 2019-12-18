@@ -2,10 +2,8 @@ package com.github.tncrazvan.arcano.WebSocket;
 
 import com.github.tncrazvan.arcano.Http.HttpHeaders;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import com.github.tncrazvan.arcano.Http.HttpRequestReader;
-import com.github.tncrazvan.arcano.Http.HttpSession;
 import com.github.tncrazvan.arcano.WebObject;
 import java.io.IOException;
 import java.util.Arrays;
@@ -17,7 +15,6 @@ import java.util.stream.Stream;
  * @author Razvan
  */
 public abstract class WebSocketEvent extends WebSocketManager{
-    public HttpSession session;
     
     public static void serveController(HttpRequestReader reader) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, IOException{
         String[] args = new String[0];

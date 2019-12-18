@@ -9,7 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
- * Containst the settings file objects.
+ * Containst the configuration file objects.
  * @author Razvan
  */
 public class Configuration implements JsonTools{

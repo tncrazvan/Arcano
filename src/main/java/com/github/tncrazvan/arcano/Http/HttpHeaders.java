@@ -72,40 +72,65 @@ public class HttpHeaders {
         str = cookies.keySet().stream().map((key) -> this.cookieToString(key)).reduce(str, String::concat);
         return str;
     }
-
+    
+    /**
+     * Check if header is defined.
+     * @param key name of the header.
+     * @return true if the header exists, false otherwise.
+     */
     public boolean isDefined(final String key) {
         return headers.get(key) != null;
     }
 
-    public void set(final String a, String b) {
-        if (a.equals("@Status"))
-            b = "HTTP/1.1 " + b;
-        headers.put(a, b);
+    /**
+     * Set the value of a specific header.
+     * @param name name of the header.
+     * @param value value of the header.
+     */
+    public void set(final String name, String value) {
+        if (name.equals("@Status"))
+            value = "HTTP/1.1 " + value;
+        headers.put(name, value);
     }
 
-    public String get(final String key) {
-        if (!headers.containsKey(key)) {
+    /**
+     * Get the value of a specific header.
+     * @param name name of the header
+     * @return value of the header as a String.
+     */
+    public String get(final String name) {
+        if (!headers.containsKey(name)) {
             return null;
         }
-        return headers.get(key).trim();
+        return headers.get(name).trim();
     }
 
-    public boolean issetCookie(final String key) {
+    /**
+     * Check if a cookie is set.
+     * @param name name of the cookie.
+     * @return true if the cookie is set, false otherwise.
+     */
+    public boolean issetCookie(final String name) {
         final Iterator i = cookies.entrySet().iterator();
         Map.Entry pair;
         String tmp = "";
         while (i.hasNext()) {
             pair = (Map.Entry) i.next();
             tmp = (String) pair.getKey();
-            if (tmp.trim().equals(key.trim())) {
+            if (tmp.trim().equals(name.trim())) {
                 return true;
             }
         }
         return false;
     }
 
-    public String getCookie(final String key) {
-        return getCookie(key,"UTF-8");
+    /**
+     * Get the value of a specific cookie.
+     * @param name name of the cookie.
+     * @return value of the cookie as a String.
+     */
+    public String getCookie(final String name) {
+        return getCookie(name,"UTF-8");
     }
     public String getCookie(final String key, String charset) {
         final String[] cookie = cookies.get(key);
@@ -119,48 +144,92 @@ public class HttpHeaders {
         }
     }
 
-    public void setCookie(final String key, final String v, final String path, final String domain, final int expire, String charset){
-        setCookie(key, v, path, domain, SharedObject.formatHttpDefaultDate.format(now(expire)),charset);
+    /**
+     * Set a specific cookie and its properties.
+     * @param name name of the cookie.
+     * @param value value of the cookie.
+     * @param path this is the path the cookie will be attached to.
+     * @param domain this is the domain the cookie will be attached to.
+     * @param expire the date the cookie should expire. This value is expected to be a unix timestamp (in seconds).
+     * @param charset charset to use when encoding the cookie.
+     */
+    public void setCookie(final String name, final String value, final String path, final String domain, final int expire, String charset){
+        setCookie(name, value, path, domain, SharedObject.formatHttpDefaultDate.format(now(expire)),charset);
     }
 
-    public void setCookie(final String key, final String v, String path, final String domain, final String expire, String charset){
+    private void setCookie(final String name, final String value, String path, final String domain, final String expire, String charset){
         if (path == null)
             path = "/";
         final String[] b = new String[5];
         try{
-            b[0] = URLEncoder.encode(v, charset);
+            b[0] = URLEncoder.encode(value, charset);
         }catch(UnsupportedEncodingException ex){
-            b[0] = URLEncoder.encode(v);
+            b[0] = URLEncoder.encode(value);
         }
         b[1] = path;
         b[2] = domain;
         b[3] = expire;
         b[4] = "Set-Cookie";
-        cookies.put(key.trim(), b);
+        cookies.put(name.trim(), b);
     }
 
-    public void setCookie(final String key, final String v, final String path, final String domain, String charset){
-        setCookie(key, v, path, domain, null, charset);
+    /**
+     * Set a specific cookie and its properties.
+     * @param name name of the cookie.
+     * @param value value of the cookie.
+     * @param path this is the path the cookie will be attached to.
+     * @param domain this is the domain the cookie will be attached to.
+     * @param charset charset to use when encoding the cookie.
+     */
+    public void setCookie(final String name, final String value, final String path, final String domain, String charset){
+        setCookie(name, value, path, domain, null, charset);
+    }
+    
+    /**
+     * Set a specific cookie and its properties.
+     * @param name name of the cookie.
+     * @param value value of the cookie.
+     * @param path this is the path the cookie will be attached to.
+     * @param charset charset to use when encoding the cookie.
+     */
+    public void setCookie(final String name, final String value, final String path, String charset){
+        setCookie(name, value, path, null, charset);
     }
 
-    public void setCookie(final String key, final String v, final String path, String charset){
-        setCookie(key, v, path, null, charset);
+    /**
+     * Set a specific cookie and its properties.
+     * @param name name of the cookie.
+     * @param value value of the cookie.
+     * @param charset charset to use when encoding the cookie.
+     */
+    public void setCookie(final String name, final String value, String charset){
+        setCookie(name, value, "/", null, null,charset);
     }
 
-    public void setCookie(final String key, final String v, String charset){
-        setCookie(key, v, "/", null, null,charset);
-    }
-
+    /**
+     * Get the headers as a HashMap.
+     * @return headers as HashMap.
+     */
     public HashMap<String, String> getHashMap() {
         return headers;
     }
     
+    /**
+     * get an HttpHeaders object from a HashMap.
+     * @param map the HashMap to read.
+     * @return the HttpHeaders object.
+     */
     public static HttpHeaders fromHashMap(HashMap<String,String> map){
         return new HttpHeaders(map,false);
     }
     
+    /**
+     * Parse a line as an http header. If the line is not a valid http header, it will still be added to the header an will be treated as a custom header.
+     * @param line a String containing the http header.
+     * @return false if the input is blank, true otherwise.
+     */
     public boolean parseLine(String line){
-        if (line.equals("")) {
+        if (line.trim().equals("")) {
             return false;
         }
         final String[] item = line.split(":\\s*", 2);
@@ -195,6 +264,12 @@ public class HttpHeaders {
         return true;
     }
     
+    /**
+     * Get an HttpHeaders object from a string.
+     * This will parse http headers and map each one of them by their keys and will also map the cookies with their keys.
+     * @param string input string.
+     * @return an HttpHeaders object.
+     */
     public static HttpHeaders fromString(final String string) {
         final HttpHeaders headers = new HttpHeaders(false);
         final String[] lines = string.split("\\r\\n");

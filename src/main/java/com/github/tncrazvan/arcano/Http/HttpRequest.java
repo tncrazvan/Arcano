@@ -13,7 +13,13 @@ import java.util.HashMap;
  */
 
 public class HttpRequest {
+    /**
+     * Headers of the current request.
+     */
     public final HttpHeaders headers;
+    /**
+     * Payload of the current request.
+     */
     public final byte[] content;
 
     public HttpRequest(final HashMap<String,String> headers, final byte[] content) {
