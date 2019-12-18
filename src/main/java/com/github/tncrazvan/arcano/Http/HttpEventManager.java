@@ -12,6 +12,7 @@ import com.github.tncrazvan.arcano.Tool.Deflate;
 import com.github.tncrazvan.arcano.Tool.Gzip;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
 import static com.github.tncrazvan.arcano.Tool.MultipartFormData.generateMultipartBoundary;
+import com.github.tncrazvan.arcano.Tool.Status;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_PARTIAL_CONTENT;
 import java.io.DataOutputStream;
 import java.io.RandomAccessFile;
@@ -101,7 +102,7 @@ public abstract class HttpEventManager extends EventManager{
                 headers.set("Content-Type", resolveContentType(location.toString()));
                 headers.set("Last-Modified",so.formatHttpDefaultDate.format(time(f.lastModified())));
                 headers.set("Last-Modified-Timestamp",f.lastModified()+"");
-                sendFileContents(f);
+                send(f);
             }else{
                 isDir = true;
                 headers.set("Content-Type", "text/html");
@@ -179,14 +180,14 @@ public abstract class HttpEventManager extends EventManager{
             if(data == null)
                 data = "";
             
-            send(data.getBytes(so.charset));
+            HttpEventManager.this.send(data.getBytes(so.charset));
         } catch (UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE,null,ex);
         }
     }
     
     public void send(int data){
-        send(""+data);
+        HttpEventManager.this.send(""+data);
     }
     
     public void setResponseContentType(String type){
@@ -197,12 +198,6 @@ public abstract class HttpEventManager extends EventManager{
         return headers.get("Content-Type");
     }
     
-    
-    
-    public void sendFileContents(String filename) throws IOException{
-        sendFileContents(new File(so.webRoot,filename));
-    }
-    
     public void disableDefaultHeaders(){
         defaultHeaders = false;
     }
@@ -211,8 +206,13 @@ public abstract class HttpEventManager extends EventManager{
         defaultHeaders = true;
     }
     
-    public void sendFileContents(File f){
+    public void send(File f){
         try {
+            if(!f.exists() || f.isDirectory()){
+                setResponseStatus(Status.STATUS_NOT_FOUND);
+                send("");
+                return;
+            }
             byte[] buffer;
             try (RandomAccessFile raf = new RandomAccessFile(f, "r"); 
                     DataOutputStream dos = new DataOutputStream(client.getOutputStream())) {

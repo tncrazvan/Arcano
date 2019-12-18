@@ -12,7 +12,6 @@ import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
 import java.io.File;
 import java.util.logging.Logger;
 /**
@@ -84,9 +83,9 @@ public class HttpEventListener extends HttpRequestReader{
                             controller.findRequestLanguages();
                             
                             controller.setResponseHeaderField("Content-Type", resolveContentType(location.toString()));
-                            controller.setResponseHeaderField("Last-Modified",so.formatHttpDefaultDate.format(time(f.lastModified())));
+                            controller.setResponseHeaderField("Last-Modified",SharedObject.formatHttpDefaultDate.format(time(f.lastModified())));
                             controller.setResponseHeaderField("Last-Modified-Timestamp",f.lastModified()+"");
-                            controller.sendFileContents(f);
+                            controller.send(f);
                         }else{
                             //String httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName
                             HttpController.onControllerRequest(this);
