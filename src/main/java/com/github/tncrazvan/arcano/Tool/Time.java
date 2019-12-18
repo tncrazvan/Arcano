@@ -5,6 +5,7 @@
  */
 package com.github.tncrazvan.arcano.Tool;
 
+import com.github.tncrazvan.arcano.SharedObject;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.TimeZone;
@@ -14,13 +15,18 @@ import java.util.TimeZone;
  * @author Administrator
  */
 public interface Time {
-    public static LocalDateTime time(String value){
-        return time(Integer.parseInt(value));
+    
+    public static long toTimestamp(LocalDateTime time){
+        return Time.now().atZone(SharedObject.londonTimezone).toEpochSecond();
     }
-    public static LocalDateTime time(long value){
+    
+    public static LocalDateTime now(String value){
+        return Time.now(Integer.parseInt(value));
+    }
+    public static LocalDateTime now(long value){
         return LocalDateTime.ofInstant(Instant.ofEpochMilli(value),TimeZone.getDefault().toZoneId());
     }
-    public static LocalDateTime time(){
+    public static LocalDateTime now(){
         return LocalDateTime.now();
     }
 }

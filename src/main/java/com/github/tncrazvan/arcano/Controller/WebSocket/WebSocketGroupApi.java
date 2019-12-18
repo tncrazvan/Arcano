@@ -4,8 +4,8 @@ import com.google.gson.JsonObject;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import com.github.tncrazvan.arcano.Bean.WebPath;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketMessage;
 
 /**
@@ -48,7 +48,7 @@ public class WebSocketGroupApi extends WebSocketController{
                                     //add this client to the group
                                     group.addClient(this);
                                 } catch (UnsupportedEncodingException ex) {
-                                    Logger.getLogger(WebSocketGroupApi.class.getName()).log(Level.SEVERE, null, ex);
+                                    LOGGER.log(Level.SEVERE, null, ex);
                                 }
                             }else{
                                 //if the group is not public, close the connection

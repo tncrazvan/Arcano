@@ -1,7 +1,6 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.EventManager;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,7 +13,7 @@ public class HttpSessionManager {
     
     public HttpSessionManager() {}
     
-    public HttpSession startSession(EventManager e,long sessionTtl) throws UnsupportedEncodingException, UnsupportedEncodingException{
+    public HttpSession startSession(EventManager e,long sessionTtl) {
         if(e.issetCookie("sessionId")){//if session_id is set
             final String sessionId = e.getCookie("sessionId");
             if(LIST.containsKey(sessionId)){//if session exists

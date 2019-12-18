@@ -1,9 +1,7 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.SharedObject;
-import static com.github.tncrazvan.arcano.SharedObject.locale;
-import static com.github.tncrazvan.arcano.SharedObject.timezone;
-import static com.github.tncrazvan.arcano.Tool.Time.time;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -14,6 +12,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
+import static com.github.tncrazvan.arcano.Tool.Time.now;
+import static com.github.tncrazvan.arcano.Tool.Time.now;
+import static com.github.tncrazvan.arcano.Tool.Time.now;
 
 /**
  *
@@ -28,7 +30,7 @@ public class HttpHeaders {
     public HttpHeaders(HashMap<String, String> map,final boolean createSuccessHeader) {
         if (createSuccessHeader) {
             headers.put("@Status", "HTTP/1.1 200 OK");
-            headers.put("Date", SharedObject.formatHttpDefaultDate.format(time()));
+            headers.put("Date", SharedObject.formatHttpDefaultDate.format(now()));
             headers.put("Cache-Control", "no-store");
         }
         
@@ -57,7 +59,7 @@ public class HttpHeaders {
     private static DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z",Locale.US).withZone(londonTimezone);
     public String cookieToString(final String key) {
         final String[] c = cookies.get(key);
-        final LocalDateTime time = (c[3] == null ? null : time(Integer.parseInt(c[3]) * 1000L));
+        final LocalDateTime time = (c[3] == null ? null : now(Integer.parseInt(c[3]) * 1000L));
         // Thu, 01 Jan 1970 00:00:00 GMT
         return c[4] + ": " + key + "=" + c[0] + (c[1] == null ? "" : "; path=" + c[1])
                 + (c[2] == null ? "" : "; domain=" + c[2])
@@ -104,30 +106,34 @@ public class HttpHeaders {
         return false;
     }
 
-    public String getCookie(final String key) throws UnsupportedEncodingException {
+    public String getCookie(final String key) {
+        return getCookie(key,"UTF-8");
+    }
+    public String getCookie(final String key, String charset) {
         final String[] cookie = cookies.get(key);
         if (cookie == null)
             return null;
-        return URLDecoder.decode(cookie[0]);
-    }
-    public String getCookie(final String key, String charset) throws UnsupportedEncodingException {
-        final String[] cookie = cookies.get(key);
-        if (cookie == null)
-            return null;
-        return URLDecoder.decode(cookie[0], charset);
-    }
-
-    public void setCookie(final String key, final String v, final String path, final String domain, final int expire, String charset)
-            throws UnsupportedEncodingException {
-        setCookie(key, v, path, domain, SharedObject.formatHttpDefaultDate.format(time(expire)),charset);
+        try{
+            return URLDecoder.decode(cookie[0], charset);
+        }catch(UnsupportedEncodingException ex){
+            LOGGER.log(Level.SEVERE, null, ex);
+            return URLDecoder.decode(cookie[0]);
+        }
     }
 
-    public void setCookie(final String key, final String v, String path, final String domain, final String expire, String charset)
-            throws UnsupportedEncodingException {
+    public void setCookie(final String key, final String v, final String path, final String domain, final int expire, String charset){
+        setCookie(key, v, path, domain, SharedObject.formatHttpDefaultDate.format(now(expire)),charset);
+    }
+
+    public void setCookie(final String key, final String v, String path, final String domain, final String expire, String charset){
         if (path == null)
             path = "/";
         final String[] b = new String[5];
-        b[0] = URLEncoder.encode(v, charset);
+        try{
+            b[0] = URLEncoder.encode(v, charset);
+        }catch(UnsupportedEncodingException ex){
+            b[0] = URLEncoder.encode(v);
+        }
         b[1] = path;
         b[2] = domain;
         b[3] = expire;
@@ -135,16 +141,15 @@ public class HttpHeaders {
         cookies.put(key.trim(), b);
     }
 
-    public void setCookie(final String key, final String v, final String path, final String domain, String charset)
-            throws UnsupportedEncodingException {
-        setCookie(key, v, path, domain, null,charset);
+    public void setCookie(final String key, final String v, final String path, final String domain, String charset){
+        setCookie(key, v, path, domain, null, charset);
     }
 
-    public void setCookie(final String key, final String v, final String path, String charset) throws UnsupportedEncodingException {
-        setCookie(key, v, path, null, null,charset);
+    public void setCookie(final String key, final String v, final String path, String charset){
+        setCookie(key, v, path, null, charset);
     }
 
-    public void setCookie(final String key, final String v, String charset) throws UnsupportedEncodingException {
+    public void setCookie(final String key, final String v, String charset){
         setCookie(key, v, "/", null, null,charset);
     }
 

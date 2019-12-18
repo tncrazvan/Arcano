@@ -58,7 +58,7 @@ public class Get extends HttpController implements JsonTools{
     }
     
     @WebPath(name="/cookie")
-    public void cookie() throws UnsupportedEncodingException{
+    public void cookie(){
         String name = String.join("/", args);
         if(issetCookie(name)){
             setResponseContentType("application/json");
