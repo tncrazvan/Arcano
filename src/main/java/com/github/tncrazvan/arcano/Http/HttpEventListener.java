@@ -2,7 +2,6 @@ package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
-import static com.github.tncrazvan.arcano.Tool.Time.time;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -14,12 +13,19 @@ import java.util.regex.Pattern;
 
 import java.io.File;
 import java.util.logging.Logger;
+import static com.github.tncrazvan.arcano.Tool.Time.now;
+import static io.arcano.Common.time;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+import static javax.swing.text.html.HTML.Tag.HEAD;
 /**
  *
  * @author Razvan
  */
 public class HttpEventListener extends HttpRequestReader{
     private Matcher matcher;
+    
+    public static final DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", Locale.US).withZone(londonTimezone);
     private static final Pattern
             UPGRADE_PATTERN = Pattern.compile("Upgrade"),
             WEB_SOCKET_PATTERN = Pattern.compile("websocket"),
@@ -83,7 +89,7 @@ public class HttpEventListener extends HttpRequestReader{
                             controller.findRequestLanguages();
                             
                             controller.setResponseHeaderField("Content-Type", resolveContentType(location.toString()));
-                            controller.setResponseHeaderField("Last-Modified",SharedObject.formatHttpDefaultDate.format(time(f.lastModified())));
+                            controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(now(f.lastModified())));
                             controller.setResponseHeaderField("Last-Modified-Timestamp",f.lastModified()+"");
                             controller.send(f);
                         }else{

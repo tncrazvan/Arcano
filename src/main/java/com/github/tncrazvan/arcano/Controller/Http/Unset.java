@@ -11,7 +11,7 @@ import com.github.tncrazvan.arcano.Bean.WebPath;
 @WebPath(name="/@unset")
 public class Unset extends HttpController{
     @WebPath(name="/cookie")
-    public void cookie() throws UnsupportedEncodingException{
+    public void cookie(){
         String name = String.join("/", args);
         if(issetCookie(name)){
             unsetCookie(name, getRequestQueryString("path"), getRequestQueryString("domain"));

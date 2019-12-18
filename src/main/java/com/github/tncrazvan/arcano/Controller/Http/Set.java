@@ -23,7 +23,7 @@ public class Set extends HttpController implements JsonTools{
 
     @WebPath(name="/webSocketGroup")
     @WebMethod(name="POST")
-    public void webSocketGroup() throws UnsupportedEncodingException{
+    public void webSocketGroup(){
         if(so.config.isset("groups")){
             JsonObject groups = so.config.get("groups").getAsJsonObject();
             if(groups.has("allow")){
@@ -54,7 +54,7 @@ public class Set extends HttpController implements JsonTools{
     
     @WebPath(name="/cookie")
     @WebMethod(name="POST")
-    public void cookie() throws UnsupportedEncodingException{
+    public void cookie(){
         String name = String.join("/", args);
         JsonObject data = jsonObject(new String(request.content));
         try{

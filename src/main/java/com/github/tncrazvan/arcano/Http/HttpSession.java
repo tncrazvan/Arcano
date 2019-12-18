@@ -3,7 +3,7 @@ package com.github.tncrazvan.arcano.Http;
 import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.EventManager;
 import static com.github.tncrazvan.arcano.Tool.Hashing.getSha1String;
-import java.io.UnsupportedEncodingException;
+import com.github.tncrazvan.arcano.Tool.Time;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,12 +14,12 @@ import java.util.Map;
 public class HttpSession extends SharedObject{
     private long time;
     private final String id;
-    private final Map<String,Object> STORAGE = new HashMap<>();
+    private final HashMap<String,Object> STORAGE = new HashMap<>();
     
     
-    protected HttpSession(EventManager e) throws UnsupportedEncodingException {
+    protected HttpSession(EventManager e) {
         id = getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random(),charset);
-        e.setCookie("sessionId", id, "/");
+        e.setCookie("sessionId", id, "/", null, (int) Time.toTimestamp(Time.now()) + (int) e.so.sessionTtl);
         this.time = System.currentTimeMillis();
     }
     
