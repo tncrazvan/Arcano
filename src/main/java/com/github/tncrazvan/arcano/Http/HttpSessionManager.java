@@ -14,8 +14,8 @@ public class HttpSessionManager {
     public HttpSessionManager() {}
     
     public HttpSession startSession(EventManager e,long sessionTtl) {
-        if(e.issetCookie("sessionId")){//if session_id is set
-            final String sessionId = e.getCookie("sessionId");
+        if(e.issetRequestCookie("sessionId")){//if session_id is set
+            final String sessionId = e.getRequestCookie("sessionId");
             if(LIST.containsKey(sessionId)){//if session exists
                 HttpSession session = LIST.get(sessionId);
                 //if session is expired

@@ -13,8 +13,8 @@ public class Unset extends HttpController{
     @WebPath(name="/cookie")
     public void cookie(){
         String name = String.join("/", args);
-        if(issetCookie(name)){
-            unsetCookie(name, getRequestQueryString("path"), getRequestQueryString("domain"));
+        if(issetRequestCookie(name)){
+            unsetResponseCookie(name, getRequestQueryString("path"), getRequestQueryString("domain"));
             send(0);
         }else{
             send(0);

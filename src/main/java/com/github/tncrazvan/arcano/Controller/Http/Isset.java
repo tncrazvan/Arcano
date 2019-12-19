@@ -30,7 +30,7 @@ public class Isset extends HttpController{
     @WebPath(name="/cookie")
     public void cookie(){
         String name = String.join("/",args);
-        if(issetCookie(name)){
+        if(issetRequestCookie(name)){
             setResponseStatus(STATUS_FOUND);
         }else{
             setResponseStatus(STATUS_NOT_FOUND);

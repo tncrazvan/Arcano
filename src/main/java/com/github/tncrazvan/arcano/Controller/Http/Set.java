@@ -56,6 +56,6 @@ public class Set extends HttpController {
     public void cookie(){
         String name = String.join("/", args);
         JsonObject data = jsonObject(new String(request.content));
-        setCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), Integer.parseInt(getRequestQueryString("expire")));
+        setResponseCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), Integer.parseInt(getRequestQueryString("expire")));
     }
 }

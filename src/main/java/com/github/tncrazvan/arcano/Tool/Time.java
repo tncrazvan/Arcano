@@ -16,17 +16,25 @@ import java.time.ZoneId;
  */
 public interface Time {
     
-    public static long toTimestamp(LocalDateTime time){
-        return Time.now().atZone(SharedObject.londonTimezone).toEpochSecond();
+    public static long toSeconds(ZoneId zone, LocalDateTime time){
+        return Time.toLocalDateTime().atZone(zone).toEpochSecond();
     }
-    
-    public static LocalDateTime now(ZoneId zone, String value){
-        return Time.now(zone, Integer.parseInt(value));
-    }
-    public static LocalDateTime now(ZoneId zone, long value){
+    public static LocalDateTime toLocalDateTime(ZoneId zone, long value){
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(value),zone);
     }
-    public static LocalDateTime now(){
+    public static LocalDateTime toLocalDateTime(){
         return LocalDateTime.now();
     }
+    public static long now(ZoneId zone){
+        return toSeconds(zone, LocalDateTime.now());
+    }
+    
+    /*public static LocalDateTime future(String value){
+        return LocalDateTime.toLocalDateTime().plusSeconds(Integer.parseInt(value));
+    }
+    
+    public static LocalDateTime future(long seconds){
+        return LocalDateTime.toLocalDateTime().plusSeconds(seconds);
+    }*/
+    
 }

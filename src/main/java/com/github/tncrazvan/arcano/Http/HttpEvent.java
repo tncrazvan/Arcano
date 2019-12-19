@@ -2,6 +2,7 @@ package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
 import com.github.tncrazvan.arcano.Tool.Cluster.NoKeyFoundException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -15,6 +16,7 @@ import java.util.stream.Stream;
 
 import com.github.tncrazvan.arcano.WebObject;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
+import com.github.tncrazvan.arcano.Tool.Regex;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_INTERNAL_SERVER_ERROR;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_LOCKED;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
@@ -174,7 +176,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         
         String[] location = reader.location.toString().split("/");
         String httpMethod = reader.request.headers.get("Method");
-        
+        boolean abusiveUrl = Regex.match(reader.location.toString(),"w3e478tgdf8723qioiuy");
         Method method;
         String[] args;
         Class<?> cls;
@@ -187,7 +189,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             location = new String[] { "" };
         }
         try {
-            if (location.length > 0 && !location[0].equals("")) {
+            if (location.length > 0 && !abusiveUrl) {
                 classId = getClassnameIndex(location, httpMethod);
                 final String[] typedLocation = Stream
                         .concat(Arrays.stream(new String[] { httpMethod }), Arrays.stream(location))
@@ -195,7 +197,13 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 wo = resolveClassName(classId + 1, typedLocation);
                 if(wo.isLocked()){
                     if(!reader.request.headers.issetCookie("ArcanoKey")){
-                        throw new NoKeyFoundException("");
+                        throw new NoKeyFoundException("An authorized client attempted to access a locked HttpController. No key specified.");
+                    }else{
+                        String key = reader.request.headers.getCookie("ArcanoKey");
+                        ClusterServer server = reader.so.cluster.validateArcanoKey(reader.client,key);
+                        if(server == null){
+                            throw new NoKeyFoundException("An authorized client attempted to access a locked HttpController. The specified key is invalid.");
+                        }
                     }
                 }
                 cls = Class.forName(wo.getClassname());

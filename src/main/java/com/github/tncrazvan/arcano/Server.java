@@ -30,7 +30,8 @@ import javax.net.ssl.TrustManagerFactory;
 
 import com.github.tncrazvan.arcano.Http.HttpEventListener;
 import com.github.tncrazvan.arcano.Smtp.SmtpServer;
-import com.github.tncrazvan.arcano.Tool.JsonTools;
+import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
+import com.github.tncrazvan.arcano.Tool.Cluster.InvalidClusterEntryException;
 import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonParse;
 import com.github.tncrazvan.arcano.Tool.Minifier;
 import com.github.tncrazvan.asciitable.AsciiTable;
@@ -93,6 +94,30 @@ public class Server extends SharedObject {
             compression = jsonParse(config.get("compress").getAsJsonArray(), String[].class);
         }else{
             compression = new String[]{};
+        }
+        
+        if(config.isset("cluster")){
+            if(config.isset("cluster")){
+                JsonObject clusterJson = config.get("cluster").getAsJsonObject();
+                clusterJson.keySet().forEach((hostname) -> {
+                    JsonObject serverJson = clusterJson.get(hostname).getAsJsonObject();
+                    try{
+                        if(!serverJson.has("secret") || !serverJson.has("weight")){
+                            throw new InvalidClusterEntryException("\nCluster entry "+hostname+" is invalid.\nA cluster enrty should contain the following configuration: \n{\n"
+                                    + "\t\"secret\":\"<your secret key>\",\n"
+                                    + "\t\"weight\":<your server weight>\n"
+                                    + "}");
+                        }
+                        ClusterServer server = new ClusterServer(
+                                serverJson.get("secret").getAsString(), 
+                                serverJson.get("weight").getAsInt()
+                        );
+                        cluster.setServer(hostname, server);
+                    }catch(InvalidClusterEntryException ex){
+                        LOGGER.log(Level.SEVERE,null,ex);                                                                                                         
+                    }
+                });
+            }
         }
 
         if(config.isset("classOrder")){

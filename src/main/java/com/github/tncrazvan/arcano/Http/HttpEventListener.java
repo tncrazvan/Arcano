@@ -13,9 +13,11 @@ import java.util.regex.Pattern;
 
 import java.io.File;
 import java.util.logging.Logger;
-import static com.github.tncrazvan.arcano.Tool.Time.now;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
+import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
+import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
 /**
  *
  * @author Razvan
@@ -87,7 +89,7 @@ public class HttpEventListener extends HttpRequestReader{
                             controller.findRequestLanguages();
                             
                             controller.setResponseHeaderField("Content-Type", resolveContentType(location.toString()));
-                            controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(now(londonTimezone,f.lastModified())));
+                            controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(toLocalDateTime(londonTimezone,f.lastModified())));
                             controller.setResponseHeaderField("Last-Modified-Timestamp",f.lastModified()+"");
                             controller.send(f);
                         }else{

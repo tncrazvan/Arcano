@@ -1,6 +1,5 @@
 package com.github.tncrazvan.arcano.Controller.Http;
 
-import com.github.tncrazvan.arcano.Bean.WebLocked;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi;
@@ -15,6 +14,7 @@ import static com.github.tncrazvan.arcano.Tool.Memory.getAllocatedMemory;
 import static com.github.tncrazvan.arcano.Tool.Memory.getFreeMemory;
 import static com.github.tncrazvan.arcano.Tool.Memory.getMaxMemory;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
+import com.github.tncrazvan.arcano.Bean.ClusterLocked;
 /**
  *
  * @author Razvan
@@ -22,7 +22,7 @@ import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
 @WebPath(name = "/@get")
 public class Get extends HttpController{
     
-    @WebLocked
+    @ClusterLocked
     @WebPath(name="/memory")
     public JsonObject memory(){
         JsonObject result = new JsonObject();
@@ -74,9 +74,9 @@ public class Get extends HttpController{
     @WebPath(name="/cookie")
     public void cookie(){
         String name = String.join("/", args);
-        if(issetCookie(name)){
+        if(issetRequestCookie(name)){
             setResponseContentType("application/json");
-            String jsonCookie = jsonStringify(new Cookie("Cookie", getCookie(name)));
+            String jsonCookie = jsonStringify(new Cookie("Cookie", getRequestCookie(name)));
             send(jsonCookie);
         }else{
             setResponseStatus(STATUS_NOT_FOUND);

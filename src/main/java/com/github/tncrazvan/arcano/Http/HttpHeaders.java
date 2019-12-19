@@ -13,7 +13,9 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
-import static com.github.tncrazvan.arcano.Tool.Time.now;
+import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
+import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
+import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
 
 /**
  *
@@ -28,7 +30,7 @@ public class HttpHeaders {
     public HttpHeaders(HashMap<String, String> map,final boolean createSuccessHeader) {
         if (createSuccessHeader) {
             headers.put("@Status", "HTTP/1.1 200 OK");
-            headers.put("Date", formatHttpDefaultDate.format(now()));
+            headers.put("Date", formatHttpDefaultDate.format(toLocalDateTime()));
             headers.put("Cache-Control", "no-store");
         }
         
@@ -57,7 +59,7 @@ public class HttpHeaders {
     private static DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z",Locale.US).withZone(londonTimezone);
     public String cookieToString(final String key) {
         final String[] c = cookies.get(key);
-        final LocalDateTime time = (c[3] == null ? null : now(SharedObject.londonTimezone,Integer.parseInt(c[3])));
+        final LocalDateTime time = (c[3] == null ? null : toLocalDateTime(SharedObject.londonTimezone,Integer.parseInt(c[3])));
         // Thu, 01 Jan 1970 00:00:00 GMT
         return c[4] + ": " + key + "=" + c[0] + (c[1] == null ? "" : "; path=" + c[1])
                 + (c[2] == null ? "" : "; domain=" + c[2])
@@ -149,7 +151,7 @@ public class HttpHeaders {
      * @param value value of the cookie.
      * @param path this is the path the cookie will be attached to.
      * @param domain this is the domain the cookie will be attached to.
-     * @param expire the date the cookie should expire. This value is expected to be a unix timestamp (in seconds).
+     * @param expire the date the cookie should expire on. This value is expected to be a unix timestamp (in seconds).
      * @param charset charset to use when encoding the cookie.
      */
 

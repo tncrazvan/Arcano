@@ -3,6 +3,7 @@ package com.github.tncrazvan.arcano;
 import com.github.tncrazvan.arcano.Http.HttpHeaders;
 import com.github.tncrazvan.arcano.Http.HttpRequest;
 import com.github.tncrazvan.arcano.Http.HttpSession;
+import com.github.tncrazvan.arcano.Tool.Time;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
@@ -72,7 +73,7 @@ public abstract class EventManager{
     }
     
     public boolean issetSession() {
-        return (issetCookie("sessionId") && so.sessions.issetSession(getCookie("sessionId")));
+        return (issetRequestCookie("sessionId") && so.sessions.issetSession(getRequestCookie("sessionId")));
     }
     
     /**
@@ -94,7 +95,8 @@ public abstract class EventManager{
      *  "sendExceptions": true,
      *  "responseWrapper": false
      * }
-     * @return 
+     * @return the HttpSession object. This is a new object if the client's sessionId is invalid or non existent, 
+     * or an already existing HttpSession object if the client provides a valid and existing sessionId.
      */
     public HttpSession startSession() {
         session = so.sessions.startSession(this,so.sessionTtl);
@@ -163,7 +165,10 @@ public abstract class EventManager{
     }
     
     /**
-     * 
+     * Get the value of a specific query string.
+     * For example:<br />
+     * given the url <b>http://127.0.0.1/new/user?username=my_username</b><br />
+     * you can get the username from the url by calling getRequestQueryString("username")
      * @param key name of the query.
      * @return the value of the query.
      */
@@ -196,28 +201,51 @@ public abstract class EventManager{
     public Map<String,String> getUserLanguages(){
         return userLanguages;
     }
-    
+    /**
+     * Get the HttpHeaders object of the request.
+     * @return the HttpHeaders object.
+     */
     public HttpHeaders getRequestHttpHeaders(){
         return request.headers;
     }
     
-    public String getRequestHeaderField(String key){
-        return request.headers.get(key);
+    /**
+     * Get a header field from the HttpRequest.
+     * @param name name of the header.
+     * @return the value of the header as a String.
+     */
+    public String getRequestHeaderField(String name){
+        return request.headers.get(name);
     }
     
+    /**
+     * Get the method of the HttpRequest.
+     * @return the name of the method as a String.
+     */
     public String getRequestMethod(){
         return request.headers.get("Method");
     }
     
-    
+    /**
+     * Get the user agent of the client.
+     * @return name of the user agent.
+     */
     public String getRequestUserAgent(){
         return request.headers.get("User-Agent");
     }
     
+    /**
+     * Get the address of the client.
+     * @return the remote IP address that identifies the client.
+     */
     public String getRequestAddress(){
         return client.getInetAddress().toString();
     }
     
+    /**
+     * Get the client port number.
+     * @return the remote port number that's sending the request or 0 if the connection is not alive.
+     */
     public int getRequestPort(){
         return client.getPort();
     }
@@ -228,7 +256,7 @@ public abstract class EventManager{
      * @param path path of the cookie
      * @param domain domain of the cookie
      */
-    public void unsetCookie(String key, String path, String domain){
+    public void unsetResponseCookie(String key, String path, String domain){
         headers.setCookie(key,"deleted",path,domain,0,so.charset);
     }
     
@@ -237,16 +265,16 @@ public abstract class EventManager{
      * @param key name of the cookie
      * @param path path of the cookie
      */
-    public void unsetCookie(String key, String path){
-        unsetCookie(key, path, request.headers.get("Host"));
+    public void unsetResponseCookie(String key, String path){
+        EventManager.this.unsetResponseCookie(key, path, request.headers.get("Host"));
     }
     
     /**
      * Notices the client to unset the given cookie.
      * @param key name of the cookie
      */
-    public void unsetCookie(String key){
-        unsetCookie(key, "/", request.headers.get("Host"));
+    public void unsetResponseCookie(String key){
+        EventManager.this.unsetResponseCookie(key, "/", request.headers.get("Host"));
     }
     
     /**
@@ -257,7 +285,7 @@ public abstract class EventManager{
      * @param domain domain of the cooke.
      * @param expire time to live of the cookie.
      */
-    public void setCookie(String name,String value, String path, String domain, int expire){
+    public void setResponseCookie(String name,String value, String path, String domain, int expire){
         headers.setCookie(name, value, path, domain, expire, so.charset);
     }
     
@@ -268,8 +296,8 @@ public abstract class EventManager{
      * @param path path of the cookie.
      * @param domain domain of the cooke.
      */
-    public void setCookie(String name,String value, String path, String domain){
-        headers.setCookie(name, value, path, domain, so.charset);
+    public void setResponseCookie(String name,String value, String path, String domain){
+        headers.setCookie(name, value, path, domain, (int)(Time.now(SharedObject.londonTimezone) + so.cookiesTtl), so.charset);
     }
     
     /**
@@ -278,8 +306,8 @@ public abstract class EventManager{
      * @param value value of the cookie.
      * @param path path of the cookie.
      */
-    public void setCookie(String name,String value, String path){
-        headers.setCookie(name, value, path, so.charset);
+    public void setResponseCookie(String name,String value, String path){
+        headers.setCookie(name, value, path, null, (int)(Time.now(SharedObject.londonTimezone) + so.cookiesTtl), so.charset);
     }
     
     /**
@@ -287,8 +315,8 @@ public abstract class EventManager{
      * @param name name of the cookie.
      * @param value value of the cookie.
      */
-    public void setCookie(String name, String value){
-        headers.setCookie(name, value, so.charset);
+    public void setResponseCookie(String name, String value){
+        headers.setCookie(name, value, "/", null, (int)(Time.now(SharedObject.londonTimezone) + so.cookiesTtl), so.charset);
     }
     
     
@@ -297,7 +325,7 @@ public abstract class EventManager{
      * @param name name of the cookie.
      * @return value of the cookie.
      */
-    public String getCookie(String name){
+    public String getRequestCookie(String name){
         return request.headers.getCookie(name, so.charset);
     }
     
@@ -306,7 +334,7 @@ public abstract class EventManager{
      * @param key name of the cookie.
      * @return true if cookie is set, otherwise false.
      */
-    public boolean issetCookie(String key){
+    public boolean issetRequestCookie(String key){
         return request.headers.issetCookie(key);
     }
 }

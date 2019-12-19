@@ -19,8 +19,8 @@ public class HttpSession extends SharedObject{
     
     protected HttpSession(EventManager e) {
         id = getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random(),charset);
-        int expire = (int) Time.toTimestamp(Time.now()) + (int) e.so.sessionTtl;
-        e.setCookie("sessionId", id, "/", null, expire);
+        int expire = (int) Time.now(SharedObject.londonTimezone) + (int) e.so.sessionTtl;
+        e.setResponseCookie("sessionId", id, "/", null, expire);
         this.time = System.currentTimeMillis();
     }
     

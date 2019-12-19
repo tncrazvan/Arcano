@@ -15,6 +15,9 @@ public interface JsonTools {
     static final Gson JSON_PARSER = new Gson();
     
     //JsonObject
+    static JsonObject jsonObject(byte[] data){
+        return JSON_PARSER.fromJson(new String(data), JsonObject.class);
+    }
     static JsonObject jsonObject(String str){
         return JSON_PARSER.fromJson(str, JsonObject.class);
     }

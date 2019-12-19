@@ -59,64 +59,58 @@ public abstract class HttpEventManager extends EventManager{
         }
     }
     
-    public void isDirectory(boolean value){
-        isDir=value;
+    /**
+     * Set a header for your HttpResponse.
+     * @param name name of your header.
+     * @param value value of your header.
+     */
+    public void setResponseHeaderField(String name,String value){
+        headers.set(name, value);
     }
     
-    public boolean isDirectory(){
-        return isDir;
+    /**
+     * Get the value a header from your HttpResponse.
+     * @param name name of the header.
+     * @return value of the header as a String.
+     */
+    public String getResponseHeaderField(String name){
+        return headers.get(name);
     }
     
-    public void setResponseHeaderField(String fieldName,String fieldContent){
-        headers.set(fieldName, fieldContent);
+    /**
+     * Check if your HttpResponse contains a specific header.
+     * @param name name of the header.
+     * @return true if the header exists, false otherwise.
+     */
+    public boolean issetResponseHeaderField(String name){
+        return headers.isDefined(name);
     }
     
-    public String getResponseHeaderField(String fieldName){
-        return headers.get(fieldName);
-    }
-    
-    public boolean issetResponseHeaderField(String fieldName){
-        return headers.isDefined(fieldName);
-    }
-    
+    /**
+     * Set the status of your HttpResponse.
+     * @param status an Http valid status String.
+     * You can get all the available Http status strings inside the com.github.tncrazvan.arcano.Tool.Status class.
+     */
     public void setResponseStatus(String status){
         setResponseHeaderField("@Status", status);
     }
     
-    public String getResponseHttpHeaders(String fieldName){
-        return headers.get(fieldName);
-    }
+    /**
+     * Get the HttpHEaders object of your response.
+     * @return headers of the response.
+     */
     public HttpHeaders getResponseHttpHeaders(){
         return headers;
     }
     
-    public boolean isAlive(){
+    /**
+     * Check if the HttpEvent is alive.
+     * when called from within an HttpController, this should always return true.
+     * @return true if the event is alive, false otherwise.
+     */
+    private boolean isAlive(){
         return alive;
     }
-    
-    /*protected boolean execute() throws IOException{
-        findRequestLanguages();
-        File f = new File(so.webRoot+location);
-        if(f.exists()){
-            if(!f.isDirectory()){
-                headers.set("Content-Type", resolveContentType(location.toString()));
-                headers.set("Last-Modified",so.formatHttpDefaultDate.format(time(f.lastModified())));
-                headers.set("Last-Modified-Timestamp",f.lastModified()+"");
-                send(f);
-            }else{
-                isDir = true;
-                headers.set("Content-Type", "text/html");
-                onControllerRequest(location);
-            }
-        }else{
-            headers.set("Content-Type", "text/html");
-            onControllerRequest(location);
-        }
-        close();
-        return true;
-    }*/
-    
-    
     
     private boolean firstMessage = true;
     
@@ -132,7 +126,14 @@ public abstract class HttpEventManager extends EventManager{
             close();
         }
     }
-    
+    /**
+     * Send data to the client.
+     * The first time this method is called within an HttpEvent, it will also call the sendHEaders() method, to make sure the headers.
+     * This means that whatever http headers are being set after the first time this method is called are completely ignored.
+     * Calling this method is the same as returning a Object from your HttpController method.
+     * There is really no good reason to call this method from within your HttpController.
+     * @param data data to be sent.
+     */
     public void send(byte[] data) {
         if(alive){
             try {
@@ -175,6 +176,14 @@ public abstract class HttpEventManager extends EventManager{
         sendHeaders();
     }
     
+    /**
+     * Send data to the client.
+     * The first time this method is called within an HttpEvent, it will also call the sendHEaders() method, to make sure the headers.
+     * This means that whatever http headers are being set after the first time this method is called are completely ignored.
+     * Calling this method is the same as returning a Object from your HttpController method.
+     * There is really no good reason to call this method from within your HttpController.
+     * @param data data to be sent.
+     */
     public void send(String data){
         try {
             if(data == null)
@@ -186,35 +195,69 @@ public abstract class HttpEventManager extends EventManager{
         }
     }
     
+    /**
+     * Send data to the client.
+     * The first time this method is called within an HttpEvent, it will also call the sendHEaders() method, to make sure the headers.
+     * This means that whatever http headers are being set after the first time this method is called are completely ignored.
+     * Calling this method is the same as returning a Object from your HttpController method.
+     * There is really no good reason to call this method from within your HttpController.
+     * @param data data to be sent.
+     */
     public void send(int data){
         HttpEventManager.this.send(""+data);
     }
     
+    /**
+     * Set the Content-Type of your HttpResponse.
+     * @param type Content-Type string.
+     */
     public void setResponseContentType(String type){
         headers.set("Content-Type", type);
     }
     
+    /**
+     * Get the Content-Type of your HttpResponse.
+     * @return Content-Type of the response.
+     */
     public String getResponseContentType(){
         return headers.get("Content-Type");
     }
     
-    public void disableDefaultHeaders(){
+    /**
+     * Usually the server sets a few headers to your HttpResponse, such as the 
+     * "@Status" of the response as "200 OK", "Cache-Control" to "no-store", 
+     * "Date" to the current Greenwich date.
+     */
+    public void disableDefaultResponseHeaders(){
         defaultHeaders = false;
     }
     
-    public void enableDefaultHeaders(){
+    /**
+     * Usually the server sets a few headers to your HttpResponse, such as the 
+     * "@Status" of the response as "200 OK", "Cache-Control" to "no-store", 
+     * "Date" to the current Greenwich date.
+     */
+    public void enableDefaultResponseHeaders(){
         defaultHeaders = true;
     }
     
-    public void send(File f){
+    /**
+     * Send data to the client.
+     * The first time this method is called within an HttpEvent, it will also call the sendHEaders() method, to make sure the headers.
+     * This means that whatever http headers are being set after the first time this method is called are completely ignored.
+     * Calling this method is the same as returning a Object from your HttpController method.
+     * There is really no good reason to call this method from within your HttpController.
+     * @param data data to be sent.
+     */
+    public void send(File data){
         try {
-            if(!f.exists() || f.isDirectory()){
+            if(!data.exists() || data.isDirectory()){
                 setResponseStatus(Status.STATUS_NOT_FOUND);
                 send("");
                 return;
             }
             byte[] buffer;
-            try (RandomAccessFile raf = new RandomAccessFile(f, "r"); 
+            try (RandomAccessFile raf = new RandomAccessFile(data, "r"); 
                     DataOutputStream dos = new DataOutputStream(client.getOutputStream())) {
                 
                 int fileLength = (int) raf.length();
@@ -239,7 +282,7 @@ public abstract class HttpEventManager extends EventManager{
                             rangeEnd[i] = fileLength-1;
                         }
                     }
-                    String ctype = resolveContentType(f.getName());
+                    String ctype = resolveContentType(data.getName());
                     int start,end;
                     if(rangeStart.length > 1){
                         String body = "";
@@ -318,7 +361,7 @@ public abstract class HttpEventManager extends EventManager{
             LOGGER.log(Level.INFO,null,ex);
         } catch (IOException ex) {
             //ex.printStackTrace();
-            System.out.println("Client "+client.getInetAddress().toString()+" disconnected before receiving the whole file ("+f.getName()+")");
+            System.out.println("Client "+client.getInetAddress().toString()+" disconnected before receiving the whole file ("+data.getName()+")");
         }
         
         close();
