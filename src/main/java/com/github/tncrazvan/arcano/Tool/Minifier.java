@@ -1,5 +1,6 @@
 package com.github.tncrazvan.arcano.Tool;
 
+import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonArray;
 import com.google.gson.JsonArray;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,7 +15,7 @@ import java.util.regex.Pattern;
  *
  * @author Administrator
  */
-public class Minifier implements JsonTools{
+public class Minifier{
     private final String inputDirName;
     private final File assets;
     private final String outputDirectoryname = "minified";

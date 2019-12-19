@@ -200,7 +200,7 @@ public abstract class EventManager{
      * @param domain domain of the cookie
      */
     public void unsetCookie(String key, String path, String domain){
-        headers.setCookie(key,"deleted",path,domain,"0",so.charset);
+        headers.setCookie(key,"deleted",path,domain,0,so.charset);
     }
     
     /**
@@ -229,9 +229,6 @@ public abstract class EventManager{
      * @param expire time to live of the cookie.
      */
     public void setCookie(String name,String value, String path, String domain, int expire){
-        headers.setCookie(name, value, path, domain, expire, so.charset);
-    }
-    public void setCookie(String name,String value, String path, String domain, String expire){
         headers.setCookie(name, value, path, domain, expire, so.charset);
     }
     

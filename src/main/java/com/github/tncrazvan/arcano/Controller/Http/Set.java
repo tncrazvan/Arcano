@@ -4,10 +4,9 @@ import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi;
 import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.Http.HttpSession;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
-import java.io.UnsupportedEncodingException;
 import com.github.tncrazvan.arcano.Bean.WebMethod;
 import com.github.tncrazvan.arcano.Bean.WebPath;
-import com.github.tncrazvan.arcano.Tool.JsonTools;
+import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonObject;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
 import com.google.gson.JsonObject;
 
@@ -16,7 +15,7 @@ import com.google.gson.JsonObject;
  * @author Razvan
  */
 @WebPath(name="/@set")
-public class Set extends HttpController implements JsonTools{
+public class Set extends HttpController {
     private static final String 
             GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.",
             GROUPS_POLICY_NOT_DEFINED = "WebSocket groups policy is not defined by the server therefore by default it is disabled.";
@@ -57,10 +56,6 @@ public class Set extends HttpController implements JsonTools{
     public void cookie(){
         String name = String.join("/", args);
         JsonObject data = jsonObject(new String(request.content));
-        try{
-            setCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), Integer.parseInt(getRequestQueryString("expire")));
-        }catch(NumberFormatException ex){
-            setCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), getRequestQueryString("expire"));
-        }
+        setCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), Integer.parseInt(getRequestQueryString("expire")));
     }
 }

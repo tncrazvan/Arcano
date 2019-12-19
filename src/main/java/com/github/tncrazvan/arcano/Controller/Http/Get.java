@@ -1,23 +1,37 @@
 package com.github.tncrazvan.arcano.Controller.Http;
 
+import com.github.tncrazvan.arcano.Bean.WebLocked;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi;
 import java.io.IOException;
 import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
-import java.io.UnsupportedEncodingException;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.io.File;
 import com.github.tncrazvan.arcano.Bean.WebPath;
-import com.github.tncrazvan.arcano.Tool.JsonTools;
+import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonStringify;
+import static com.github.tncrazvan.arcano.Tool.Memory.getAllocatedMemory;
+import static com.github.tncrazvan.arcano.Tool.Memory.getFreeMemory;
+import static com.github.tncrazvan.arcano.Tool.Memory.getMaxMemory;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
 /**
  *
  * @author Razvan
  */
 @WebPath(name = "/@get")
-public class Get extends HttpController implements JsonTools{
+public class Get extends HttpController{
+    
+    @WebLocked
+    @WebPath(name="/memory")
+    public JsonObject memory(){
+        JsonObject result = new JsonObject();
+        result.addProperty("free", getFreeMemory());
+        result.addProperty("allocated", getAllocatedMemory());
+        result.addProperty("max", getMaxMemory());
+        return result;
+    }
+    
     @WebPath(name="/file")
     public HttpResponse file() throws IOException {
         return new HttpResponse(new File(so.webRoot+String.join("/", args)));

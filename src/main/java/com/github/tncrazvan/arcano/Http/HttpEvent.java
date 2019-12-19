@@ -2,6 +2,7 @@ package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import com.github.tncrazvan.arcano.Tool.Cluster.NoKeyFoundException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -14,6 +15,7 @@ import java.util.stream.Stream;
 
 import com.github.tncrazvan.arcano.WebObject;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
+import com.github.tncrazvan.arcano.Tool.Status;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_INTERNAL_SERVER_ERROR;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
 import com.google.gson.JsonObject;
@@ -191,6 +193,11 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                         .concat(Arrays.stream(new String[] { httpMethod }), Arrays.stream(location))
                         .toArray(String[]::new);
                 wo = resolveClassName(classId + 1, typedLocation);
+                if(wo.isLocked()){
+                    if(!controller.request.headers.issetCookie("ArcanoKey")){
+                        throw new NoKeyFoundException("");
+                    }
+                }
                 cls = Class.forName(wo.getClassname());
                 constructor = getNoParametersConstructor(cls);
                 if(constructor == null){
@@ -253,6 +260,10 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             controller.findRequestLanguages();
             controller.setArgs(args);
             controller.invoke(controller, method);
+        } catch (NoKeyFoundException ex){
+            controller = new HttpController();
+            controller.setResponseStatus(Status.STATUS_LOCKED);
+            return controller;
         } catch (InvalidControllerConstructorException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }

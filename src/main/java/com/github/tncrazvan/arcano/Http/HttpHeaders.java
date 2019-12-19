@@ -14,8 +14,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import static com.github.tncrazvan.arcano.Tool.Time.now;
-import static com.github.tncrazvan.arcano.Tool.Time.now;
-import static com.github.tncrazvan.arcano.Tool.Time.now;
 
 /**
  *
@@ -30,7 +28,7 @@ public class HttpHeaders {
     public HttpHeaders(HashMap<String, String> map,final boolean createSuccessHeader) {
         if (createSuccessHeader) {
             headers.put("@Status", "HTTP/1.1 200 OK");
-            headers.put("Date", SharedObject.formatHttpDefaultDate.format(now()));
+            headers.put("Date", formatHttpDefaultDate.format(now()));
             headers.put("Cache-Control", "no-store");
         }
         
@@ -59,7 +57,7 @@ public class HttpHeaders {
     private static DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z",Locale.US).withZone(londonTimezone);
     public String cookieToString(final String key) {
         final String[] c = cookies.get(key);
-        final LocalDateTime time = (c[3] == null ? null : now(Integer.parseInt(c[3]) * 1000L));
+        final LocalDateTime time = (c[3] == null ? null : now(SharedObject.londonTimezone,Integer.parseInt(c[3])));
         // Thu, 01 Jan 1970 00:00:00 GMT
         return c[4] + ": " + key + "=" + c[0] + (c[1] == null ? "" : "; path=" + c[1])
                 + (c[2] == null ? "" : "; domain=" + c[2])
@@ -122,10 +120,13 @@ public class HttpHeaders {
     }
 
     public void setCookie(final String key, final String v, final String path, final String domain, final int expire, String charset){
-        setCookie(key, v, path, domain, SharedObject.formatHttpDefaultDate.format(now(expire)),charset);
+        setCookie(key, v, path, domain, ""+expire, charset);
     }
 
-    public void setCookie(final String key, final String v, String path, final String domain, final String expire, String charset){
+    private void setCookie(final String key, final String v, String path, String domain, final String expire, String charset){
+        if (domain == null)
+            domain = "";
+        
         if (path == null)
             path = "/";
         final String[] b = new String[5];
@@ -178,7 +179,7 @@ public class HttpHeaders {
                         b[2] = cookieInfo.length > 3 ? cookieInfo[3] : null;
                         b[3] = cookieInfo.length > 3 ? cookieInfo[3] : null;
                         b[4] = "Cookie";
-                        this.cookies.put(cookieInfo[0], b);
+                        this.cookies.put(cookieInfo[0].replaceFirst("((?<=^)\\s)?", ""), b);
                     }
                 }
             } else {
