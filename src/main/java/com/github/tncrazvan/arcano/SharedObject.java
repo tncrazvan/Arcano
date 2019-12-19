@@ -62,6 +62,7 @@ public abstract class SharedObject implements Strings{
     public HashMap<String,String> headers = new HashMap<String,String>(){{
         put("@Status",Status.STATUS_SUCCESS);
     }};
+    public HashMap<String,String> cluster = new HashMap<String,String>(){{}};
     public String configDir = "./http.json";
     public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
     public String assets = "../webapp/assets.json";
