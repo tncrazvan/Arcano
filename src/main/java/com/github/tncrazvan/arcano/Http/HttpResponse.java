@@ -3,7 +3,7 @@ package com.github.tncrazvan.arcano.Http;
 import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.Tool.Action;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
-import com.github.tncrazvan.arcano.Tool.JsonTools;
+import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonStringify;
 import com.github.tncrazvan.arcano.Tool.ServerFile;
 import com.google.gson.JsonArray;
 import java.io.File;
@@ -17,7 +17,7 @@ import java.util.HashMap;
  *
  * @author Administrator
  */
-public class HttpResponse implements JsonTools{
+public class HttpResponse {
     private final HttpHeaders headers;
     private Object content;
     private final Class<?> type;

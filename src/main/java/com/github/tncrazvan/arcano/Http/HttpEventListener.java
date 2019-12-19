@@ -87,7 +87,7 @@ public class HttpEventListener extends HttpRequestReader{
                             controller.findRequestLanguages();
                             
                             controller.setResponseHeaderField("Content-Type", resolveContentType(location.toString()));
-                            controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(now(f.lastModified())));
+                            controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(now(londonTimezone,f.lastModified())));
                             controller.setResponseHeaderField("Last-Modified-Timestamp",f.lastModified()+"");
                             controller.send(f);
                         }else{

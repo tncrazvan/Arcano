@@ -5,14 +5,20 @@ package com.github.tncrazvan.arcano;
  * @author Administrator
  */
 public class WebObject {
+    private final boolean LOCKED;
     private String classname=null;
     private String methodname=null;
     private String type="GET";
     
-    public WebObject(String classname, String methodname, String httpMethod) {
+    public WebObject(String classname, String methodname, String httpMethod, final boolean LOCKED) {
         this.classname = classname;
         this.methodname = methodname;
         this.type = httpMethod;
+        this.LOCKED = LOCKED;
+    }
+    
+    public boolean isLocked(){
+        return LOCKED;
     }
     
     public void setClassname(String classname) {

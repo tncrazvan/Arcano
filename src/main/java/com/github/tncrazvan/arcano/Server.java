@@ -31,6 +31,7 @@ import javax.net.ssl.TrustManagerFactory;
 import com.github.tncrazvan.arcano.Http.HttpEventListener;
 import com.github.tncrazvan.arcano.Smtp.SmtpServer;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
+import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonParse;
 import com.github.tncrazvan.arcano.Tool.Minifier;
 import com.github.tncrazvan.asciitable.AsciiTable;
 import com.google.gson.JsonObject;
@@ -42,7 +43,7 @@ import java.util.Arrays;
  *
  * @author Razvan
  */
-public class Server extends SharedObject implements JsonTools{
+public class Server extends SharedObject {
     private static SmtpServer smtpServer;
     public static void main (String[] args) throws NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException, IOException{
         Server server = new Server(args);

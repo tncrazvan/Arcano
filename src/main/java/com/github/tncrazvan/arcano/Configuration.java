@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano;
 
 import com.github.tncrazvan.arcano.Tool.JsonTools;
+import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonObject;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -12,7 +13,7 @@ import java.nio.file.Paths;
  * Containst the configuration file objects.
  * @author Razvan
  */
-public class Configuration implements JsonTools{
+public class Configuration {
     private JsonObject info = null;
     
     /**

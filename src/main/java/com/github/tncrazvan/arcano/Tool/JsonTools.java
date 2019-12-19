@@ -15,55 +15,55 @@ public interface JsonTools {
     static final Gson JSON_PARSER = new Gson();
     
     //JsonObject
-    default JsonObject jsonObject(String str){
+    static JsonObject jsonObject(String str){
         return JSON_PARSER.fromJson(str, JsonObject.class);
     }
-    default JsonObject jsonObject(StringBuilder str){
+    static JsonObject jsonObject(StringBuilder str){
         return jsonObject(str.toString());
     }
-    default JsonObject jsonObject(Object o){
+    static JsonObject jsonObject(Object o){
         return JSON_PARSER.toJsonTree(o).getAsJsonObject();
     }
     
     //JsonArray
-    default JsonArray jsonArray(String str){
+    static JsonArray jsonArray(String str){
         return JSON_PARSER.fromJson(str, JsonArray.class);
     }
-    default JsonArray jsonArray(Reader str){
+    static JsonArray jsonArray(Reader str){
         return JSON_PARSER.fromJson(str, JsonArray.class);
     }
-    default JsonArray jsonArray(JsonReader str){
+    static JsonArray jsonArray(JsonReader str){
         return JSON_PARSER.fromJson(str, JsonArray.class);
     }
-    default JsonArray jsonArray(StringBuilder str){
+    static JsonArray jsonArray(StringBuilder str){
         return jsonArray(str.toString());
     }
-    default JsonArray jsonArray(Object[] o){
+    static JsonArray jsonArray(Object[] o){
         return JSON_PARSER.toJsonTree(o).getAsJsonArray();
     }
     
     //STRINGIFY
-    default String jsonStringify(Object o){
+    static String jsonStringify(Object o){
         return jsonObject(o).toString();
     }
-    default String jsonStringify(Object[] o){
+    static String jsonStringify(Object[] o){
         return jsonArray(o).toString();
     }
     
     //PARSE TO ?
-    default <T> T jsonParse(String o, Class<T> cls){
+    static <T> T jsonParse(String o, Class<T> cls){
         return (T) JSON_PARSER.fromJson(o, cls);
     }
-    default <T> T jsonParse(Reader o, Class<T> cls){
+    static <T> T jsonParse(Reader o, Class<T> cls){
         return (T) JSON_PARSER.fromJson(o, cls);
     }
-    default <T> T jsonParse(JsonReader o, Class<T> cls){
+    static <T> T jsonParse(JsonReader o, Class<T> cls){
         return (T) JSON_PARSER.fromJson(o, cls);
     }
-    default <T> T jsonParse(StringBuilder o, Class<T> cls){
+    static <T> T jsonParse(StringBuilder o, Class<T> cls){
         return jsonParse(o.toString(),cls);
     }
-    default <T> T jsonParse(JsonElement o, Class<T> cls){
+    static <T> T jsonParse(JsonElement o, Class<T> cls){
         return (T) JSON_PARSER.fromJson(o, cls);
     }
 }
