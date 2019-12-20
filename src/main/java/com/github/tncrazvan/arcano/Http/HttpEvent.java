@@ -3,7 +3,7 @@ package com.github.tncrazvan.arcano.Http;
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
-import com.github.tncrazvan.arcano.Tool.Cluster.NoKeyFoundException;
+import com.github.tncrazvan.arcano.Tool.Cluster.NoSecretFoundException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -196,13 +196,12 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                         .toArray(String[]::new);
                 wo = resolveClassName(classId + 1, typedLocation);
                 if(wo.isLocked()){
-                    if(!reader.request.headers.issetCookie("ArcanoKey")){
-                        throw new NoKeyFoundException("An authorized client attempted to access a locked HttpController. No key specified.");
+                    if(!reader.request.headers.issetCookie("ArcanoSecret")){
+                        throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. No key specified.");
                     }else{
-                        String key = reader.request.headers.getCookie("ArcanoKey");
-                        ClusterServer server = reader.so.cluster.validateArcanoKey(reader.client,key);
-                        if(server == null){
-                            throw new NoKeyFoundException("An authorized client attempted to access a locked HttpController. The specified key is invalid.");
+                        String key = reader.request.headers.getCookie("ArcanoSecret");
+                        if(!reader.so.arcanoSecret.equals(key)){
+                            throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. The specified key is invalid.");
                         }
                     }
                 }
@@ -268,7 +267,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             controller.findRequestLanguages();
             controller.setArgs(args);
             controller.invoke(controller, method);
-        } catch (NoKeyFoundException ex){
+        } catch (NoSecretFoundException ex){
             controller = new HttpController();
             controller.setHttpHeaders(new HttpHeaders());
             controller.setResponseStatus(STATUS_LOCKED);

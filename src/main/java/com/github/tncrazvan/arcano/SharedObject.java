@@ -29,7 +29,7 @@ import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
 import com.github.tncrazvan.arcano.Bean.IsDefaultController;
 import com.github.tncrazvan.arcano.Tool.Cluster.Cluster;
 import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
-import com.github.tncrazvan.arcano.Bean.ClusterLocked;
+import com.github.tncrazvan.arcano.Bean.Secret;
 
 /**
  * 
@@ -67,6 +67,7 @@ public abstract class SharedObject implements Strings{
     }};
     public Cluster cluster = new Cluster(new HashMap<String,ClusterServer>(){{}});
     public String configDir = "./http.json";
+    public String arcanoSecret = "HF75HFGY4764TH4TJ4T4TY";
     public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
     public String assets = "/www/assets.json";
     public String webRoot = "www";
@@ -107,12 +108,12 @@ public abstract class SharedObject implements Strings{
             try {
                 if(HttpController.class.isAssignableFrom(cls)){
                     WebPath classRoute = (WebPath) cls.getAnnotation(WebPath.class);
-                    ClusterLocked classWebLocked = (ClusterLocked) cls.getAnnotation(ClusterLocked.class);
+                    Secret classWebLocked = (Secret) cls.getAnnotation(Secret.class);
                     WebMethod classWebFilter = (WebMethod) cls.getAnnotation(WebMethod.class);
                     Method[] methods = cls.getDeclaredMethods();
                     for(Method method : methods){
                         WebPath methodRoute = method.getAnnotation(WebPath.class);
-                        ClusterLocked methodWebLocked = (ClusterLocked) method.getAnnotation(ClusterLocked.class);
+                        Secret methodWebLocked = (Secret) method.getAnnotation(Secret.class);
                         if(methodRoute != null){
                             String classPath = normalizePathSlashes(classRoute.name().trim());
                             String methodPath = normalizePathSlashes(methodRoute.name().trim());
@@ -141,7 +142,7 @@ public abstract class SharedObject implements Strings{
                     }
                 }else if(WebSocketController.class.isAssignableFrom(cls)){
                     WebPath route = (WebPath) cls.getAnnotation(WebPath.class);
-                    ClusterLocked classWebLocked = (ClusterLocked) cls.getAnnotation(ClusterLocked.class);
+                    Secret classWebLocked = (Secret) cls.getAnnotation(Secret.class);
                     WebMethod webFilter = (WebMethod) cls.getAnnotation(WebMethod.class);
                     if(route != null){
                         String path = normalizePathSlashes(route.name().toLowerCase());
@@ -164,12 +165,12 @@ public abstract class SharedObject implements Strings{
                     }
                 }else if(SmtpController.class.isAssignableFrom(cls)){
                     WebPath classRoute = (WebPath) cls.getAnnotation(WebPath.class);
-                    ClusterLocked classWebLocked = (ClusterLocked) cls.getAnnotation(ClusterLocked.class);
+                    Secret classWebLocked = (Secret) cls.getAnnotation(Secret.class);
                     WebMethod classWebFilter = (WebMethod) cls.getAnnotation(WebMethod.class);
                     Method[] methods = cls.getDeclaredMethods();
                     for(Method method : methods){
                         WebPath methodRoute = method.getAnnotation(WebPath.class);
-                        ClusterLocked methodWebLocked = (ClusterLocked) method.getAnnotation(ClusterLocked.class);
+                        Secret methodWebLocked = (Secret) method.getAnnotation(Secret.class);
                         if(methodRoute != null){
                             String classPath = normalizePathSlashes(classRoute.name().trim());
                             String methodPath = normalizePathSlashes(methodRoute.name().trim());

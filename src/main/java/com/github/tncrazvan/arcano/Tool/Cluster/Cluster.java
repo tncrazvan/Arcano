@@ -17,6 +17,8 @@ import java.util.regex.Pattern;
  */
 public class Cluster {
     private HashMap<String, ClusterServer> map;
+    private int length = 0;
+    private boolean lengthUpdated = false;
 
     public Cluster(HashMap<String, ClusterServer> list) {
         this.map = list;
@@ -34,7 +36,7 @@ public class Cluster {
         ClusterServer server;
         for (Map.Entry<String, ClusterServer> entry : map.entrySet()) {
             server = entry.getValue();
-            if(Regex.match(client.getInetAddress()+":"+client.getPort(), entry.getKey(), Pattern.CASE_INSENSITIVE) && server.getSecret().equals(key))
+            if(Regex.match(client.getInetAddress()+":"+client.getPort(), entry.getKey(), Pattern.CASE_INSENSITIVE) && server.getArcanoSecret().equals(key))
                 return server;
         }
         return null;
@@ -45,6 +47,15 @@ public class Cluster {
     }
     
     public void setServer(String hostname,ClusterServer server){
+        lengthUpdated = false;
         map.put(hostname, server);
+    }
+
+    public int getLength() {
+        if(!lengthUpdated){
+            length = map.size();
+            lengthUpdated = true;
+        }
+        return length;
     }
 }

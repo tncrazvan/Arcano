@@ -14,8 +14,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
-import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
-import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
 
 /**
  *

@@ -5,16 +5,19 @@
  */
 package com.github.tncrazvan.arcano.Tool.Cluster;
 
-/**
- *
- * @author RazvanTanase
- */
+import com.github.tncrazvan.arcano.Http.HttpHeaders;
+import com.github.tncrazvan.arcano.Tool.Http.Fetch;
+import com.github.tncrazvan.arcano.Tool.Http.FetchResult;
+import java.util.HashMap;
+
 public class ClusterServer {
-    private final String secret;
+    private final String hostname;
+    private final String arcanoSecret;
     private int weight;
 
-    public ClusterServer(String secret, int weight) {
-        this.secret = secret;
+    public ClusterServer(String hostname, String secret, int weight) {
+        this.hostname = hostname;
+        this.arcanoSecret = secret;
         this.weight = weight;
     }
     
@@ -26,9 +29,17 @@ public class ClusterServer {
         this.weight = weight;
     }
 
-    public String getSecret() {
-        return secret;
+    public String getArcanoSecret() {
+        return arcanoSecret;
     }
     
     
+    public void getData(String arcanoSecret){
+        HttpHeaders headers = new HttpHeaders(false);
+        headers.setCookie("ArcanoSecret", arcanoSecret, "UTF-8");
+        FetchResult result = Fetch.get("http://"+hostname+"/@get/memory", new HashMap<String, String>(){{
+            put("Cookie","ArcanoSecret="+arcanoSecret);
+        }});
+        System.out.println("result: "+new String(result.getBytes()));
+    }
 }
