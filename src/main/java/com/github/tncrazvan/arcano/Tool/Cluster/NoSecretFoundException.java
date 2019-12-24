@@ -9,9 +9,9 @@ package com.github.tncrazvan.arcano.Tool.Cluster;
  *
  * @author RazvanTanase
  */
-public class NoKeyFoundException extends Exception{
+public class NoSecretFoundException extends Exception{
 
-    public NoKeyFoundException(String message) {
+    public NoSecretFoundException(String message) {
         super(message);
     }
 }

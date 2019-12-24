@@ -103,14 +103,15 @@ public class Server extends SharedObject {
                 clusterJson.keySet().forEach((hostname) -> {
                     JsonObject serverJson = clusterJson.get(hostname).getAsJsonObject();
                     try{
-                        if(!serverJson.has("secret") || !serverJson.has("weight")){
+                        if(!serverJson.has("arcanoSecret") || !serverJson.has("weight")){
                             throw new InvalidClusterEntryException("\nCluster entry "+hostname+" is invalid.\nA cluster enrty should contain the following configuration: \n{\n"
-                                    + "\t\"secret\":\"<your secret key>\",\n"
+                                    + "\t\"arcanoSecret\":\"<your secret key>\",\n"
                                     + "\t\"weight\":<your server weight>\n"
                                     + "}");
                         }
                         ClusterServer server = new ClusterServer(
-                                serverJson.get("secret").getAsString(), 
+                                hostname,
+                                serverJson.get("arcanoSecret").getAsString(), 
                                 serverJson.get("weight").getAsInt()
                         );
                         cluster.setServer(hostname, server);
@@ -129,6 +130,9 @@ public class Server extends SharedObject {
 
         if(config.isset("responseWrapper"))
             responseWrapper = config.get("responseWrapper").getAsBoolean();
+        
+        if(config.isset("secret"))
+            arcanoSecret = config.get("secret").getAsString();
 
         if(config.isset("sendExceptions"))
             sendExceptions = config.get("sendExceptions").getAsBoolean();

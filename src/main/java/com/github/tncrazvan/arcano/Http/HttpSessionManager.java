@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.EventManager;
+import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +28,14 @@ public class HttpSessionManager {
                 }
             }
         }
+        
+        if(e.so.cluster.getLength() > 0){
+            for(final String hostname : e.so.cluster.getServerHostnames()){
+                ClusterServer server = e.so.cluster.getServer(hostname);
+                server.getData(e.so.arcanoSecret);
+            }
+        }
+        
         final HttpSession session = new HttpSession(e);
         setSession(session);
         return session;
