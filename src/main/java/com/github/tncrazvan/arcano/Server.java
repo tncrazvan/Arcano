@@ -23,7 +23,6 @@ import java.util.logging.Logger;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -39,6 +38,8 @@ import com.google.gson.JsonObject;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
+import java.util.Properties;
+import javax.net.ssl.SSLServerSocket;
 
 /**
  *
@@ -287,9 +288,6 @@ public class Server extends SharedObject {
 
             String certificate_password = certificate_obj.get("password").getAsString();
 
-
-            SSLContext sslContext = createSSLContext(configDir+"/"+certificate_name,certificate_type,certificate_password);
-
             AsciiTable certt = new AsciiTable();
             certt.add("Attribute","Value");
             certt.add("name",certificate_name);
@@ -297,20 +295,44 @@ public class Server extends SharedObject {
             certt.add("password","***");
 
             st.add("certificate",certt.toString());
-
-            // Create server socket factory
-            SSLServerSocketFactory sslServerSocketFactory = sslContext.getServerSocketFactory();
-
-            // Create server socket
-            SSLServerSocket ssl = (SSLServerSocket) sslServerSocketFactory.createServerSocket();
-            ssl.bind(new InetSocketAddress(bindAddress, port));
             System.out.println("\nServer started.");
 
             minify();
 
             System.err.println(st.toString());
-            while(listen){
-                executor.submit(new HttpEventListener(this,ssl.accept()));
+            
+            AsciiTable routesTable = new AsciiTable();
+            routesTable.add("WebPath");
+            ROUTES.entrySet().forEach((entry) -> {
+                routesTable.add(entry.getKey());
+            });
+            st.add("Routes",routesTable.toString());
+
+            System.out.println(st.toString());
+            
+            
+            final char[] password = certificate_password.toCharArray();
+            final KeyStore keyStore;
+            try {
+                keyStore = KeyStore.getInstance(new File(configDir+"/"+certificate_name), password);
+                final TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                trustManagerFactory.init(keyStore);
+                final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("NewSunX509");
+                keyManagerFactory.init(keyStore, password);
+                final SSLContext context = SSLContext.getInstance("TLSv1.2");//"SSL" "TLS"
+                context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+                
+                final SSLServerSocketFactory factory = context.getServerSocketFactory();
+                try (SSLServerSocket ss = ((SSLServerSocket) factory.createServerSocket())) {
+                    ss.bind(new InetSocketAddress(bindAddress, port));
+                    HttpEventListener listener;
+                    while(listen){
+                        listener = new HttpEventListener(this,ss.accept());
+                        executor.submit(listener);
+                    }
+                }
+            } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }else{
             ServerSocket ss = new ServerSocket();
@@ -320,7 +342,7 @@ public class Server extends SharedObject {
             minify();
 
             AsciiTable routesTable = new AsciiTable();
-            routesTable.add("Path");
+            routesTable.add("WebPath");
             ROUTES.entrySet().forEach((entry) -> {
                 routesTable.add(entry.getKey());
             });
@@ -328,8 +350,10 @@ public class Server extends SharedObject {
 
             System.out.println(st.toString());
 
+            HttpEventListener listener;
             while(listen){
-                executor.submit(new HttpEventListener(this,ss.accept()));
+                listener = new HttpEventListener(this,ss.accept());
+                executor.submit(listener);
             }
         }
 
@@ -365,7 +389,7 @@ public class Server extends SharedObject {
             }).start();
         }
     }
-
+    
     /**
      * Creates an SSLContext which can be used to generate Secure Sockets.
      * @param tlsCertificate your tls certificate file location.
