@@ -2,7 +2,6 @@ package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
 import com.github.tncrazvan.arcano.Tool.Cluster.NoSecretFoundException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -16,6 +15,7 @@ import java.util.stream.Stream;
 
 import com.github.tncrazvan.arcano.WebObject;
 import com.github.tncrazvan.arcano.Tool.JsonTools;
+import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
 import com.github.tncrazvan.arcano.Tool.Regex;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_INTERNAL_SERVER_ERROR;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_LOCKED;
@@ -206,7 +206,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     }
                 }
                 cls = Class.forName(wo.getClassname());
-                constructor = getNoParametersConstructor(cls);
+                constructor = ConstructorFinder.getNoParametersConstructor(cls);
                 if(constructor == null){
                     throw new InvalidControllerConstructorException(
                             String
@@ -217,7 +217,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                                     )
                     );
                 }
-                controller = (HttpController)cls.getDeclaredConstructor().newInstance();
+                controller = (HttpController)constructor.newInstance();
 
                 final String methodname = location.length > classId ? wo.getMethodname() : "main";
                 args = resolveMethodArgs(classId + 1, location);
@@ -235,7 +235,18 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     // cls = Class.forName(httpDefaultNameOriginal);
                     cls = Class.forName(reader.so.httpNotFoundNameOriginal);
                 }
-                controller = (HttpController) cls.getDeclaredConstructor().newInstance();
+                constructor = ConstructorFinder.getNoParametersConstructor(cls);
+                if(constructor == null){
+                    throw new InvalidControllerConstructorException(
+                            String
+                                    .format("\nController %s does not contain a valid constructor.\n"
+                                            + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                            + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!", 
+                                            cls.getName()
+                                    )
+                    );
+                }
+                controller = (HttpController) constructor.newInstance();
                 method = controller.getClass().getDeclaredMethod("main");
             }
             controller.setHttpHeaders(new HttpHeaders());
@@ -254,19 +265,34 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             } catch (final ClassNotFoundException eex) {
                 cls = Class.forName(reader.so.httpNotFoundNameOriginal);
             }
-            controller = (HttpController) cls.getDeclaredConstructor().newInstance();
-            method = controller.getClass().getDeclaredMethod("main");
-            controller.setHttpHeaders(new HttpHeaders());
-            controller.setResponseStatus(STATUS_NOT_FOUND);
-            controller.setSharedObject(reader.so);
-            controller.setDataOutputStream(reader.output);
-            controller.setSocket(reader.client);
-            controller.setHttpRequest(reader.request);
-            controller.initEventManager();
-            controller.initHttpEventManager();
-            controller.findRequestLanguages();
-            controller.setArgs(args);
-            controller.invoke(controller, method);
+            try{
+                constructor = ConstructorFinder.getNoParametersConstructor(cls);
+                if(constructor == null){
+                    throw new InvalidControllerConstructorException(
+                            String
+                                    .format("\nController %s does not contain a valid constructor.\n"
+                                            + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                            + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!", 
+                                            cls.getName()
+                                    )
+                    );
+                }
+                controller = (HttpController) constructor.newInstance();
+                method = controller.getClass().getDeclaredMethod("main");
+                controller.setHttpHeaders(new HttpHeaders());
+                controller.setResponseStatus(STATUS_NOT_FOUND);
+                controller.setSharedObject(reader.so);
+                controller.setDataOutputStream(reader.output);
+                controller.setSocket(reader.client);
+                controller.setHttpRequest(reader.request);
+                controller.initEventManager();
+                controller.initHttpEventManager();
+                controller.findRequestLanguages();
+                controller.setArgs(args);
+                controller.invoke(controller, method);
+            }catch (InvalidControllerConstructorException e){
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
         } catch (NoSecretFoundException ex){
             controller = new HttpController();
             controller.setHttpHeaders(new HttpHeaders());
@@ -283,15 +309,6 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             LOGGER.log(Level.SEVERE, null, ex);
         }
         return (HttpController) controller;
-    }
-    
-    private static Constructor<?> getNoParametersConstructor(Class<?> cls){
-        for (Constructor<?> constructor : cls.getDeclaredConstructors()) {
-            if(constructor.getParameterCount() == 0)
-                return constructor;
-        }
-        
-        return null;
     }
     
     //public static void onControllerRequest(final StringBuilder url,String httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName) {

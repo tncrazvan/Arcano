@@ -9,6 +9,6 @@ package com.github.tncrazvan.arcano.Smtp;
  *
  * @author Administrator
  */
-public class SmtpController {
-    
+public abstract class SmtpController {
+    public abstract void onEmailReceived(Email email);
 }

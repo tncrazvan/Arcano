@@ -1,8 +1,16 @@
 package com.github.tncrazvan.arcano.Smtp;
 
+import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import static com.github.tncrazvan.arcano.SharedObject.ROUTES;
+import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 /**
  *
@@ -19,7 +27,8 @@ public class EmailReader extends SmtpMessageManager{
                 sender="",
                 line;
     
-    String[]    contentType = null;
+    String[]    bodyContentType = null;
+    String[]    headerContentType = null;
     
     boolean 
                 readingFrame = false, 
@@ -80,10 +89,6 @@ public class EmailReader extends SmtpMessageManager{
                 checkQUIT = true;
                 sayBye();
                 client.close();
-                listeners.forEach((listener) -> {
-                    listener.onEmailReceived(new Email(subject, frames, sender, checkRCPT_TO));
-                });
-
             }
             if(!checkQUIT){
                 line = read();
@@ -96,7 +101,7 @@ public class EmailReader extends SmtpMessageManager{
         
     }//end read()
     
-    
+    private boolean frameHeadersDone = false;
     private void readData() throws IOException{
         /*
         Since a message body can contain a line with just a period
@@ -111,9 +116,9 @@ public class EmailReader extends SmtpMessageManager{
             }
         }
 
-        if(isNewBoundary(line, boundaryId)){ //new frame detected
+        if(headerContentType != null && headerContentType.length > 1 && isNewBoundary(line, headerContentType[1])){ //new frame detected
             saveFrame();
-        }else if(isLastBoundary(line, boundaryId)){ //end of message
+        }else if(headerContentType != null && headerContentType.length > 1 && isLastBoundary(line, headerContentType[1])){ //end of message
             saveLastFrame();
         }else if(isEndOfData(line)){
             closeAndNotifyListeners();
@@ -135,7 +140,7 @@ public class EmailReader extends SmtpMessageManager{
         }else if(isFrom(line)){
             sender = getMailAddress(line);
         }else if(isContentType(line)){
-            contentType = new String[]{
+            headerContentType = new String[]{
                 getContentType(line),
                 getBoundary(line)
             };
@@ -150,28 +155,29 @@ public class EmailReader extends SmtpMessageManager{
         //reading a frame right now...
         readingFrame = true;
         if(isContentType(line)){
-            contentType = new String[]{
+            bodyContentType = new String[]{
                 getContentType(line),
                 getCharset(line)
             };
 
             //type of the content, this must be: multipart/alternative
-            type=contentType[0].trim();
+            type=bodyContentType[0].trim();
         }
     }
     
     private void continueReadingBody(){
-        //reading the actual body of the message right now
-        if(currentFrame > 0) {
-            currentFrameContent += "\r\n";
-        }
-        if(isContentType(line)){
-            contentType = new String[]{
-                getContentType(line),
-                getCharset(line)
-            };
+        if(!frameHeadersDone){
+            if(line.trim().equals("")){
+                frameHeadersDone = true;
+            }else if(isContentType(line)){
+                bodyContentType = new String[]{
+                    getContentType(line),
+                    getCharset(line)
+                };
+            }   
         }else{
-            currentFrameContent += line;
+            //reading the actual body of the message right now
+            currentFrameContent += "\n"+line;
         }
     }
     
@@ -185,25 +191,56 @@ public class EmailReader extends SmtpMessageManager{
         sayOkAndQueue(12345);
         checkQUIT = true;
         sayByeAndClose();
-
+        final Email email  = new Email(subject, frames, sender, checkRCPT_TO);
         listeners.forEach((listener) -> {
-            listener.onEmailReceived(new Email(subject, frames, sender, checkRCPT_TO));
+            listener.onEmailReceived(email);
+        });
+        
+        ROUTES.forEach((key,wo)->{
+            if(wo.getType().equals("SMTP")){
+                try {
+                    Class<?> cls = Class.forName(wo.getClassname());
+                    Constructor<?> constructor = ConstructorFinder.getNoParametersConstructor(cls);
+                    if(constructor == null){
+                        throw new InvalidControllerConstructorException(
+                                String
+                                        .format("\nController %s does not contain a valid constructor.\n"
+                                                + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                                + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!", 
+                                                wo.getClassname()
+                                        )
+                        );
+                    }
+                    try {
+                        SmtpController controller = (SmtpController) constructor.newInstance();
+                        Method method = controller.getClass().getDeclaredMethod("onEmailReceived",Email.class);
+                        method.invoke(controller,email);
+                    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | InstantiationException ex) {
+                        LOGGER.log(Level.SEVERE, null, ex);
+                    }
+                } catch (ClassNotFoundException | InvalidControllerConstructorException | IllegalArgumentException | SecurityException ex) {
+                    LOGGER.log(Level.SEVERE, null, ex);
+                }
+            }
         });
     }
     
     private void saveLastFrame(){
         //I'm saving the last frame
-        frames.add(new EmailFrame(currentFrameContent, contentType[0], contentType[1]));
+        frames.add(new EmailFrame(currentFrameContent, bodyContentType[0], bodyContentType[1]));
         readingFrame = false;
         readingBody = false;
     }
     
     private void saveFrame(){
+        frameHeadersDone = false;
         readingBody = true;
 
         //I'm saving the current frame before starting to read the next one
         if(currentFrame > 0){
-            frames.add(new EmailFrame(currentFrameContent, contentType[0], contentType[1]));
+            frames.add(new EmailFrame(currentFrameContent, bodyContentType[0], bodyContentType[1]));
+            currentFrameContent = "";
+            bodyContentType = null;
         }
         currentFrame++;
     }

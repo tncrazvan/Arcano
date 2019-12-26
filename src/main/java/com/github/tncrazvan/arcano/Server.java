@@ -33,12 +33,13 @@ import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
 import com.github.tncrazvan.arcano.Tool.Cluster.InvalidClusterEntryException;
 import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonParse;
 import com.github.tncrazvan.arcano.Tool.Minifier;
+import com.github.tncrazvan.arcano.Tool.Regex;
 import com.github.tncrazvan.asciitable.AsciiTable;
 import com.google.gson.JsonObject;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
-import java.util.Properties;
+import java.util.regex.Pattern;
 import javax.net.ssl.SSLServerSocket;
 
 /**
@@ -256,14 +257,14 @@ public class Server extends SharedObject {
                     if(smtp.has("smtpPort")){
                         smtpPort = smtp.get("smtpPort").getAsInt();
                     }
-                    smtpt.add("bind address",smtpBindAddress);
+                    smtpt.add("bindAddress",smtpBindAddress);
                     smtpt.add("port",""+smtpPort);
                     if(smtp.has("hostname")){
                         String smtpHostname = smtp.get("hostname").getAsString();
                         smtpt.add("hostname",smtpHostname);
                         smtpServer = new SmtpServer(new ServerSocket(),smtpBindAddress,smtpPort,smtpHostname);
                         
-                        executor.submit(smtpServer);
+                        new Thread(smtpServer).start();
                     }else{
                         System.err.println("\n[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
                     }
@@ -282,6 +283,15 @@ public class Server extends SharedObject {
         gt.add("allow",groupsAllowed?"True":"False");
         st.add("groups",gt.toString());
 
+        AsciiTable pathsTable = new AsciiTable();
+        pathsTable.add("Type","Name");
+        ROUTES.entrySet().forEach((entry) -> {
+            String type = Regex.extract(entry.getKey(), "^(.*?(?=\\/)|.*)", Pattern.CASE_INSENSITIVE);
+            String name = entry.getKey().substring(type.length());
+            pathsTable.add(type,name);
+        });
+        st.add("Paths",pathsTable.toString());
+        
         if(config.isset("certificate")){
             JsonObject certificate_obj = config.get("certificate").getAsJsonObject();
 
@@ -302,16 +312,7 @@ public class Server extends SharedObject {
             System.out.println("\nServer started.");
 
             minify();
-
-            System.err.println(st.toString());
             
-            AsciiTable routesTable = new AsciiTable();
-            routesTable.add("WebPath");
-            ROUTES.entrySet().forEach((entry) -> {
-                routesTable.add(entry.getKey());
-            });
-            st.add("Routes",routesTable.toString());
-
             System.out.println(st.toString());
             
             
@@ -344,13 +345,6 @@ public class Server extends SharedObject {
             System.out.println("\nServer started.");
 
             minify();
-
-            AsciiTable routesTable = new AsciiTable();
-            routesTable.add("WebPath");
-            ROUTES.entrySet().forEach((entry) -> {
-                routesTable.add(entry.getKey());
-            });
-            st.add("Routes",routesTable.toString());
 
             System.out.println(st.toString());
 

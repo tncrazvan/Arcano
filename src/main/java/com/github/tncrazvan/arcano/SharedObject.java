@@ -1,6 +1,6 @@
 package com.github.tncrazvan.arcano;
 
-import com.github.tncrazvan.arcano.Bean.NotFound;
+import com.github.tncrazvan.arcano.Bean.Email.EmailPath;
 import com.github.tncrazvan.arcano.Tool.Minifier;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
 import java.lang.reflect.Method;
@@ -19,17 +19,18 @@ import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import com.google.gson.JsonObject;
 import java.util.concurrent.ThreadPoolExecutor;
-import com.github.tncrazvan.arcano.Bean.WebMethod;
-import com.github.tncrazvan.arcano.Bean.WebPath;
+import com.github.tncrazvan.arcano.Bean.Web.WebMethod;
+import com.github.tncrazvan.arcano.Bean.Web.WebPath;
 import com.github.tncrazvan.arcano.Http.HttpSessionManager;
 import com.github.tncrazvan.arcano.Smtp.SmtpController;
 import com.github.tncrazvan.arcano.Tool.Status;
 import com.github.tncrazvan.arcano.Tool.Strings;
 import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
-import com.github.tncrazvan.arcano.Bean.IsDefaultController;
 import com.github.tncrazvan.arcano.Tool.Cluster.Cluster;
 import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
-import com.github.tncrazvan.arcano.Bean.Secret;
+import com.github.tncrazvan.arcano.Bean.Security.ArcanoSecret;
+import com.github.tncrazvan.arcano.Bean.Web.WebPathNotFound;
+import com.github.tncrazvan.arcano.Bean.Web.DefaultWebPath;
 
 /**
  * 
@@ -108,12 +109,12 @@ public abstract class SharedObject implements Strings{
             try {
                 if(HttpController.class.isAssignableFrom(cls)){
                     WebPath classRoute = (WebPath) cls.getAnnotation(WebPath.class);
-                    Secret classWebLocked = (Secret) cls.getAnnotation(Secret.class);
+                    ArcanoSecret classWebLocked = (ArcanoSecret) cls.getAnnotation(ArcanoSecret.class);
                     WebMethod classWebFilter = (WebMethod) cls.getAnnotation(WebMethod.class);
                     Method[] methods = cls.getDeclaredMethods();
                     for(Method method : methods){
                         WebPath methodRoute = method.getAnnotation(WebPath.class);
-                        Secret methodWebLocked = (Secret) method.getAnnotation(Secret.class);
+                        ArcanoSecret methodWebLocked = (ArcanoSecret) method.getAnnotation(ArcanoSecret.class);
                         if(methodRoute != null){
                             String classPath = normalizePathSlashes(classRoute.name().trim());
                             String methodPath = normalizePathSlashes(methodRoute.name().trim());
@@ -130,11 +131,11 @@ public abstract class SharedObject implements Strings{
                             path = normalizePathSlashes(path);
                             WebObject wo = new WebObject(cls.getName(), method.getName(), type, classWebLocked != null || methodWebLocked != null);
                             ROUTES.put(type+path, wo);
-                        }else if(cls.getAnnotation(NotFound.class) != null){
+                        }else if(cls.getAnnotation(WebPathNotFound.class) != null){
                             if(httpNotFoundNameOriginal == null)
                                 httpNotFoundNameOriginal = cls.getName();
                             httpNotFoundName = cls.getName();
-                        }else if(cls.getAnnotation(IsDefaultController.class) != null){
+                        }else if(cls.getAnnotation(DefaultWebPath.class) != null){
                             if(httpDefaultNameOriginal == null)
                                 httpDefaultNameOriginal = cls.getName();
                             httpDefaultName = cls.getName();
@@ -142,21 +143,15 @@ public abstract class SharedObject implements Strings{
                     }
                 }else if(WebSocketController.class.isAssignableFrom(cls)){
                     WebPath route = (WebPath) cls.getAnnotation(WebPath.class);
-                    Secret classWebLocked = (Secret) cls.getAnnotation(Secret.class);
-                    WebMethod webFilter = (WebMethod) cls.getAnnotation(WebMethod.class);
+                    ArcanoSecret classWebLocked = (ArcanoSecret) cls.getAnnotation(ArcanoSecret.class);
                     if(route != null){
                         String path = normalizePathSlashes(route.name().toLowerCase());
-                        String type;
-                        if(webFilter != null){
-                            type = webFilter.name().toUpperCase();
-                        }else{
-                            type = "GET";
-                        }
+                        String type = "WS";
+                        
                         WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
-                        wo.setHttpMethod("WS");
-                        ROUTES.put("WS"+path, wo);
+                        ROUTES.put(type+path, wo);
                     }else{
-                        NotFound nf = (NotFound) cls.getAnnotation(NotFound.class);
+                        WebPathNotFound nf = (WebPathNotFound) cls.getAnnotation(WebPathNotFound.class);
                         if(nf != null){
                             if(webSocketNotFoundNameOriginal == null)
                                 webSocketNotFoundNameOriginal = cls.getName();
@@ -164,33 +159,12 @@ public abstract class SharedObject implements Strings{
                         }
                     }
                 }else if(SmtpController.class.isAssignableFrom(cls)){
-                    WebPath classRoute = (WebPath) cls.getAnnotation(WebPath.class);
-                    Secret classWebLocked = (Secret) cls.getAnnotation(Secret.class);
-                    WebMethod classWebFilter = (WebMethod) cls.getAnnotation(WebMethod.class);
-                    Method[] methods = cls.getDeclaredMethods();
-                    for(Method method : methods){
-                        WebPath methodRoute = method.getAnnotation(WebPath.class);
-                        Secret methodWebLocked = (Secret) method.getAnnotation(Secret.class);
-                        if(methodRoute != null){
-                            String classPath = normalizePathSlashes(classRoute.name().trim());
-                            String methodPath = normalizePathSlashes(methodRoute.name().trim());
-                            WebMethod methodWebFilter = (WebMethod) method.getAnnotation(WebMethod.class);
-                            if(methodWebFilter == null)
-                                methodWebFilter = classWebFilter;
-                            String path = (classPath.toLowerCase()+methodPath.toLowerCase()).replaceAll("/+", "/");
-                            String type = "SMTP";
-                            path = normalizePathSlashes(path);
-                            WebObject wo = new WebObject(cls.getName(), method.getName(), type, classWebLocked != null || methodWebLocked != null);
-                            ROUTES.put(type+path, wo);
-                        }else if(cls.getAnnotation(NotFound.class) != null){
-                            if(httpNotFoundNameOriginal == null)
-                                httpNotFoundNameOriginal = cls.getName();
-                            httpNotFoundName = cls.getName();
-                        }else if(cls.getAnnotation(IsDefaultController.class) != null){
-                            if(httpDefaultNameOriginal == null)
-                                httpDefaultNameOriginal = cls.getName();
-                            httpDefaultName = cls.getName();
-                        }
+                    EmailPath route = (EmailPath) cls.getAnnotation(EmailPath.class);
+                    ArcanoSecret classWebLocked = (ArcanoSecret) cls.getAnnotation(ArcanoSecret.class);
+                    if(route != null){
+                        String type = "SMTP";
+                        WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
+                        ROUTES.put(type, wo);
                     }
                 }
             } catch (SecurityException | IllegalArgumentException  ex) {

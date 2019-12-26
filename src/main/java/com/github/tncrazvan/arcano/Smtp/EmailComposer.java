@@ -55,7 +55,7 @@ public class EmailComposer extends SmtpMessageManager{
         setMultipartBoundaryId(generateMultipartBoundary());
         sayDataContentType(); // Content-Type:multipart/alternative
         sayNothing();
-        sayDataFrames(email.getFrames());
+        sayDataFrames(email.getAllBodyFrames());
         say(".");
         if(!isOk(read())) return false;
         sayQuitAndClose();

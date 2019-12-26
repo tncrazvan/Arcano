@@ -8,13 +8,13 @@ import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.io.File;
-import com.github.tncrazvan.arcano.Bean.WebPath;
+import com.github.tncrazvan.arcano.Bean.Web.WebPath;
 import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonStringify;
 import static com.github.tncrazvan.arcano.Tool.Memory.getAllocatedMemory;
 import static com.github.tncrazvan.arcano.Tool.Memory.getFreeMemory;
 import static com.github.tncrazvan.arcano.Tool.Memory.getMaxMemory;
 import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
-import com.github.tncrazvan.arcano.Bean.Secret;
+import com.github.tncrazvan.arcano.Bean.Security.ArcanoSecret;
 /**
  *
  * @author Razvan
@@ -22,7 +22,7 @@ import com.github.tncrazvan.arcano.Bean.Secret;
 @WebPath(name = "/@get")
 public class Get extends HttpController{
     
-    @Secret
+    @ArcanoSecret
     @WebPath(name="/memory")
     public JsonObject memory(){
         JsonObject result = new JsonObject();

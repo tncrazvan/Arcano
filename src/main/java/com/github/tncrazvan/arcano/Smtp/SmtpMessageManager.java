@@ -10,16 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import static com.github.tncrazvan.arcano.Tool.Regex.match;
-import static com.github.tncrazvan.arcano.Tool.Regex.match;
-import static com.github.tncrazvan.arcano.Tool.Regex.match;
-import static com.github.tncrazvan.arcano.Tool.Regex.match;
 import static com.github.tncrazvan.arcano.Tool.Regex.group;
-import static com.github.tncrazvan.arcano.Tool.Regex.group;
-import static com.github.tncrazvan.arcano.Tool.Regex.group;
-import static com.github.tncrazvan.arcano.Tool.Regex.group;
-import static com.github.tncrazvan.arcano.Tool.Regex.extract;
-import static com.github.tncrazvan.arcano.Tool.Regex.extract;
-import static com.github.tncrazvan.arcano.Tool.Regex.extract;
 import static com.github.tncrazvan.arcano.Tool.Regex.extract;
 
 /**
@@ -50,7 +41,7 @@ public abstract class SmtpMessageManager {
     }
     
     protected boolean isNewBoundary(String line, String id){
-        return match(line, "(?<=^--)"+id);
+        return match(line, "(?<=^--)"+id+"(?=$)");
     }
     protected boolean isLastBoundary(String line, String id){
         return match(line, "(?<=^--)"+id+"(?=--$)");
@@ -101,7 +92,7 @@ public abstract class SmtpMessageManager {
     }
     
     protected String getMailAddress(String line){
-        return extract(line, "(?<=\\z)[A-z0-9!#$%&'*+\\-\\/=?^_`{|}~.]+@[A-z0-9\\-.]+(?=\\>)");
+        return extract(line, "(?<=\\<)[A-z0-9!#$%&'*+\\-\\/=?^_`{|}~.]+@[A-z0-9\\-.]+(?=\\>)");
     }
     
     protected boolean isRecipient(String line){

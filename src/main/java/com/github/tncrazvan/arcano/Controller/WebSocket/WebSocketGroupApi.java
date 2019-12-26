@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
-import com.github.tncrazvan.arcano.Bean.WebPath;
+import com.github.tncrazvan.arcano.Bean.Web.WebPath;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketMessage;
 

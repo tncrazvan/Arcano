@@ -1,4 +1,4 @@
-package com.github.tncrazvan.arcano.Bean;
+package com.github.tncrazvan.arcano.Bean.Security;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -15,4 +15,5 @@ import java.lang.annotation.Target;
 @Target(value = {ElementType.TYPE, ElementType.METHOD, ElementType.PACKAGE})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
-public @interface IsDefaultController {}
+public @interface ArcanoSecret {
+}

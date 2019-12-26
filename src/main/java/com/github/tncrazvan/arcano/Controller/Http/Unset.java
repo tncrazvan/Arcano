@@ -2,7 +2,7 @@ package com.github.tncrazvan.arcano.Controller.Http;
 
 import com.github.tncrazvan.arcano.Http.HttpController;
 import java.io.UnsupportedEncodingException;
-import com.github.tncrazvan.arcano.Bean.WebPath;
+import com.github.tncrazvan.arcano.Bean.Web.WebPath;
 
 /**
  *
