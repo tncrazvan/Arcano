@@ -10,24 +10,18 @@ import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
-import com.google.gson.JsonObject;
 import java.util.concurrent.ThreadPoolExecutor;
 import com.github.tncrazvan.arcano.Bean.Web.WebMethod;
 import com.github.tncrazvan.arcano.Bean.Web.WebPath;
 import com.github.tncrazvan.arcano.Http.HttpSessionManager;
 import com.github.tncrazvan.arcano.Smtp.SmtpController;
-import com.github.tncrazvan.arcano.Tool.Status;
 import com.github.tncrazvan.arcano.Tool.Strings;
 import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
-import com.github.tncrazvan.arcano.Tool.Cluster.Cluster;
-import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
 import com.github.tncrazvan.arcano.Bean.Security.ArcanoSecret;
 import com.github.tncrazvan.arcano.Bean.Web.WebPathNotFound;
 import com.github.tncrazvan.arcano.Bean.Web.DefaultWebPath;
@@ -36,52 +30,15 @@ import com.github.tncrazvan.arcano.Bean.Web.DefaultWebPath;
  * 
  * @author Razvan
  */
-public abstract class SharedObject implements Strings{
+public class SharedObject implements Strings{
     //SESSIONS
     public final HttpSessionManager sessions = new HttpSessionManager();
     //THREADS
     public ThreadPoolExecutor executor = null;
     //CONFIGURATION OBJECTS
     public final Configuration config = new Configuration();
-    public JsonObject mainSettings = null;
     public Minifier minifier = null;
     public static final String NO_COMPRESSION="",DEFLATE="deflate",GZIP="gzip";
-    //CONFIGURATION VALUES
-    public boolean responseWrapper = false;
-    public boolean sendExceptions = true;
-    public boolean listen = true;
-    public boolean groupsAllowed = false;
-    public boolean smtpAllowed = false;
-    public long sessionTtl = 1440; //24 minutes
-    public long cookiesTtl = 1440; //24 minutes
-    public int port = 80;
-    public int timeout = 30000;
-    public int threadPoolSize = 2;
-    public int minify = 0;
-    public int webSocketGroupMaxConnections = 10;
-    public int webSocketMtu = 65536;
-    public int httpMtu = 65536;
-    public String[] compression = new String[0];
-    public String[] classOrder = new String[0];
-    public HashMap<String,String> headers = new HashMap<String,String>(){{
-        put("@Status",Status.STATUS_SUCCESS);
-    }};
-    public Cluster cluster = new Cluster(new HashMap<String,ClusterServer>(){{}});
-    public String configDir = "./http.json";
-    public String arcanoSecret = "HF75HFGY4764TH4TJ4T4TY";
-    public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
-    public String assets = "/www/assets.json";
-    public String webRoot = "www";
-    public String serverRoot = "server";
-    public String charset = "UTF-8";
-    public String bindAddress = "::";
-    public String httpDefaultNameOriginal = null;
-    public String httpNotFoundNameOriginal = null;
-    public String webSocketNotFoundNameOriginal = null;
-    public String httpDefaultName = httpDefaultNameOriginal;
-    public String httpNotFoundName = httpNotFoundNameOriginal;
-    public String webSocketNotFoundName = webSocketNotFoundNameOriginal;
-    public String entryPoint = "/index.html";
     //SYSTEM RUNTIME
     public static final Runtime RUNTIME = Runtime.getRuntime();
     //ROUTING
@@ -89,22 +46,19 @@ public abstract class SharedObject implements Strings{
     //LOCALE & DATES
     public static final Calendar CALENDAR = Calendar.getInstance();
     public static final Date DATE = new Date();
-    public static Locale locale = Locale.getDefault();
-    public static ZoneId timezone = ZoneId.systemDefault();
     public static ZoneId londonTimezone = ZoneId.of("Europe/London");
-    public static DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", locale).withZone(timezone);
     //LOGGING
     public static final Logger LOGGER = Logger.getLogger(SharedObject.class.getName());
     //WEBSOCKETS OBJECTS
     public final Map<String,ArrayList<WebSocketEvent>> WEB_SOCKET_EVENTS = new HashMap<>();
-    public static final String WEBSOCKET_ACCEPT_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    public final String WEBSOCKET_ACCEPT_KEY = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     //SERVER STATUS
     public boolean isRunning = false;
     //ENCODING & DECODING
     public static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
     public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
     
-    public void expose(Class<?>... classes) {
+    public final void expose(Class<?>... classes) {
         for(Class<?> cls : classes){
             try {
                 if(HttpController.class.isAssignableFrom(cls)){
@@ -131,14 +85,16 @@ public abstract class SharedObject implements Strings{
                             path = normalizePathSlashes(path);
                             WebObject wo = new WebObject(cls.getName(), method.getName(), type, classWebLocked != null || methodWebLocked != null);
                             ROUTES.put(type+path, wo);
-                        }else if(cls.getAnnotation(WebPathNotFound.class) != null){
-                            if(httpNotFoundNameOriginal == null)
-                                httpNotFoundNameOriginal = cls.getName();
-                            httpNotFoundName = cls.getName();
-                        }else if(cls.getAnnotation(DefaultWebPath.class) != null){
-                            if(httpDefaultNameOriginal == null)
-                                httpDefaultNameOriginal = cls.getName();
-                            httpDefaultName = cls.getName();
+                        }else if(method.getAnnotation(WebPathNotFound.class) != null){
+                            String type = "HTTP[404]";
+                            WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
+                            ROUTES.put(type, wo);
+                            this.config.http.controllerNotFound = wo;
+                        }else if(method.getAnnotation(DefaultWebPath.class) != null){
+                            String type = "HTTP[???]";
+                            WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
+                            ROUTES.put(type, wo);
+                            this.config.http.controllerDefault = wo;
                         }
                     }
                 }else if(WebSocketController.class.isAssignableFrom(cls)){
@@ -153,9 +109,10 @@ public abstract class SharedObject implements Strings{
                     }else{
                         WebPathNotFound nf = (WebPathNotFound) cls.getAnnotation(WebPathNotFound.class);
                         if(nf != null){
-                            if(webSocketNotFoundNameOriginal == null)
-                                webSocketNotFoundNameOriginal = cls.getName();
-                            webSocketNotFoundName = cls.getName();
+                            String type = "WS[404]";
+                            WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
+                            ROUTES.put(type, wo);
+                            this.config.webSocket.controllerNotFound = wo;
                         }
                     }
                 }else if(SmtpController.class.isAssignableFrom(cls)){

@@ -1,4 +1,4 @@
-package com.github.tncrazvan.arcano.Tool;
+package com.github.tncrazvan.arcano.Tool.Compression;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

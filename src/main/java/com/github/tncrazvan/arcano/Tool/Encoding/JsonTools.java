@@ -1,4 +1,4 @@
-package com.github.tncrazvan.arcano.Tool;
+package com.github.tncrazvan.arcano.Tool.Encoding;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;

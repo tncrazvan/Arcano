@@ -5,8 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.Bean.Web.WebPath;
-import static com.github.tncrazvan.arcano.Tool.Status.STATUS_FOUND;
-import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
+import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_FOUND;
+import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 
 /**
  *
@@ -18,7 +18,7 @@ public class Isset extends HttpController{
     @WebPath(name="/file")
     public void file() throws FileNotFoundException, IOException{
         String url = String.join("/", args);
-        File f = new File(so.webRoot,url);
+        File f = new File(so.config.webRoot,url);
         if(f.exists()){
             setResponseStatus(STATUS_FOUND);
         }else{

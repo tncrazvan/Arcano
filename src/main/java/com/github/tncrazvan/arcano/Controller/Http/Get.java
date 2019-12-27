@@ -9,11 +9,11 @@ import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.io.File;
 import com.github.tncrazvan.arcano.Bean.Web.WebPath;
-import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonStringify;
-import static com.github.tncrazvan.arcano.Tool.Memory.getAllocatedMemory;
-import static com.github.tncrazvan.arcano.Tool.Memory.getFreeMemory;
-import static com.github.tncrazvan.arcano.Tool.Memory.getMaxMemory;
-import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
+import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonStringify;
+import static com.github.tncrazvan.arcano.Tool.System.Memory.getAllocatedMemory;
+import static com.github.tncrazvan.arcano.Tool.System.Memory.getFreeMemory;
+import static com.github.tncrazvan.arcano.Tool.System.Memory.getMaxMemory;
+import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 import com.github.tncrazvan.arcano.Bean.Security.ArcanoSecret;
 /**
  *
@@ -34,7 +34,7 @@ public class Get extends HttpController{
     
     @WebPath(name="/file")
     public HttpResponse file() throws IOException {
-        return new HttpResponse(new File(so.webRoot+String.join("/", args)));
+        return new HttpResponse(new File(so.config.webRoot+String.join("/", args)));
     }
     
     class Cookie{

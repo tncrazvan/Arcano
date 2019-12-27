@@ -1,7 +1,7 @@
 package com.github.tncrazvan.arcano.Smtp;
 
 import com.github.tncrazvan.arcano.SharedObject;
-import static com.github.tncrazvan.arcano.Tool.MultipartFormData.generateMultipartBoundary;
+import static com.github.tncrazvan.arcano.Tool.Http.MultipartFormData.generateMultipartBoundary;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;

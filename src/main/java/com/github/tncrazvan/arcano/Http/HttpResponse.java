@@ -1,10 +1,9 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.SharedObject;
-import com.github.tncrazvan.arcano.Tool.Action;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
-import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonStringify;
-import com.github.tncrazvan.arcano.Tool.ServerFile;
+import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonStringify;
+import com.github.tncrazvan.arcano.Tool.System.ServerFile;
 import com.google.gson.JsonArray;
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import com.github.tncrazvan.arcano.Tool.Actions.VoidAction;
 
 /**
  *
@@ -22,14 +22,14 @@ public class HttpResponse {
     private Object content;
     private final Class<?> type;
     private boolean raw;
-    private Action<Void> action = null;
+    private VoidAction action = null;
 
     /**
      * Executes an action after the getContent(true) gets called.
      * @param action the action to execute.
      * @return the current HttpResponse.
      */
-    public HttpResponse then(Action<Void> action){
+    public HttpResponse then(VoidAction action){
         this.action = action;
         return this;
     }
@@ -39,7 +39,7 @@ public class HttpResponse {
      */
     public void todo(){
         if(action != null)
-            action.callback(null);
+            action.callback();
     }
     
     public HttpResponse(final HttpHeaders headers,final Object content){
@@ -91,23 +91,23 @@ public class HttpResponse {
                         || type == Double.class || type == Boolean.class
                         || type == Byte.class || type == Character.class || type == Short.class
                         || type == Long.class){
-                this.content = String.valueOf(content).getBytes(so.charset);
+                this.content = String.valueOf(content).getBytes(so.config.charset);
             }else if(type == byte[].class){
                 this.content = content;
             }else {
-                this.content = jsonStringify(content).getBytes(so.charset);
+                this.content = jsonStringify(content).getBytes(so.config.charset);
             }
         }catch(UnsupportedEncodingException ex){
             this.content = ex.getMessage().getBytes();
         } catch (FileNotFoundException ex) {
             try{
-                this.content = ex.getMessage().getBytes(so.charset);
+                this.content = ex.getMessage().getBytes(so.config.charset);
             }catch(UnsupportedEncodingException ex1){
                 this.content = ex1.getMessage().getBytes();
             }
         } catch (IOException ex) {
             try{
-                this.content = ex.getMessage().getBytes(so.charset);
+                this.content = ex.getMessage().getBytes(so.config.charset);
             }catch(UnsupportedEncodingException ex1){
                 this.content = ex1.getMessage().getBytes();
             }

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.github.tncrazvan.arcano.Tool;
+package com.github.tncrazvan.arcano.Tool.System;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -1,8 +1,9 @@
-package com.github.tncrazvan.arcano.Tool;
+package com.github.tncrazvan.arcano.Tool.Security;
 
+import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import com.github.tncrazvan.arcano.SharedObject;
-import static com.github.tncrazvan.arcano.Tool.Base64.btoa;
-import static com.github.tncrazvan.arcano.Tool.Hashing.getSha512String;
+import static com.github.tncrazvan.arcano.Tool.Encoding.Base64.btoa;
+import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha512String;
 import com.google.gson.JsonObject;
 
 /**
@@ -18,10 +19,10 @@ public class JwtMessage extends SharedObject implements JsonTools{
         header.addProperty("alg", "HS512");
         header.addProperty("typ", "JWT");
         this.body = body;
-        String header64 = btoa(this.header.toString(),charset);
-        String body64 = btoa(this.body.toString(),charset);
+        String header64 = btoa(this.header.toString(),config.charset);
+        String body64 = btoa(this.body.toString(),config.charset);
         this.contents = header64+"."+body64;
-        String token = btoa(getSha512String(this.contents, SECRET, charset),charset);
+        String token = btoa(getSha512String(this.contents, SECRET, config.charset),config.charset);
         
         this.contents = this.contents+"."+token;
     }

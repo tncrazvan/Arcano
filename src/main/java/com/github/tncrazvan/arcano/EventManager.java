@@ -3,7 +3,7 @@ package com.github.tncrazvan.arcano;
 import com.github.tncrazvan.arcano.Http.HttpHeaders;
 import com.github.tncrazvan.arcano.Http.HttpRequest;
 import com.github.tncrazvan.arcano.Http.HttpSession;
-import com.github.tncrazvan.arcano.Tool.Time;
+import com.github.tncrazvan.arcano.Tool.System.Time;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
@@ -28,7 +28,7 @@ public abstract class EventManager{
     protected Socket client;
     public HttpSession session = null;
     public SharedObject so;
-    public static final File root = new File("/java");
+    public Configuration config;
     
     public void setHttpHeaders(HttpHeaders headers){
         this.headers=headers;
@@ -36,6 +36,7 @@ public abstract class EventManager{
     
     public void setSharedObject(SharedObject so){
         this.so=so;
+        this.config = so.config;
     }
     public void setSocket(Socket client){
         this.client=client;
@@ -47,7 +48,7 @@ public abstract class EventManager{
     public void initEventManager() throws UnsupportedEncodingException {
         String uri = request.headers.get("@Resource");
         try{
-            uri = URLDecoder.decode(uri,so.charset);
+            uri = URLDecoder.decode(uri,so.config.charset);
         }catch(IllegalArgumentException ex){}
         
         String[] tmp,object;
@@ -99,7 +100,7 @@ public abstract class EventManager{
      * or an already existing HttpSession object if the client provides a valid and existing sessionId.
      */
     public HttpSession startSession() {
-        session = so.sessions.startSession(this,so.sessionTtl);
+        session = so.sessions.startSession(this,so.config.session.ttl);
         return session;
     }
     
@@ -257,7 +258,7 @@ public abstract class EventManager{
      * @param domain domain of the cookie
      */
     public void unsetResponseCookie(String key, String path, String domain){
-        headers.setCookie(key,"deleted",path,domain,0,so.charset);
+        headers.setCookie(key,"deleted",path,domain,0,so.config.charset);
     }
     
     /**
@@ -286,7 +287,7 @@ public abstract class EventManager{
      * @param expire time to live of the cookie.
      */
     public void setResponseCookie(String name,String value, String path, String domain, int expire){
-        headers.setCookie(name, value, path, domain, expire, so.charset);
+        headers.setCookie(name, value, path, domain, expire, so.config.charset);
     }
     
     /**
@@ -297,7 +298,7 @@ public abstract class EventManager{
      * @param domain domain of the cooke.
      */
     public void setResponseCookie(String name,String value, String path, String domain){
-        headers.setCookie(name, value, path, domain, (int)(Time.now(SharedObject.londonTimezone) + so.cookiesTtl), so.charset);
+        headers.setCookie(name, value, path, domain, (int)(Time.now(SharedObject.londonTimezone) + so.config.cookie.ttl), so.config.charset);
     }
     
     /**
@@ -307,7 +308,7 @@ public abstract class EventManager{
      * @param path path of the cookie.
      */
     public void setResponseCookie(String name,String value, String path){
-        headers.setCookie(name, value, path, null, (int)(Time.now(SharedObject.londonTimezone) + so.cookiesTtl), so.charset);
+        headers.setCookie(name, value, path, null, (int)(Time.now(SharedObject.londonTimezone) + so.config.cookie.ttl), so.config.charset);
     }
     
     /**
@@ -316,7 +317,7 @@ public abstract class EventManager{
      * @param value value of the cookie.
      */
     public void setResponseCookie(String name, String value){
-        headers.setCookie(name, value, "/", null, (int)(Time.now(SharedObject.londonTimezone) + so.cookiesTtl), so.charset);
+        headers.setCookie(name, value, "/", null, (int)(Time.now(SharedObject.londonTimezone) + so.config.cookie.ttl), so.config.charset);
     }
     
     
@@ -326,7 +327,7 @@ public abstract class EventManager{
      * @return value of the cookie.
      */
     public String getRequestCookie(String name){
-        return request.headers.getCookie(name, so.charset);
+        return request.headers.getCookie(name, so.config.charset);
     }
     
     /**

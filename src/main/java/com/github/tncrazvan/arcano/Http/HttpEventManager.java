@@ -8,12 +8,12 @@ import com.github.tncrazvan.arcano.EventManager;
 import static com.github.tncrazvan.arcano.SharedObject.DEFLATE;
 import static com.github.tncrazvan.arcano.SharedObject.GZIP;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import com.github.tncrazvan.arcano.Tool.Deflate;
-import com.github.tncrazvan.arcano.Tool.Gzip;
+import com.github.tncrazvan.arcano.Tool.Compression.Deflate;
+import com.github.tncrazvan.arcano.Tool.Compression.Gzip;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
-import static com.github.tncrazvan.arcano.Tool.MultipartFormData.generateMultipartBoundary;
-import com.github.tncrazvan.arcano.Tool.Status;
-import static com.github.tncrazvan.arcano.Tool.Status.STATUS_PARTIAL_CONTENT;
+import static com.github.tncrazvan.arcano.Tool.Http.MultipartFormData.generateMultipartBoundary;
+import com.github.tncrazvan.arcano.Tool.Http.Status;
+import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_PARTIAL_CONTENT;
 import java.io.DataOutputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -117,7 +117,7 @@ public abstract class HttpEventManager extends EventManager{
     public void sendHeaders(){
         firstMessage = false;
         try {
-            output.write((headers.toString()+"\r\n").getBytes(so.charset));
+            output.write((headers.toString()+"\r\n").getBytes(so.config.charset));
             output.flush();
             alive = true;
         } catch (IOException ex) {
@@ -137,7 +137,7 @@ public abstract class HttpEventManager extends EventManager{
     public void send(byte[] data) {
         if(alive){
             try {
-                for(String cmpr : so.compression){
+                for(String cmpr : so.config.compression){
                     switch(cmpr){
                         case DEFLATE:
                             if(acceptEncoding.matches(".+"+cmpr+".*")){
@@ -189,7 +189,7 @@ public abstract class HttpEventManager extends EventManager{
             if(data == null)
                 data = "";
             
-            HttpEventManager.this.send(data.getBytes(so.charset));
+            HttpEventManager.this.send(data.getBytes(so.config.charset));
         } catch (UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE,null,ex);
         }
@@ -300,20 +300,20 @@ public abstract class HttpEventManager extends EventManager{
                             dos.writeUTF("--"+boundary+"\r\n");
                             dos.writeUTF("Content-Type: "+ctype+"\r\n");
                             dos.writeUTF("Content-Range: bytes "+start+"-"+end+"/"+fileLength+"\r\n\r\n");
-                            if(end-start+1 > so.httpMtu){
+                            if(end-start+1 > so.config.http.mtu){
                                 int remainingBytes = end-start+1;
-                                buffer = new byte[so.httpMtu];
+                                buffer = new byte[so.config.http.mtu];
                                 raf.seek(start);
                                 while(remainingBytes > 0){
                                     raf.read(buffer);
                                     dos.write(buffer);
-                                    remainingBytes -= so.httpMtu;
+                                    remainingBytes -= so.config.http.mtu;
                                     if(remainingBytes < 0){
-                                        buffer = new byte[remainingBytes+so.httpMtu];
+                                        buffer = new byte[remainingBytes+so.config.http.mtu];
                                         dos.write(buffer);
                                         remainingBytes = 0;
                                     }else{
-                                        buffer = new byte[so.httpMtu];
+                                        buffer = new byte[so.config.http.mtu];
                                     }
                                 }
                                 

@@ -1,7 +1,6 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.EventManager;
-import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,20 +18,9 @@ public class HttpSessionManager {
             final String sessionId = e.getRequestCookie("sessionId");
             if(LIST.containsKey(sessionId)){//if session exists
                 HttpSession session = LIST.get(sessionId);
-                //if session is expired
-                if(session.getTime() + sessionTtl*1000 < System.currentTimeMillis()){
-                    stopSession(session);
-                }else{//if session is alive
+                if(e.so.config.session.keepAlive)
                     session.setTime(System.currentTimeMillis());
-                    return session;
-                }
-            }
-        }
-        
-        if(e.so.cluster.getLength() > 0){
-            for(final String hostname : e.so.cluster.getServerHostnames()){
-                ClusterServer server = e.so.cluster.getServer(hostname);
-                server.getData(e.so.arcanoSecret);
+                return session;
             }
         }
         

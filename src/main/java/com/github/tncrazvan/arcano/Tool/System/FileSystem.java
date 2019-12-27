@@ -1,5 +1,6 @@
-package com.github.tncrazvan.arcano.Tool;
+package com.github.tncrazvan.arcano.Tool.System;
 
+import com.github.tncrazvan.arcano.Tool.Actions.WorkspaceAction;
 import java.io.File;
 
 /**
@@ -7,11 +8,11 @@ import java.io.File;
  * @author Administrator
  */
 public interface FileSystem {
-    static void explore(final String dir, final boolean recursive, final Action c) {
+    static void explore(final String dir, final boolean recursive, final WorkspaceAction c) {
         explore(new File(dir), recursive, c);
     }
 
-    static void explore(final File dir, final boolean recursive, final Action c) {
+    static void explore(final File dir, final boolean recursive, final WorkspaceAction c) {
         if(!dir.isDirectory()) return;
         if(c.base == null)
             c.base = dir;

@@ -33,7 +33,7 @@ public class SmtpServer extends SharedObject implements Runnable{
     
     @Override
     public void run() {
-        while(listen){
+        while(config.listen){
             try {
                 EmailReader emailReader = new EmailReader(this,ss.accept(),listeners);
                 emailReader.parse();

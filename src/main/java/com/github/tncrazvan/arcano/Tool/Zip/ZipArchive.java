@@ -5,7 +5,7 @@
  */
 package com.github.tncrazvan.arcano.Tool.Zip;
 
-import com.github.tncrazvan.arcano.Tool.ServerFile;
+import com.github.tncrazvan.arcano.Tool.System.ServerFile;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;

@@ -90,18 +90,18 @@ public abstract class HttpRequestReader extends SharedObject implements Runnable
                         //outputString.append(new String(chain,charset));
                     }else{
                         int offset = 0;
-                        chain = new byte[httpMtu];
+                        chain = new byte[config.http.mtu];
                         try{
                             if(input.available() > 0)
                             while(input.read(chain)>0){
-                                if(offset < httpMtu){
+                                if(offset < config.http.mtu){
                                     offset++;
                                 }else{
                                     //outputString.append(new String(chain,charset));
                                     inputList.add(chain);
                                     length += chain.length;
                                     offset = 0;
-                                    chain = new byte[httpMtu];
+                                    chain = new byte[config.http.mtu];
                                 }
                             }
                         }catch(SocketTimeoutException | EOFException e){
@@ -121,7 +121,7 @@ public abstract class HttpRequestReader extends SharedObject implements Runnable
                 this.request = new HttpRequest(clientHeader,inputBytes);
                 String uri = request.headers.get("@Resource");
                 try{
-                    uri = URLDecoder.decode(uri,so.charset);
+                    uri = URLDecoder.decode(uri,so.config.charset);
                 }catch(IllegalArgumentException ex){
                     return;
                 }

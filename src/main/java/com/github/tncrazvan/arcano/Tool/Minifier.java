@@ -1,6 +1,6 @@
 package com.github.tncrazvan.arcano.Tool;
 
-import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonArray;
+import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonArray;
 import com.google.gson.JsonArray;
 import java.io.File;
 import java.io.FileInputStream;

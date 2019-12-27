@@ -15,9 +15,7 @@ import java.io.File;
 import java.util.logging.Logger;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
-import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
-import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
-import static com.github.tncrazvan.arcano.Tool.Time.toLocalDateTime;
+import static com.github.tncrazvan.arcano.Tool.System.Time.toLocalDateTime;
 /**
  *
  * @author Razvan
@@ -71,22 +69,14 @@ public class HttpEventListener extends HttpRequestReader{
                 }
             }else{
                 try {
-                    client.setSoTimeout(timeout);
+                    client.setSoTimeout(config.timeout);
                     //default connection, assuming it's Http 1.x
                     
                     //HttpHeaders headers = controller.getResponseHttpHeaders();
-                    File f = new File(so.webRoot+location);
+                    File f = new File(so.config.webRoot+location);
                     if(f.exists()){
                         if(!f.isDirectory()){
-                            HttpController controller = new HttpController();
-                            controller.setHttpHeaders(new HttpHeaders());
-                            controller.setSharedObject(so);
-                            controller.setDataOutputStream(output);
-                            controller.setSocket(client);
-                            controller.setHttpRequest(request);
-                            controller.initEventManager();
-                            controller.initHttpEventManager();
-                            controller.findRequestLanguages();
+                            HttpController controller = new HttpController().init(this,new String[]{});
                             
                             controller.setResponseHeaderField("Content-Type", resolveContentType(location.toString()));
                             controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(toLocalDateTime(londonTimezone,f.lastModified())));

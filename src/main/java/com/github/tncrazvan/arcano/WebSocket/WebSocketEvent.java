@@ -29,11 +29,7 @@ public abstract class WebSocketEvent extends WebSocketManager{
             controller = (WebSocketController) cls.getDeclaredConstructor().newInstance();
             controller.setArgs(args);
         }catch(ClassNotFoundException ex){
-            try{
-                cls = Class.forName(reader.so.webSocketNotFoundName);
-            }catch(ClassNotFoundException eex){
-                cls = Class.forName(reader.so.webSocketNotFoundNameOriginal);
-            }
+            cls = Class.forName(reader.so.config.webSocket.controllerNotFound.getClassname());
             controller = (WebSocketController) cls.getDeclaredConstructor().newInstance();
             controller.setArgs(location);
         }

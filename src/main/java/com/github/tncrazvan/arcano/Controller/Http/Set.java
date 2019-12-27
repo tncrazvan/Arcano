@@ -6,8 +6,8 @@ import com.github.tncrazvan.arcano.Http.HttpSession;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
 import com.github.tncrazvan.arcano.Bean.Web.WebMethod;
 import com.github.tncrazvan.arcano.Bean.Web.WebPath;
-import static com.github.tncrazvan.arcano.Tool.JsonTools.jsonObject;
-import static com.github.tncrazvan.arcano.Tool.Status.STATUS_NOT_FOUND;
+import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonObject;
+import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 import com.google.gson.JsonObject;
 
 /**
@@ -23,31 +23,20 @@ public class Set extends HttpController {
     @WebPath(name="/webSocketGroup")
     @WebMethod(name="POST")
     public void webSocketGroup(){
-        if(so.config.isset("groups")){
-            JsonObject groups = so.config.get("groups").getAsJsonObject();
-            if(groups.has("allow")){
-                if(groups.get("allow").getAsBoolean()){
-                    HttpSession session = startSession();
-                    WebSocketGroup group = new WebSocketGroup(session);
-                    if(issetRequestQueryString("visibility")){
-                        group.setVisibility(Integer.parseInt(getRequestQueryString("visibility")));
-                    }
-                    if(issetRequestQueryString("name")){
-                        group.setGroupName(getRequestQueryString("name"));
-                    }
-                    WebSocketGroupApi.GROUP_MANAGER.addGroup(group);
-                    send(group.getKey());
-                }else{
-                    setResponseStatus(STATUS_NOT_FOUND);
-                    send(GROUPS_NOT_ALLOWED);
-                }
-            }else{
-                setResponseStatus(STATUS_NOT_FOUND);
-                send(GROUPS_NOT_ALLOWED);
+        if(so.config.webSocket.groups.enabled){
+            HttpSession session = startSession();
+            WebSocketGroup group = new WebSocketGroup(session);
+            if(issetRequestQueryString("visibility")){
+                group.setVisibility(Integer.parseInt(getRequestQueryString("visibility")));
             }
+            if(issetRequestQueryString("name")){
+                group.setGroupName(getRequestQueryString("name"));
+            }
+            WebSocketGroupApi.GROUP_MANAGER.addGroup(group);
+            send(group.getKey());
         }else{
             setResponseStatus(STATUS_NOT_FOUND);
-            send(GROUPS_POLICY_NOT_DEFINED);
+            send(GROUPS_NOT_ALLOWED);
         }
     }
     

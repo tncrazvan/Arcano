@@ -2,8 +2,8 @@ package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.EventManager;
-import static com.github.tncrazvan.arcano.Tool.Hashing.getSha1String;
-import com.github.tncrazvan.arcano.Tool.Time;
+import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1String;
+import com.github.tncrazvan.arcano.Tool.System.Time;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,8 +18,8 @@ public class HttpSession extends SharedObject{
     
     
     protected HttpSession(EventManager e) {
-        id = getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random(),charset);
-        int expire = (int) Time.now(SharedObject.londonTimezone) + (int) e.so.sessionTtl;
+        id = getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random(),config.charset);
+        int expire = (int) Time.now(SharedObject.londonTimezone) + (int) e.so.config.session.ttl;
         e.setResponseCookie("sessionId", id, "/", null, expire);
         this.time = System.currentTimeMillis();
     }

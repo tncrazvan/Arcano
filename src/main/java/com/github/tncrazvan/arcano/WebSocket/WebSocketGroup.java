@@ -1,8 +1,8 @@
 package com.github.tncrazvan.arcano.WebSocket;
 
 import com.github.tncrazvan.arcano.Http.HttpSession;
-import static com.github.tncrazvan.arcano.Tool.Hashing.getBCryptString;
-import static com.github.tncrazvan.arcano.Tool.Hashing.validateBCryptString;
+import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getBCryptString;
+import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.validateBCryptString;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
