@@ -29,86 +29,85 @@ public class HttpResponse {
      * @param action the action to execute.
      * @return the current HttpResponse.
      */
-    public HttpResponse then(VoidAction action){
+    public HttpResponse then(final VoidAction action) {
         this.action = action;
         return this;
     }
-    
+
     /**
      * Executes the specified action.
      */
-    public void todo(){
-        if(action != null)
+    public void todo() {
+        if (action != null)
             action.callback();
     }
-    
-    public HttpResponse(final HttpHeaders headers,final Object content){
+
+    public HttpResponse(final HttpHeaders headers, final Object content) {
         this((HashMap<String, String>) headers.getHashMap(), content);
     }
-    
-    public HttpResponse(final Object content){
-        this(new HashMap<String,String>(){{}}, content);
+
+    public HttpResponse(final Object content) {
+        this(new HashMap<String, String>(), content);
     }
-    
-    public HttpResponse(final HttpHeaders headers){
-        this((HashMap<String,String>)headers.getHashMap(), null);
+
+    public HttpResponse(final HttpHeaders headers) {
+        this((HashMap<String, String>) headers.getHashMap(), null);
     }
-    
-    public HttpResponse(final HashMap<String,String> headers){
+
+    public HttpResponse(final HashMap<String, String> headers) {
         this(headers, null);
     }
-    
-    public HttpResponse(final HashMap<String,String> headers,final Object content) {
+
+    public HttpResponse(final HashMap<String, String> headers, final Object content) {
         raw = false;
         type = content.getClass();
         this.headers = new HttpHeaders(headers);
         this.content = content;
     }
-    
-    public void resolve(SharedObject so){
-        try{
-            if(type == JsonArray.class){
-                if(headers != null && !headers.isDefined("Content-Type")){
+
+    public void resolve(final SharedObject so) {
+        try {
+            if (type == JsonArray.class) {
+                if (headers != null && !headers.isDefined("Content-Type")) {
                     headers.set("Content-Type", "application/json");
                 }
-                String tmp = ((JsonArray) content).toString();
-                if(headers != null && !headers.isDefined("Content-Length")){
+                final String tmp = ((JsonArray) content).toString();
+                if (headers != null && !headers.isDefined("Content-Length")) {
                     headers.set("Content-Length", String.valueOf(tmp.length()));
                 }
                 this.content = tmp;
-            }else if(type == File.class || type == ServerFile.class){
-                File file = (File) content;
-                if(headers != null && !headers.isDefined("Content-Type")){
+            } else if (type == File.class || type == ServerFile.class) {
+                final File file = (File) content;
+                if (headers != null && !headers.isDefined("Content-Type")) {
                     headers.set("Content-Type", resolveContentType(file.getName()));
                 }
-                if(headers != null && !headers.isDefined("Content-Length")){
+                if (headers != null && !headers.isDefined("Content-Length")) {
                     headers.set("Content-Length", String.valueOf(file.length()));
                 }
-                FileInputStream fis = new FileInputStream(file);
+                final FileInputStream fis = new FileInputStream(file);
                 this.content = fis.readAllBytes();
                 raw = true;
-            }else if(type == String.class || type == Integer.class || type == Float.class
-                        || type == Double.class || type == Boolean.class
-                        || type == Byte.class || type == Character.class || type == Short.class
-                        || type == Long.class){
+            } else if (type == String.class || type == Integer.class || type == Float.class || type == Double.class
+                    || type == Boolean.class || type == Byte.class || type == Character.class || type == Short.class
+                    || type == Long.class) {
                 this.content = String.valueOf(content).getBytes(so.config.charset);
-            }else if(type == byte[].class){
-                this.content = content;
-            }else {
+            } else if (type == byte[].class) {
+                //this.content = content;
+            } else {
                 this.content = jsonStringify(content).getBytes(so.config.charset);
             }
-        }catch(UnsupportedEncodingException ex){
+        } catch (final UnsupportedEncodingException ex) {
             this.content = ex.getMessage().getBytes();
-        } catch (FileNotFoundException ex) {
-            try{
+        } catch (final FileNotFoundException ex) {
+            try {
                 this.content = ex.getMessage().getBytes(so.config.charset);
-            }catch(UnsupportedEncodingException ex1){
+            } catch (final UnsupportedEncodingException ex1) {
                 this.content = ex1.getMessage().getBytes();
             }
-        } catch (IOException ex) {
-            try{
+        } catch (final IOException ex) {
+            try {
                 this.content = ex.getMessage().getBytes(so.config.charset);
-            }catch(UnsupportedEncodingException ex1){
+            } catch (final UnsupportedEncodingException ex1) {
                 this.content = ex1.getMessage().getBytes();
             }
         }
@@ -116,44 +115,54 @@ public class HttpResponse {
 
     /**
      * Get the headers of this response as a HashMap.
-     * @return 
+     * 
+     * @return
      */
     public HashMap<String, String> getHashMapHeaders() {
         return headers.getHashMap();
     }
-    
+
     /**
      * Get the HttpHeaders of this response.
-     * @return 
+     * 
+     * @return
      */
-    public HttpHeaders getHttpHeaders(){
+    public HttpHeaders getHttpHeaders() {
         return headers;
     }
 
     /**
-     * Get the payload of the response and execute the action if so specified.
-     * You can specify the action by calling "then(Action a)" on the current HttpResponse object.
-     * @param todo if true the action will be executed other the action won't be executed.
+     * Get the payload of the response and execute the action if so specified. You
+     * can specify the action by calling "then(Action a)" on the current
+     * HttpResponse object.
+     * 
+     * @param todo if true the action will be executed other the action won't be
+     *             executed.
      * @return the payload of the response.
      */
-    public Object getContent(boolean todo) {
-        if(todo)
+    public Object getContent(final boolean todo) {
+        if (todo)
             this.todo();
         return content;
     }
+
     /**
      * Get the payload of the response.
+     * 
      * @return the payload of the response.
      */
     public Object getContent() {
         return getContent(false);
     }
-    
+
     /**
-     * Specifies wether or not the payload should be treated as raw binary data or not.
-     * @param value if true the payload will be treated as raw binary data, otherwise it will be treated as a String.
+     * Specifies wether or not the payload should be treated as raw binary data or
+     * not.
+     * 
+     * @param value if true the payload will be treated as raw binary data,
+     *              otherwise it will be treated as a String.
      */
-    public void setRaw(boolean value){
+    public void setRaw(final boolean value) {
         raw = value;
     }
     

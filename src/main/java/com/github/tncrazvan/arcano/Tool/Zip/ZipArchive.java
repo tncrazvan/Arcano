@@ -24,35 +24,36 @@ import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
     private ServerFile file;
     private final ArrayList<ZipEntryData> entries;
     
-    public ZipArchive(String filename) throws FileNotFoundException {
+    public ZipArchive(final String filename) throws FileNotFoundException {
         this.filename = filename;
         entries = new ArrayList<>();
     }
 
-    private class ZipEntryData{
+    private class ZipEntryData {
         public ZipEntry entry;
         public byte[] data;
 
-        public ZipEntryData(ZipEntry entry, byte[] data) {
+        public ZipEntryData(final ZipEntry entry, final byte[] data) {
             this.entry = entry;
             this.data = data;
         }
 
     }
 
-    public void addEntry(String filename, String contents, String charset) throws IOException{
+    public void addEntry(final String filename, final String contents, final String charset) throws IOException {
         addEntry(filename, contents.getBytes(charset));
     }
 
-    public void addEntry(String filename, ServerFile file) throws IOException{
+    public void addEntry(final String filename, final ServerFile file) throws IOException {
         addEntry(filename, file.read());
     }
-    public void addEntry(String filename, byte[] data) throws IOException{
-        ZipEntry e = new ZipEntry(filename);
+
+    public void addEntry(final String filename, final byte[] data) throws IOException {
+        final ZipEntry e = new ZipEntry(filename);
         entries.add(new ZipEntryData(e, data));
     }
 
-    public void make() throws IOException{
+    public void make() throws IOException {
         file = new ServerFile(filename);
         try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(file))) {
             entries.forEach((e) -> {
@@ -60,7 +61,7 @@ import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
                     out.putNextEntry(e.entry);
                     out.write(e.data, 0, e.data.length);
                     out.closeEntry();
-                } catch (IOException ex) {
+                } catch (final IOException ex) {
                     LOGGER.log(Level.SEVERE, null, ex);
                 }
             });

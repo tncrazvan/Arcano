@@ -17,41 +17,35 @@ public interface Bytes {
      * @param bytes input byte array.
      * @return trimmed byte array.
      */
-    public static byte[] trim(byte[] bytes){
+    public static byte[] trim(final byte[] bytes) {
         int i = bytes.length - 1;
-        while (i >= 0 && bytes[i] == 0)
-        {
+        while (i >= 0 && bytes[i] == 0) {
             --i;
         }
 
         return Arrays.copyOf(bytes, i + 1);
     }
-    
-    
+
     /**
      * Return a new byte array containing a sub-portion of the source array
      * 
-     * @param source
-     *          The source array of bytes
-     * @param srcBegin
-     *          The beginning index (inclusive)
+     * @param source   The source array of bytes
+     * @param srcBegin The beginning index (inclusive)
      * @return The new, populated byte array
      */
-    public static byte[] subBytes(byte[] source, int srcBegin) {
+    public static byte[] subBytes(final byte[] source, final int srcBegin) {
         return subBytes(source, srcBegin, source.length);
     }
+
     /**
      * Return a new byte array containing a sub-portion of the source array
      * 
-     * @param source
-     *          The source array of bytes
-     * @param srcBegin
-     *          The beginning index (inclusive)
-     * @param srcEnd
-     *          The ending index (exclusive)
+     * @param source   The source array of bytes
+     * @param srcBegin The beginning index (inclusive)
+     * @param srcEnd   The ending index (exclusive)
      * @return The new, populated byte array
      */
-    public static byte[] subBytes(byte[] source, int srcBegin, int srcEnd) {
+    public static byte[] subBytes(final byte[] source, final int srcBegin, final int srcEnd) {
         byte destination[];
 
         destination = new byte[srcEnd - srcBegin];
@@ -60,34 +54,29 @@ public interface Bytes {
         return destination;
     }
 
-
     /**
      * Copies bytes from the source byte array to the destination array
      * 
-     * @param source
-     *          The source array
-     * @param srcBegin
-     *          Index of the first source byte to copy
-     * @param srcEnd
-     *          Index after the last source byte to copy
-     * @param destination
-     *          The destination array
-     * @param dstBegin
-     *          The starting offset in the destination array
+     * @param source      The source array
+     * @param srcBegin    Index of the first source byte to copy
+     * @param srcEnd      Index after the last source byte to copy
+     * @param destination The destination array
+     * @param dstBegin    The starting offset in the destination array
      */
-    public static void getBytes(byte[] source, int srcBegin, int srcEnd, byte[] destination,
-        int dstBegin) {
+    public static void getBytes(final byte[] source, final int srcBegin, final int srcEnd, final byte[] destination,
+            final int dstBegin) {
         System.arraycopy(source, srcBegin, destination, dstBegin, srcEnd - srcBegin);
     }
-    
+
     /**
      * Checks if the given byte array is emtpy.
+     * 
      * @param array input byte array.
      * @return true if array is empty, false otherwise.
      */
     public static boolean byteArrayIsEmpty(final byte[] array) {
         int sum = 0;
-        for (byte b : array) {
+        for (final byte b : array) {
             sum |= b;
         }
         return (sum == 0);

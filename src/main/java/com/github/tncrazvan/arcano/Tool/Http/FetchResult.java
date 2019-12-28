@@ -9,15 +9,15 @@ import java.io.UnsupportedEncodingException;
 public class FetchResult{
     private final byte[] data;
 
-    public FetchResult(byte[] data) {
+    public FetchResult(final byte[] data) {
         this.data = data;
     }
 
-    public byte[] getBytes(){
+    public byte[] getBytes() {
         return data;
     }
 
-    public String getString(String charset) throws UnsupportedEncodingException{
+    public String getString(final String charset) throws UnsupportedEncodingException {
         return new String(data,charset);
     }
 

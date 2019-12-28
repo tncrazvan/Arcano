@@ -9,7 +9,7 @@ public class Cookie {
             type,
             value;
 
-    public Cookie(String type,String value) {
+    public Cookie(final String type, final String value) {
         this.type=type;
         this.value=value;
     }

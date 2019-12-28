@@ -15,31 +15,33 @@ public class ClusterServer {
     private final String arcanoSecret;
     private int weight;
 
-    public ClusterServer(String hostname, String secret, int weight) {
+    public ClusterServer(final String hostname, final String secret, final int weight) {
         this.hostname = hostname;
         this.arcanoSecret = secret;
         this.weight = weight;
     }
-    
-    public int getWeight(){
+
+    public int getWeight() {
         return weight;
     }
 
-    public void setWeight(int weight) {
+    public void setWeight(final int weight) {
         this.weight = weight;
     }
 
     public String getArcanoSecret() {
         return arcanoSecret;
     }
-    
-    
-    public void getData(String arcanoSecret){
-        HttpHeaders headers = new HttpHeaders(false);
+
+    public void getData(final String arcanoSecret) {
+        final HttpHeaders headers = new HttpHeaders(false);
         headers.setCookie("ArcanoSecret", arcanoSecret, "UTF-8");
-        FetchResult result = Fetch.get("http://"+hostname+"/@get/memory", new HashMap<String, String>(){{
-            put("Cookie","ArcanoSecret="+arcanoSecret);
-        }});
+        final FetchResult result = Fetch.get("http://" + hostname + "/@get/memory", new HashMap<String, String>() {
+            private static final long serialVersionUID = -7816453807505595526L;
+            {
+                put("Cookie","ArcanoSecret="+arcanoSecret);
+            }
+        });
         System.out.println("result: "+new String(result.getBytes()));
     }
 }

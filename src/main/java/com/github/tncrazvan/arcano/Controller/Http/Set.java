@@ -17,34 +17,33 @@ import com.google.gson.JsonObject;
 @WebPath(name="/@set")
 public class Set extends HttpController {
     private static final String 
-            GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.",
-            GROUPS_POLICY_NOT_DEFINED = "WebSocket groups policy is not defined by the server therefore by default it is disabled.";
+            GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.";
 
     @WebPath(name="/webSocketGroup")
     @WebMethod(name="POST")
     public void webSocketGroup(){
         if(so.config.webSocket.groups.enabled){
-            HttpSession session = startSession();
-            WebSocketGroup group = new WebSocketGroup(session);
-            if(issetRequestQueryString("visibility")){
+            final HttpSession session = startSession();
+            final WebSocketGroup group = new WebSocketGroup(session);
+            if (issetRequestQueryString("visibility")) {
                 group.setVisibility(Integer.parseInt(getRequestQueryString("visibility")));
             }
-            if(issetRequestQueryString("name")){
+            if (issetRequestQueryString("name")) {
                 group.setGroupName(getRequestQueryString("name"));
             }
             WebSocketGroupApi.GROUP_MANAGER.addGroup(group);
             send(group.getKey());
-        }else{
+        } else {
             setResponseStatus(STATUS_NOT_FOUND);
             send(GROUPS_NOT_ALLOWED);
         }
     }
-    
-    @WebPath(name="/cookie")
-    @WebMethod(name="POST")
-    public void cookie(){
-        String name = String.join("/", args);
-        JsonObject data = jsonObject(new String(request.content));
+
+    @WebPath(name = "/cookie")
+    @WebMethod(name = "POST")
+    public void cookie() {
+        final String name = String.join("/", args);
+        final JsonObject data = jsonObject(new String(request.content));
         setResponseCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), Integer.parseInt(getRequestQueryString("expire")));
     }
 }

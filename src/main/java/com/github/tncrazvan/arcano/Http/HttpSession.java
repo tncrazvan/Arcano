@@ -17,63 +17,69 @@ public class HttpSession extends SharedObject{
     private final HashMap<String,Object> STORAGE = new HashMap<>();
     
     
-    protected HttpSession(EventManager e) {
-        id = getSha1String(e.getClient().getInetAddress().toString()+","+e.getClient().getPort()+","+Math.random(),config.charset);
-        int expire = (int) Time.now(SharedObject.londonTimezone) + (int) e.so.config.session.ttl;
+    protected HttpSession(final EventManager e) {
+        id = getSha1String(
+                e.getClient().getInetAddress().toString() + "," + e.getClient().getPort() + "," + Math.random(),
+                config.charset);
+        final int expire = (int) Time.now(SharedObject.londonTimezone) + (int) e.so.config.session.ttl;
         e.setResponseCookie("sessionId", id, "/", null, expire);
         this.time = System.currentTimeMillis();
     }
-    
-    protected long getTime(){
+
+    protected long getTime() {
         return time;
     }
-    
-    protected void setTime(long time){
-        this.time=time;
+
+    protected void setTime(final long time) {
+        this.time = time;
     }
-    
-    public String id(){
+
+    public String id() {
         return id;
     }
-    
-    public Map<String,Object> storage(){
+
+    public Map<String, Object> storage() {
         return STORAGE;
     }
-    
+
     /**
      * Set an object to the session and map it to a key.
-     * @param key the key of your session object.
+     * 
+     * @param key    the key of your session object.
      * @param object the object itself.
      */
-    public void set(String key, Object object){
+    public void set(final String key, final Object object) {
         STORAGE.put(key, object);
     }
-    
+
     /**
      * Unset a session object.
+     * 
      * @param key the key of the session object.
      */
-    public void unset(String key){
+    public void unset(final String key) {
         STORAGE.remove(key);
     }
-    
+
     /**
      * Check if a session object exists.
+     * 
      * @param key the key of the object.
      * @return true if the session storage contains the object, false otherwise.
      */
-    public boolean isset(String key){
+    public boolean isset(final String key) {
         return STORAGE.containsKey(key);
     }
-    
+
     /**
-     * Get an object from the session storage.
-     * Returns null if the key doesn't exist.
-     * NOTE: a return null doesn't necessarily mean the key doesn't exist, it could also mean that specific key is mapped to the value of null.
+     * Get an object from the session storage. Returns null if the key doesn't
+     * exist. NOTE: a return null doesn't necessarily mean the key doesn't exist, it
+     * could also mean that specific key is mapped to the value of null.
+     * 
      * @param key the key of the object.
      * @return the object itself.
      */
-    public Object get(String key){
+    public Object get(final String key) {
         return STORAGE.get(key);
     }
 }

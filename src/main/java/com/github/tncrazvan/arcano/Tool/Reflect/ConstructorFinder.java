@@ -12,8 +12,8 @@ import java.lang.reflect.Constructor;
  * @author Administrator
  */
 public interface ConstructorFinder {
-    public static Constructor<?> getNoParametersConstructor(Class<?> cls){
-        for (Constructor<?> constructor : cls.getDeclaredConstructors()) {
+    public static Constructor<?> getNoParametersConstructor(final Class<?> cls) {
+        for (final Constructor<?> constructor : cls.getDeclaredConstructors()) {
             if(constructor.getParameterCount() == 0)
                 return constructor;
         }

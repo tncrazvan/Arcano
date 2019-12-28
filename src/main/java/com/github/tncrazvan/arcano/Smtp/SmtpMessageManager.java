@@ -23,198 +23,201 @@ public abstract class SmtpMessageManager {
     protected final String hostname;
     protected final Socket client;
     private String boundary;
-    public SmtpMessageManager(SmtpServer server, Socket client) throws IOException {
-        this.sockout=new PrintWriter(client.getOutputStream(),true);
-        this.sockin=new BufferedReader(new InputStreamReader(client.getInputStream()));
+    public SmtpMessageManager(final SmtpServer server, final Socket client) throws IOException {
+        this.sockout = new PrintWriter(client.getOutputStream(), true);
+        this.sockin = new BufferedReader(new InputStreamReader(client.getInputStream()));
         hostname = server.getHostname();
         this.client = client;
     }
-    
-    protected String read() throws IOException{
-        String tmp = sockin.readLine();
-        System.out.println("Remote:"+tmp);
+
+    protected String read() throws IOException {
+        final String tmp = sockin.readLine();
+        System.out.println("Remote:" + tmp);
         return tmp;
     }
-    
-    protected void setMultipartBoundaryId(String id){
+
+    protected void setMultipartBoundaryId(final String id) {
         boundary = id;
     }
-    
-    protected boolean isNewBoundary(String line, String id){
-        return match(line, "(?<=^--)"+id+"(?=$)");
+
+    protected boolean isNewBoundary(final String line, final String id) {
+        return match(line, "(?<=^--)" + id + "(?=$)");
     }
-    protected boolean isLastBoundary(String line, String id){
-        return match(line, "(?<=^--)"+id+"(?=--$)");
+
+    protected boolean isLastBoundary(final String line, final String id) {
+        return match(line, "(?<=^--)" + id + "(?=--$)");
     }
-    
-    protected boolean isReady(String line){
+
+    protected boolean isReady(final String line) {
         return match(line, "^220");
     }
-    
-    protected boolean isOk(String line)  {
+
+    protected boolean isOk(final String line) {
         return match(line, "^250");
     }
-    
-    protected boolean isOkExtended(String line)  {
+
+    protected boolean isOkExtended(final String line) {
         return match(line, "^250-.+");
     }
-    
-    protected boolean isOkSize(String line)  {
+
+    protected boolean isOkSize(final String line) {
         return match(line, "^250-SIZE [0-9]+");
     }
-    
-    protected boolean isOkPipelining(String line)  {
+
+    protected boolean isOkPipelining(final String line) {
         return match(line, "^250-PIPELINING");
     }
-    
-    protected boolean isOkHelp(String line)  {
+
+    protected boolean isOkHelp(final String line) {
         return match(line, "^250 HELP");
     }
-    
-    protected boolean isEndDataWith(String line)  {
+
+    protected boolean isEndDataWith(final String line) {
         return match(line, "^354");
     }
-    
-    protected String getEndDataWithValue(String line){
-        return group(line, "(?<=\\s)[A-z0-9\\<\\>\\.]+",-1);
+
+    protected String getEndDataWithValue(final String line) {
+        return group(line, "(?<=\\s)[A-z0-9\\<\\>\\.]+", -1);
     }
-    
-    protected boolean isHelo(String line){
+
+    protected boolean isHelo(final String line) {
         return match(line, "^HELO");
     }
-    
-    protected boolean isEhlo(String line){
+
+    protected boolean isEhlo(final String line) {
         return match(line, "^EHLO");
     }
-    
-    protected boolean isMailFrom(String line){
+
+    protected boolean isMailFrom(final String line) {
         return match(line, "^MAIL FROM:");
     }
-    
-    protected String getMailAddress(String line){
+
+    protected String getMailAddress(final String line) {
         return extract(line, "(?<=\\<)[A-z0-9!#$%&'*+\\-\\/=?^_`{|}~.]+@[A-z0-9\\-.]+(?=\\>)");
     }
-    
-    protected boolean isRecipient(String line){
+
+    protected boolean isRecipient(final String line) {
         return match(line, "^RCPT TO:");
     }
-    
-    
-    protected boolean isData(String line){
+
+    protected boolean isData(final String line) {
         return match(line, "^DATA");
     }
-    
-    protected boolean isEndOfData(String line){
+
+    protected boolean isEndOfData(final String line) {
         return match(line, "^\\.$");
     }
-    
-    protected boolean isQuit(String line){
+
+    protected boolean isQuit(final String line) {
         return match(line, "^QUIT");
     }
-    
-    protected boolean isContentType(String line){
+
+    protected boolean isContentType(final String line) {
         return match(line, "^Content-Type");
     }
-    protected String getContentType(String line){
+
+    protected String getContentType(final String line) {
         return extract(line, "(?<=^Content-Type:\\s)[A-z0-9]+\\/[A-z0-9]+");
     }
-    
-    protected String getCharset(String line){
+
+    protected String getCharset(final String line) {
         return extract(line, "(?<=charset=\\\")[A-z0-9\\-\\s]+(?=\\\")");
     }
-    
-    protected boolean isSubject(String line){
+
+    protected boolean isSubject(final String line) {
         return match(line, "^Subject");
     }
-    
-    protected String getSubject(String line){
+
+    protected String getSubject(final String line) {
         return extract(line, "(?<=^Subject:).*");
     }
-    
-    protected String getBoundary(String line){
+
+    protected String getBoundary(final String line) {
         return extract(line, "(?<=boundary\\=\\\")[A-z0-9]+(?=\\\")");
     }
-    
-    protected boolean isFrom(String line){
+
+    protected boolean isFrom(final String line) {
         return match(line, "^From");
     }
-    
-    protected String getNickname(String line){
+
+    protected String getNickname(final String line) {
         return extract(line, "(?<=From:).+(?=\\<)");
     }
-    
-    protected String jumpOnceAndGetRemaining(String line){
+
+    protected String jumpOnceAndGetRemaining(final String line) {
         return extract(line, "(?<=\\s).+");
     }
-    
-    protected void say(int code, String extra){
-        say(code+extra);
+
+    protected void say(final int code, final String extra) {
+        say(code + extra);
     }
-    protected void say(int code){
-        say(code,"");
+
+    protected void say(final int code) {
+        say(code, "");
     }
-    
-    protected void say(String value){
-        System.out.println("Local:"+value);
+
+    protected void say(final String value) {
+        System.out.println("Local:" + value);
         sockout.println(value);
     }
-    
-    protected void sayReady(){
-        say(220," "+hostname+" ESMTP Postfix");
+
+    protected void sayReady() {
+        say(220, " " + hostname + " ESMTP Postfix");
     }
-    
-    protected void sayHelo(){
-        say("HELO "+hostname);
+
+    protected void sayHelo() {
+        say("HELO " + hostname);
     }
-    
-    protected void sayEhlo(){
-        say("EHLO "+hostname);
+
+    protected void sayEhlo() {
+        say("EHLO " + hostname);
     }
-    
-    protected void sayMailFrom(String address){
-        say("MAIL FROM:<"+address+">");
+
+    protected void sayMailFrom(final String address) {
+        say("MAIL FROM:<" + address + ">");
     }
-    
-    protected void sayRecipient(String address){
-        say("RCPT TO:<"+address+">");
+
+    protected void sayRecipient(final String address) {
+        say("RCPT TO:<" + address + ">");
     }
-    
-    protected void sayData(){
+
+    protected void sayData() {
         say("DATA");
     }
-    
-    protected void sayDataFrom(String address){
-        say("From: "+address.split("@")[0]+" <"+address+">");
+
+    protected void sayDataFrom(final String address) {
+        say("From: " + address.split("@")[0] + " <" + address + ">");
     }
-    
-    protected void sayDataSubject(String subject){
-        say("Subject: "+subject);
+
+    protected void sayDataSubject(final String subject) {
+        say("Subject: " + subject);
     }
-    
+
     DateFormat datePattern = new SimpleDateFormat("E, d M Y H:m:s Z");
-    protected void sayDataDate(long unixTime){
-        say("Date: "+datePattern.format(new Date(unixTime)));
+
+    protected void sayDataDate(final long unixTime) {
+        say("Date: " + datePattern.format(new Date(unixTime)));
     }
-    
-    protected void sayDataTo(String[] recipients){
+
+    protected void sayDataTo(final String[] recipients) {
         String tmp = "To: ";
-        for(int i = 0; i<recipients.length;i++){
+        for (int i = 0; i < recipients.length; i++) {
             tmp += recipients[i];
-            //if it's no the last address, append ","
-            if(i<recipients.length-1){
-                tmp +=", ";
+            // if it's no the last address, append ","
+            if (i < recipients.length - 1) {
+                tmp += ", ";
             }
         }
         say(tmp);
     }
-    
-    protected void sayDataContentType(){
-        say("Content-Type: multipart/alternative; boundary=\""+boundary+"\"");
+
+    protected void sayDataContentType() {
+        say("Content-Type: multipart/alternative; boundary=\"" + boundary + "\"");
     }
-    
-    protected void sayDataFrames(ArrayList<EmailFrame> frames){
+
+    protected void sayDataFrames(final ArrayList<EmailFrame> frames) {
         frames.stream().map((frame) -> {
-            say("Content-Type: "+frame.getContentTye()+"; charset=\""+frame.getCharset()+"\"");
+            say("Content-Type: " + frame.getContentTye() + "; charset=\"" + frame.getCharset() + "\"");
             return frame;
         }).map((frame) -> {
             sayNothing();
@@ -224,43 +227,45 @@ public abstract class SmtpMessageManager {
         });
         sayEndBoundary();
     }
-    
-    protected void sayNothing(){
+
+    protected void sayNothing() {
         say("");
     }
-    
-    protected void sayQuit(){
+
+    protected void sayQuit() {
         say("QUIT");
     }
-    
-    protected void sayQuitAndClose() throws IOException{
+
+    protected void sayQuitAndClose() throws IOException {
         sayQuit();
         client.close();
     }
-    
-    protected void sayNewBoundary(){
-        say("--"+boundary);
+
+    protected void sayNewBoundary() {
+        say("--" + boundary);
     }
-    
-    protected void sayEndBoundary(){
-        say("--"+boundary+"--");
+
+    protected void sayEndBoundary() {
+        say("--" + boundary + "--");
     }
-    
-    protected void sayOkExtended(String params){
-        say(250,"-"+params);
+
+    protected void sayOkExtended(final String params) {
+        say(250, "-" + params);
     }
-    
-    protected void sayOk(String params){
-        say(250," "+params);
+
+    protected void sayOk(final String params) {
+        say(250, " " + params);
     }
-    
-    protected void sayOk(){sayOk("");}
-    
-    protected void sayEndDataWith(){
-        say(354," End data with <CR><LF>.<CR><LF>");
+
+    protected void sayOk() {
+        sayOk("");
     }
-    
-    protected void sayOkAndQueue(int index){
+
+    protected void sayEndDataWith() {
+        say(354, " End data with <CR><LF>.<CR><LF>");
+    }
+
+    protected void sayOkAndQueue(final int index) {
         say(250," Ok: queued as "+index);
     }
     

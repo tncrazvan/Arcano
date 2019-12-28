@@ -8,7 +8,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.logging.Level;
-import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 
 /**
  *
@@ -18,7 +17,7 @@ public class HttpController extends HttpEvent{
     protected String[] args;
     protected HttpRequestReader reader = null;
     
-    public final HttpController init(HttpRequestReader reader, String[] args){
+    public final HttpController init(final HttpRequestReader reader, final String[] args) {
         try {
             this.reader = reader;
             this.setHttpHeaders(new HttpHeaders());
@@ -29,41 +28,42 @@ public class HttpController extends HttpEvent{
             this.initEventManager();
             this.initHttpEventManager();
             this.findRequestLanguages();
-            this.args=args;
+            this.args = args;
             return this;
-        } catch (UnsupportedEncodingException ex) {
+        } catch (final UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
             return null;
         }
     }
-    
-    public final HttpController init(HttpRequestReader reader){
-        return this.init(reader, new String[]{});
+
+    public final HttpController init(final HttpRequestReader reader) {
+        return this.init(reader, new String[] {});
     }
-    
-    protected HttpController init(HttpController controller){
-        return this.init(controller.reader,controller.args);
+
+    protected HttpController init(final HttpController controller) {
+        return this.init(controller.reader, controller.args);
     }
-    
+
     HttpController self = this;
-    public class Delegate <T extends HttpController>{
+
+    public class Delegate<T extends HttpController> {
         @SuppressWarnings("unchecked")
         public final Class<T> getGenericClass() throws ClassNotFoundException {
-            Type mySuperclass = getClass().getGenericSuperclass();
-            Type tType = ((ParameterizedType)mySuperclass).getActualTypeArguments()[0];
-            String className = tType.getTypeName();
+            final Type mySuperclass = getClass().getGenericSuperclass();
+            final Type tType = ((ParameterizedType) mySuperclass).getActualTypeArguments()[0];
+            final String className = tType.getTypeName();
             return (Class<T>) Class.forName(className);
         }
-        
-        public final T init(){
+
+        public final T init() {
             return start();
         }
-        
-        public final T start(){
+
+        public final T start() {
             T controller = null;
             try {
-                Class<?> cls = getGenericClass();
-                Constructor constructor = ConstructorFinder.getNoParametersConstructor(cls);
+                final Class<?> cls = getGenericClass();
+                final Constructor constructor = ConstructorFinder.getNoParametersConstructor(cls);
                 controller = (T) constructor.newInstance();
                 controller.init(self);
             } catch (IllegalArgumentException | ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {

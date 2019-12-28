@@ -13,35 +13,35 @@ public class HttpSessionManager {
     
     public HttpSessionManager() {}
     
-    public HttpSession startSession(EventManager e,long sessionTtl) {
-        if(e.issetRequestCookie("sessionId")){//if session_id is set
+    public HttpSession startSession(final EventManager e, final long sessionTtl) {
+        if (e.issetRequestCookie("sessionId")) {// if session_id is set
             final String sessionId = e.getRequestCookie("sessionId");
-            if(LIST.containsKey(sessionId)){//if session exists
-                HttpSession session = LIST.get(sessionId);
-                if(e.so.config.session.keepAlive)
+            if (LIST.containsKey(sessionId)) {// if session exists
+                final HttpSession session = LIST.get(sessionId);
+                if (e.so.config.session.keepAlive)
                     session.setTime(System.currentTimeMillis());
                 return session;
             }
         }
-        
+
         final HttpSession session = new HttpSession(e);
         setSession(session);
         return session;
     }
-    
-    public HttpSession getSession(String sessionId){
+
+    public HttpSession getSession(final String sessionId) {
         return LIST.get(sessionId);
     }
-    
-    public void setSession(HttpSession session){
+
+    public void setSession(final HttpSession session) {
         LIST.put(session.id(), session);
     }
-    
-    public boolean issetSession(String sessionId){
+
+    public boolean issetSession(final String sessionId) {
         return LIST.containsKey(sessionId);
     }
-    
-    public void stopSession(HttpSession session){
+
+    public void stopSession(final HttpSession session) {
         LIST.remove(session.id());
     }
 }

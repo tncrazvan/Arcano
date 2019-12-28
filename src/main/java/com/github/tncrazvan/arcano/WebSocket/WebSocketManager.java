@@ -11,7 +11,6 @@ import java.util.logging.Level;
 
 import javax.xml.bind.DatatypeConverter;
 
-import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.EventManager;
 import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1Bytes;
@@ -30,169 +29,167 @@ public abstract class WebSocketManager extends EventManager{
     private WebSocketMessage message;
     //private final HttpHeaders headers;
     public WebSocketManager() {}
-    public void setBufferedReader(BufferedReader br){
-        this.br=br;
+    public void setBufferedReader(final BufferedReader br) {
+        this.br = br;
     }
-    protected void init() throws IOException{
-        this.requestId = getSha1String(System.identityHashCode(client)+"::"+System.currentTimeMillis(),so.config.charset);
+
+    protected void init() throws IOException {
+        this.requestId = getSha1String(System.identityHashCode(client) + "::" + System.currentTimeMillis(),
+                so.config.charset);
         this.outputStream = client.getOutputStream();
     }
 
     /**
      * Get the default language of the user agent that made the request.
+     * 
      * @return a String that identifies the language.
      */
-    public String getUserDefaultLanguage(){
+    public String getUserDefaultLanguage() {
         return userLanguages.get("DEFAULT-LANGUAGE");
     }
 
-    public void execute(){
+    public void execute() {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    String acceptKey = DatatypeConverter.printBase64Binary(getSha1Bytes(request.headers.get("Sec-WebSocket-Key") + so.WEBSOCKET_ACCEPT_KEY,so.config.charset));
-                    
+                    final String acceptKey = DatatypeConverter.printBase64Binary(getSha1Bytes(
+                            request.headers.get("Sec-WebSocket-Key") + so.WEBSOCKET_ACCEPT_KEY, so.config.charset));
+
                     headers.set("@Status", Status.STATUS_SWITCHING_PROTOCOLS);
-                    headers.set("Connection","Upgrade");
-                    headers.set("Upgrade","websocket");
-                    headers.set("Sec-WebSocket-Accept",acceptKey);
-                    outputStream.write((headers.toString()+"\r\n").getBytes());
+                    headers.set("Connection", "Upgrade");
+                    headers.set("Upgrade", "websocket");
+                    headers.set("Sec-WebSocket-Accept", acceptKey);
+                    outputStream.write((headers.toString() + "\r\n").getBytes());
                     outputStream.flush();
                     manageOnOpen();
-                    InputStream read = client.getInputStream();
-                    while(connected){
+                    final InputStream read = client.getInputStream();
+                    while (connected) {
                         unmask((byte) read.read());
                     }
-                } catch (IOException ex) {
+                } catch (final IOException ex) {
                     close();
-                } catch (NoSuchAlgorithmException ex) {
-                    LOGGER.log(Level.SEVERE,null,ex);
+                } catch (final NoSuchAlgorithmException ex) {
+                    LOGGER.log(Level.SEVERE, null, ex);
                 }
             }
         }).start();
 
-
     }
 
-
     /*
-        WEBSOCKET FRAME:
-
-
-              0                   1                   2                   3
-              0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-             +-+-+-+-+-------+-+-------------+-------------------------------+
-             |F|R|R|R| opcode|M| Payload len |    Extended payload length    |
-             |I|S|S|S|  (4)  |A|     (7)     |             (16/64)           |
-             |N|V|V|V|       |S|             |   (if payload len==126/127)   |
-             | |1|2|3|       |K|             |                               |
-             +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
-             |     Extended payload length continued, if payload len == 127  |
-             + - - - - - - - - - - - - - - - +-------------------------------+
-             |                               |Masking-key, if MASK set to 1  |
-             +-------------------------------+-------------------------------+
-             | Masking-key (continued)       |          Payload Data         |
-             +-------------------------------- - - - - - - - - - - - - - - - +
-             :                     Payload Data continued ...                :
-             + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
-             |                     Payload Data continued ...                |
-             +---------------------------------------------------------------+
-        */
+     * WEBSOCKET FRAME:
+     * 
+     * 
+     * 0 1 2 3 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     * +-+-+-+-+-------+-+-------------+-------------------------------+ |F|R|R|R|
+     * opcode|M| Payload len | Extended payload length | |I|S|S|S| (4) |A| (7) |
+     * (16/64) | |N|V|V|V| |S| | (if payload len==126/127) | | |1|2|3| |K| | |
+     * +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - + | Extended
+     * payload length continued, if payload len == 127 | + - - - - - - - - - - - - -
+     * - - +-------------------------------+ | |Masking-key, if MASK set to 1 |
+     * +-------------------------------+-------------------------------+ |
+     * Masking-key (continued) | Payload Data | +-------------------------------- -
+     * - - - - - - - - - - - - - - + : Payload Data continued ... : + - - - - - - -
+     * - - - - - - - - - - - - - - - - - - - - - - - - + | Payload Data continued
+     * ... | +---------------------------------------------------------------+
+     */
 
     private final int FIRST_BYTE = 0, SECOND_BYTE = 1, LENGTH2 = 2, LENGTH8 = 3, MASK = 4, PAYLOAD = 5, DONE = 6;
-    private int lengthKey = 0, reading = FIRST_BYTE, lengthIndex = 0, maskIndex = 0, payloadIndex = 0, payloadLength = 0;
-    //private boolean fin,rsv1,rsv2,rsv3;
+    private int lengthKey = 0, reading = FIRST_BYTE, lengthIndex = 0, maskIndex = 0, payloadIndex = 0,
+            payloadLength = 0;
+    // private boolean fin,rsv1,rsv2,rsv3;
     private byte opcode;
-    private byte[] payload = null,mask = null,length = null;
-    //private final String base = "";
-    public void unmask(byte b) throws UnsupportedEncodingException, IOException{
-        //System.out.println("=================================");
-        switch (reading) {
-            case FIRST_BYTE:
-                //fin = ((b & 0x80) != 0);
-                //rsv1 = ((b & 0x40) != 0);
-                //rsv2 = ((b & 0x20) != 0);
-                //rsv3 = ((b & 0x10) != 0);
-                opcode = (byte)(b & 0x0F);
-                if(opcode == 0x8){ //fin
-                    close();
-                }
-                mask = new byte[4];
-                reading = SECOND_BYTE;
-                break;
-            case SECOND_BYTE:
-                lengthKey = b & 127;
-                if(lengthKey <= 125){
-                    length = new byte[1];
-                    length[0] = (byte) lengthKey;
-                    payloadLength = lengthKey & 0xff;
-                    reading = MASK;
-                }else if(lengthKey == 126){
-                    reading = LENGTH2;
-                    length = new byte[2];
-                }else if(lengthKey == 127){
-                    reading = LENGTH8;
-                    length = new byte[8];
-                }
-                break;
-            case LENGTH2:
-                length[lengthIndex] = b;
-                lengthIndex++;
-                if(lengthIndex == 2){
-                    payloadLength = ((length[0] & 0xff) << 8) | (length[1] & 0xff);
-                    reading = MASK;
-                }
-                break;
-            case LENGTH8:
-                length[lengthIndex] = b;
-                lengthIndex++;
-                if(lengthIndex == 8){
-                    payloadLength = length[0] & 0xff;
-                    for(int i = 1; i<length.length;i++){
-                        payloadLength = ((payloadLength) << 8)  | (length[i] & 0xff);
-                    }
-                    reading = MASK;
-                }
-                break;
-            case MASK:
-                mask[maskIndex] = b;
-                maskIndex++;
-                if(maskIndex == 4){
-                    reading = PAYLOAD;
-                    //int l = (int)ByteBuffer.wrap(length).getLong();
-                    payload = new byte[payloadLength];
-                }
-                break;
-            case PAYLOAD:
-                if(payload.length == 0){
-                    this.message = new WebSocketMessage();
-                    this.message.data = payload;
-                    manageOnMessage(this.message);
-                    break;
-                }
-                try{
-                    payload[payloadIndex] = (byte) (b ^ mask[payloadIndex%4]);
-                }catch(Exception e){
-                    e.printStackTrace(System.out);
-                }
-                payloadIndex++;
-                if(payloadIndex == payload.length){
-                    reading = DONE;
+    private byte[] payload = null, mask = null, length = null;
 
-                    this.message = new WebSocketMessage();
-                    this.message.data = payload;
-                    manageOnMessage(this.message);
-                    lengthKey = 0;
-                    reading = FIRST_BYTE;
-                    lengthIndex = 0;
-                    maskIndex = 0;
-                    payloadIndex = 0;
-                    payload = null;
-                    mask = null;
-                    length = null;
+    // private final String base = "";
+    public void unmask(final byte b) throws UnsupportedEncodingException, IOException {
+        // System.out.println("=================================");
+        switch (reading) {
+        case FIRST_BYTE:
+            // fin = ((b & 0x80) != 0);
+            // rsv1 = ((b & 0x40) != 0);
+            // rsv2 = ((b & 0x20) != 0);
+            // rsv3 = ((b & 0x10) != 0);
+            opcode = (byte) (b & 0x0F);
+            if (opcode == 0x8) { // fin
+                close();
+            }
+            mask = new byte[4];
+            reading = SECOND_BYTE;
+            break;
+        case SECOND_BYTE:
+            lengthKey = b & 127;
+            if (lengthKey <= 125) {
+                length = new byte[1];
+                length[0] = (byte) lengthKey;
+                payloadLength = lengthKey & 0xff;
+                reading = MASK;
+            } else if (lengthKey == 126) {
+                reading = LENGTH2;
+                length = new byte[2];
+            } else if (lengthKey == 127) {
+                reading = LENGTH8;
+                length = new byte[8];
+            }
+            break;
+        case LENGTH2:
+            length[lengthIndex] = b;
+            lengthIndex++;
+            if (lengthIndex == 2) {
+                payloadLength = ((length[0] & 0xff) << 8) | (length[1] & 0xff);
+                reading = MASK;
+            }
+            break;
+        case LENGTH8:
+            length[lengthIndex] = b;
+            lengthIndex++;
+            if (lengthIndex == 8) {
+                payloadLength = length[0] & 0xff;
+                for (int i = 1; i < length.length; i++) {
+                    payloadLength = ((payloadLength) << 8) | (length[i] & 0xff);
                 }
+                reading = MASK;
+            }
+            break;
+        case MASK:
+            mask[maskIndex] = b;
+            maskIndex++;
+            if (maskIndex == 4) {
+                reading = PAYLOAD;
+                // int l = (int)ByteBuffer.wrap(length).getLong();
+                payload = new byte[payloadLength];
+            }
+            break;
+        case PAYLOAD:
+            if (payload.length == 0) {
+                this.message = new WebSocketMessage();
+                this.message.data = payload;
+                manageOnMessage(this.message);
                 break;
+            }
+            try {
+                payload[payloadIndex] = (byte) (b ^ mask[payloadIndex % 4]);
+            } catch (final Exception e) {
+                e.printStackTrace(System.out);
+            }
+            payloadIndex++;
+            if (payloadIndex == payload.length) {
+                reading = DONE;
+
+                this.message = new WebSocketMessage();
+                this.message.data = payload;
+                manageOnMessage(this.message);
+                lengthKey = 0;
+                reading = FIRST_BYTE;
+                lengthIndex = 0;
+                maskIndex = 0;
+                payloadIndex = 0;
+                payload = null;
+                mask = null;
+                length = null;
+            }
+            break;
         }
 
     }
@@ -200,156 +197,184 @@ public abstract class WebSocketManager extends EventManager{
     /**
      * Close the WebSocket connection.
      */
-    public void close(){
+    public void close() {
         try {
             connected = false;
             client.close();
             manageOnClose();
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE,null,ex);
+        } catch (final IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
+
     /**
      * Send data to the client.
+     * 
      * @param data data to be sent to the client.
      */
-    public void send(String data){
+    public void send(final String data) {
         try {
             send(data.getBytes(so.config.charset), false);
-        } catch (UnsupportedEncodingException ex) {
-            LOGGER.log(Level.SEVERE,null,ex);
+        } catch (final UnsupportedEncodingException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
+
     /**
      * Send data to the client.
+     * 
      * @param data data to be sent to the client.
      */
-    public void send(byte[] data){
+    public void send(final byte[] data) {
         send(data, true);
     }
+
     /**
      * Send data to the client.
-     * @param data data to be sent to the client.
-     * @param binary the WebSocket standard requires the server to specify when the content of the message should be trated as binary or not. 
-     * If this value is true, the server will set the binary flag to 0x82 otherwise it will be set to 0x81.
-     * Note that this won't encode or convert your data in any way. 
-    */
-    public void send(byte[] data,boolean binary){
-        int offset = 0, maxLength = so.config.webSocket.mtu-1;
-        if(data.length > maxLength){
-            while(offset < data.length){
-                if(offset+maxLength > data.length){
-                    encodeAndSendBytes(Arrays.copyOfRange(data, offset, data.length),binary);
+     * 
+     * @param data   data to be sent to the client.
+     * @param binary the WebSocket standard requires the server to specify when the
+     *               content of the message should be trated as binary or not. If
+     *               this value is true, the server will set the binary flag to 0x82
+     *               otherwise it will be set to 0x81. Note that this won't encode
+     *               or convert your data in any way.
+     */
+    public void send(final byte[] data, final boolean binary) {
+        int offset = 0;
+        final int maxLength = so.config.webSocket.mtu - 1;
+        if (data.length > maxLength) {
+            while (offset < data.length) {
+                if (offset + maxLength > data.length) {
+                    encodeAndSendBytes(Arrays.copyOfRange(data, offset, data.length), binary);
                     offset = data.length;
-                }else{
-                    encodeAndSendBytes(Arrays.copyOfRange(data, offset, offset+maxLength),binary);
+                } else {
+                    encodeAndSendBytes(Arrays.copyOfRange(data, offset, offset + maxLength), binary);
                     offset += maxLength;
                 }
             }
-        }else{
-            encodeAndSendBytes(data,binary);
+        } else {
+            encodeAndSendBytes(data, binary);
         }
     }
 
-    private void encodeAndSendBytes(byte[] messageBytes, boolean binary){
+    private void encodeAndSendBytes(final byte[] messageBytes, final boolean binary) {
         try {
             outputStream.flush();
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE,null,ex);
+        } catch (final IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
         }
         try {
-            //We need to set only FIN and Opcode.
-            outputStream.write(binary?0x82:0x81);
+            // We need to set only FIN and Opcode.
+            outputStream.write(binary ? 0x82 : 0x81);
 
-            //Prepare the payload length.
-            if(messageBytes.length <= 125) {
+            // Prepare the payload length.
+            if (messageBytes.length <= 125) {
                 outputStream.write(messageBytes.length);
-            }else { //We assume it is 16 but length. Not more than that.
+            } else { // We assume it is 16 but length. Not more than that.
                 outputStream.write(0x7E);
-                int b1 =( messageBytes.length >> 8) &0xff;
-                int b2 = messageBytes.length &0xff;
+                final int b1 = (messageBytes.length >> 8) & 0xff;
+                final int b2 = messageBytes.length & 0xff;
                 outputStream.write(b1);
                 outputStream.write(b2);
             }
 
-            //Write the data.
+            // Write the data.
             outputStream.write(messageBytes);
             try {
                 outputStream.flush();
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE,null,ex);
+            } catch (final IOException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
             }
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             close();
         }
 
     }
+
     /**
      * Send data to the client.
+     * 
      * @param data data to be sent to the client.
      */
-    public void send(int data){
-        send(""+data);
+    public void send(final int data) {
+        send("" + data);
     }
 
     /**
      * Broadcast data to all connected clients except for some of them.
-     * @param data payload to send.
-     * @param ignores list of clients to ignore. The server won't send the payload to these clients.
+     * 
+     * @param data    payload to send.
+     * @param ignores list of clients to ignore. The server won't send the payload
+     *                to these clients.
      */
-    public void broadcast(String data,WebSocketController[] ignores){
+    public void broadcast(final String data, final WebSocketController[] ignores) {
         try {
-            broadcast(data.getBytes(so.config.charset),ignores,false);
-        } catch (UnsupportedEncodingException ex) {
-            LOGGER.log(Level.SEVERE,null,ex);
+            broadcast(data.getBytes(so.config.charset), ignores, false);
+        } catch (final UnsupportedEncodingException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
+
     /**
      * Broadcast data to all connected clients except for some of them.
-     * @param data payload to send.
-     * @param ignores list of clients to ignore. The server won't send the payload to these clients.
+     * 
+     * @param data    payload to send.
+     * @param ignores list of clients to ignore. The server won't send the payload
+     *                to these clients.
      */
-    public void broadcast(byte[] data,WebSocketController[] ignores){
+    public void broadcast(final byte[] data, final WebSocketController[] ignores) {
         broadcast(data, ignores, true);
     }
+
     /**
      * Broadcast data to all connected clients except for some of them.
-     * @param data payload to send.
-     * @param ignores list of clients to ignore. The server won't send the payload to these clients.
-     * @param binary the WebSocket standard requires the server to specify when the content of the message should be trated as binary or not. 
-     * If this value is true, the server will set the binary flag to 0x82 otherwise it will be set to 0x81.
-     * Note that this won't encode or convert your data in any way. 
+     * 
+     * @param data    payload to send.
+     * @param ignores list of clients to ignore. The server won't send the payload
+     *                to these clients.
+     * @param binary  the WebSocket standard requires the server to specify when the
+     *                content of the message should be trated as binary or not. If
+     *                this value is true, the server will set the binary flag to
+     *                0x82 otherwise it will be set to 0x81. Note that this won't
+     *                encode or convert your data in any way.
      */
-    public void broadcast(byte[] data,WebSocketController[] ignores,boolean binary){
+    public void broadcast(final byte[] data, final WebSocketController[] ignores, final boolean binary) {
         boolean skip;
-        for (WebSocketEvent e : so.WEB_SOCKET_EVENTS.get(ignores.getClass().getCanonicalName())) {
+        for (final WebSocketEvent e : so.WEB_SOCKET_EVENTS.get(ignores.getClass().getCanonicalName())) {
             skip = false;
-            for (Object ignore : ignores) {
-                if(ignore == this){
+            for (final Object ignore : ignores) {
+                if (ignore == this) {
                     skip = true;
                     break;
                 }
             }
-            if(!skip) e.send(data,binary);
+            if (!skip)
+                e.send(data, binary);
         }
     }
+
     /**
      * Send data to a WebSocketGroup.
-     * @param data data to be sent to the group.
+     * 
+     * @param data  data to be sent to the group.
      * @param group the group of clients that should receive the payload.
      */
-    public void send(WebSocketMessage data,WebSocketGroup group){
+    public void send(final WebSocketMessage data, final WebSocketGroup group) {
         send(data, group, true);
     }
+
     /**
      * Send data to a WebSocketGroup.
-     * @param data data to be sent to the group.
-     * @param group the group of clients that should receive the payload.
-     * @param binary the WebSocket standard requires the server to specify when the content of the message should be trated as binary or not. 
-     * If this value is true, the server will set the binary flag to 0x82 otherwise it will be set to 0x81.
-     * Note that this won't encode or convert your data in any way. 
+     * 
+     * @param data   data to be sent to the group.
+     * @param group  the group of clients that should receive the payload.
+     * @param binary the WebSocket standard requires the server to specify when the
+     *               content of the message should be trated as binary or not. If
+     *               this value is true, the server will set the binary flag to 0x82
+     *               otherwise it will be set to 0x81. Note that this won't encode
+     *               or convert your data in any way.
      */
-    public void send(WebSocketMessage data, WebSocketGroup group,boolean binary){
+    public void send(final WebSocketMessage data, final WebSocketGroup group, final boolean binary) {
         
         group.getMap().keySet().forEach((key) -> {
             final WebSocketController c = group.getMap().get(key);

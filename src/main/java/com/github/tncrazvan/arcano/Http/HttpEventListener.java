@@ -28,55 +28,52 @@ public class HttpEventListener extends HttpRequestReader{
             UPGRADE_PATTERN = Pattern.compile("Upgrade"),
             WEB_SOCKET_PATTERN = Pattern.compile("websocket"),
             HTTP2_PATTERN = Pattern.compile("h2c");
-    public HttpEventListener(SharedObject so, final Socket client) throws IOException, NoSuchAlgorithmException{
-        super(so,client);
+    public HttpEventListener(final SharedObject so, final Socket client) throws IOException, NoSuchAlgorithmException {
+        super(so, client);
     }
 
     @Override
     public void onRequest() {
-        if(request.headers != null && request.headers.get("Connection")!=null){
+        if (request.headers != null && request.headers.get("Connection") != null) {
             matcher = UPGRADE_PATTERN.matcher(request.headers.get("Connection"));
-            if(matcher.find()){
+            if (matcher.find()) {
                 matcher = WEB_SOCKET_PATTERN.matcher(request.headers.get("Upgrade"));
-                //WebSocket connection
-                if(matcher.find()){
+                // WebSocket connection
+                if (matcher.find()) {
                     try {
                         WebSocketController.serveController(this);
-                        /*try {
-                        new WebSocketController(so, bufferedReader, client, request).execute();
-                        }catch(final IOException e){
-                        try {
-                        client.close();
-                        } catch (final IOException ex) {
-                        LOGGER.log(Level.SEVERE,null,ex);
-                        }
-                        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
-                        LOGGER.log(Level.SEVERE,null,ex);
-                        } catch (ClassNotFoundException | IllegalArgumentException | InvocationTargetException ex) {
+                        /*
+                         * try { new WebSocketController(so, bufferedReader, client, request).execute();
+                         * }catch(final IOException e){ try { client.close(); } catch (final IOException
+                         * ex) { LOGGER.log(Level.SEVERE,null,ex); } } catch (InstantiationException |
+                         * IllegalAccessException | NoSuchMethodException ex) {
+                         * LOGGER.log(Level.SEVERE,null,ex); } catch (ClassNotFoundException |
+                         * IllegalArgumentException | InvocationTargetException ex) {
+                         * LOGGER.log(Level.SEVERE, null, ex); }
+                         */
+                    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+                            | IllegalArgumentException | InvocationTargetException | NoSuchMethodException ex) {
                         LOGGER.log(Level.SEVERE, null, ex);
-                        }*/
-                    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException ex) {
-                        LOGGER.log(Level.SEVERE, null, ex);
-                    } catch (IOException ex) {
+                    } catch (final IOException ex) {
                         Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
                     }
-                }else{
+                } else {
                     matcher = HTTP2_PATTERN.matcher(request.headers.get("Upgrade"));
                     // Http 2.x connection
-                    if(matcher.find()){
+                    if (matcher.find()) {
                         System.out.println("Http 2.0 connection detected. Not yet implemented.");
                     }
                 }
-            }else{
+            } else {
                 try {
                     client.setSoTimeout(config.timeout);
-                    //default connection, assuming it's Http 1.x
-                    
-                    //HttpHeaders headers = controller.getResponseHttpHeaders();
-                    File f = new File(so.config.webRoot+location);
-                    if(f.exists()){
-                        if(!f.isDirectory()){
-                            HttpController controller = new HttpController().init(this,new String[]{});
+                    // default connection, assuming it's Http 1.x
+
+                    // HttpHeaders headers = controller.getResponseHttpHeaders();
+                    final File f = new File(so.config.webRoot + location);
+                    if (f.exists()) {
+                        if (!f.isDirectory()) {
+                            final HttpController controller = new HttpController().init(this, new String[] {});
                             
                             controller.setResponseHeaderField("Content-Type", resolveContentType(location.toString()));
                             controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(toLocalDateTime(londonTimezone,f.lastModified())));

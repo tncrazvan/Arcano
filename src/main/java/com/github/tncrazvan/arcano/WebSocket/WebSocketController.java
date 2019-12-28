@@ -4,7 +4,7 @@ public abstract class WebSocketController extends WebSocketEvent{
 
     protected String[] args;
     
-    public void setArgs(String[] args){
+    public void setArgs(final String[] args) {
         this.args=args;
     }
     

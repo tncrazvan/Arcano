@@ -21,33 +21,34 @@ public class SmtpServer extends SharedObject implements Runnable{
     private final ServerSocket ss;
     private String hostname = "";
     
-    public SmtpServer(ServerSocket ss,String bindAddress,int port,String hostname) throws IOException{
-        this.ss=ss;
+    public SmtpServer(final ServerSocket ss, final String bindAddress, final int port, final String hostname)
+            throws IOException {
+        this.ss = ss;
         ss.bind(new InetSocketAddress(bindAddress, port));
-        this.hostname=hostname;
+        this.hostname = hostname;
     }
-    
-    public String getHostname(){
+
+    public String getHostname() {
         return hostname;
     }
-    
+
     @Override
     public void run() {
-        while(config.listen){
+        while (config.listen) {
             try {
-                EmailReader emailReader = new EmailReader(this,ss.accept(),listeners);
+                final EmailReader emailReader = new EmailReader(this, ss.accept(), listeners);
                 emailReader.parse();
-            } catch (IOException ex) {
-                LOGGER.log(Level.SEVERE,null,ex);
+            } catch (final IOException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }
     }
-    
-    public void addEventListener(SmtpListener listener){
+
+    public void addEventListener(final SmtpListener listener) {
         listeners.add(listener);
     }
-    
-    public void removeEventListener(SmtpListener listener){
+
+    public void removeEventListener(final SmtpListener listener) {
         listeners.remove(listener);
     }
 }

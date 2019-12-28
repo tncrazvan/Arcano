@@ -12,23 +12,24 @@ package com.github.tncrazvan.arcano.Tool.Http;
 public interface ContentType {
     
     
-    public static String getContentType(String location){
+    public static String getContentType(final String location) {
         return resolveContentType(location);
     }
+
     /**
-     * Returns the mime type of the given resource.
-     * For example, given the filename "/index.html", the mime type returned will be "text/html".
-     * This can be useful when sending data to your clients.
+     * Returns the mime type of the given resource. For example, given the filename
+     * "/index.html", the mime type returned will be "text/html". This can be useful
+     * when sending data to your clients.
+     * 
      * @param location resource name.
      * @return the mime type of the given resource as a String.
      */
-    public static String resolveContentType(String location){
+    public static String resolveContentType(final String location) {
         String tmp_type = "";
-        String[] tmp_type0 = location.split("/");
+        final String[] tmp_type0 = location.split("/");
 
-        
-        if(tmp_type0.length > 0){
-            String[] tmp_type1 = tmp_type0[tmp_type0.length-1].split("\\.");
+        if (tmp_type0.length > 0) {
+            final String[] tmp_type1 = tmp_type0[tmp_type0.length - 1].split("\\.");
             if(tmp_type1.length>1){
                 tmp_type = tmp_type1[tmp_type1.length-1];
             }else{

@@ -15,7 +15,7 @@ public interface Gzip {
         if ((input == null) || (input.length == 0)) {
             return input;
         }
-        ByteArrayOutputStream obj = new ByteArrayOutputStream();
+        final ByteArrayOutputStream obj = new ByteArrayOutputStream();
         try (GZIPOutputStream gzip = new GZIPOutputStream(obj)) {
             gzip.write(input);
             gzip.flush();

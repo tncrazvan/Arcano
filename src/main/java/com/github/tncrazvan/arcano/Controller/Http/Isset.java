@@ -17,19 +17,19 @@ import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 public class Isset extends HttpController{
     @WebPath(name="/file")
     public void file() throws FileNotFoundException, IOException{
-        String url = String.join("/", args);
-        File f = new File(so.config.webRoot,url);
-        if(f.exists()){
+        final String url = String.join("/", args);
+        final File f = new File(so.config.webRoot, url);
+        if (f.exists()) {
             setResponseStatus(STATUS_FOUND);
-        }else{
+        } else {
             setResponseStatus(STATUS_NOT_FOUND);
         }
         flush();
     }
-    
-    @WebPath(name="/cookie")
-    public void cookie(){
-        String name = String.join("/",args);
+
+    @WebPath(name = "/cookie")
+    public void cookie() {
+        final String name = String.join("/", args);
         if(issetRequestCookie(name)){
             setResponseStatus(STATUS_FOUND);
         }else{

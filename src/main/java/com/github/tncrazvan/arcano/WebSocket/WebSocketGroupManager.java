@@ -10,19 +10,19 @@ import java.util.Map;
 public class WebSocketGroupManager {
     private final Map<String,WebSocketGroup> groups = new HashMap<>();
     
-    public void addGroup(WebSocketGroup group){
+    public void addGroup(final WebSocketGroup group) {
         groups.put(group.getKey(), group);
     }
-    
-    public WebSocketGroup removeGroup(WebSocketGroup group){
+
+    public WebSocketGroup removeGroup(final WebSocketGroup group) {
         return groups.remove(group.getKey());
     }
-    
-    public boolean groupExists(String key){
+
+    public boolean groupExists(final String key) {
         return groups.containsKey(key);
     }
-    
-    public WebSocketGroup getGroup(String key){
+
+    public WebSocketGroup getGroup(final String key) {
         return groups.get(key);
     }
     

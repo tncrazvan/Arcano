@@ -16,37 +16,38 @@ import java.util.regex.Pattern;
  * @author RazvanTanase
  */
 public class Cluster {
-    private HashMap<String, ClusterServer> map;
+    private final HashMap<String, ClusterServer> map;
     private int length = 0;
     private boolean lengthUpdated = false;
 
-    public Cluster(HashMap<String, ClusterServer> list) {
+    public Cluster(final HashMap<String, ClusterServer> list) {
         this.map = list;
     }
-    
-    public String[] getServerHostnames(){
+
+    public String[] getServerHostnames() {
         return map.keySet().toArray(new String[0]);
     }
-    
-    public boolean issetServer(String hostname){
+
+    public boolean issetServer(final String hostname) {
         return map.containsKey(hostname);
     }
-    
-    public ClusterServer validateArcanoKey(Socket client, String key){
+
+    public ClusterServer validateArcanoKey(final Socket client, final String key) {
         ClusterServer server;
-        for (Map.Entry<String, ClusterServer> entry : map.entrySet()) {
+        for (final Map.Entry<String, ClusterServer> entry : map.entrySet()) {
             server = entry.getValue();
-            if(Regex.match(client.getInetAddress()+":"+client.getPort(), entry.getKey(), Pattern.CASE_INSENSITIVE) && server.getArcanoSecret().equals(key))
+            if (Regex.match(client.getInetAddress() + ":" + client.getPort(), entry.getKey(), Pattern.CASE_INSENSITIVE)
+                    && server.getArcanoSecret().equals(key))
                 return server;
         }
         return null;
     }
-    
-    public ClusterServer getServer(String hostname){
+
+    public ClusterServer getServer(final String hostname) {
         return map.get(hostname);
     }
-    
-    public void setServer(String hostname,ClusterServer server){
+
+    public void setServer(final String hostname, final ClusterServer server) {
         lengthUpdated = false;
         map.put(hostname, server);
     }

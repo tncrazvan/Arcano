@@ -41,23 +41,24 @@ public class WebSocketGroupApi extends WebSocketController{
                         try {
                             //add this client to the group
                             group.addClient(this);
-                        } catch (UnsupportedEncodingException ex) {
+                        } catch (final UnsupportedEncodingException ex) {
                             LOGGER.log(Level.SEVERE, null, ex);
                         }
-                    }else{
-                        //if the group is not public, close the connection
+                    } else {
+                        // if the group is not public, close the connection
                         close();
                     }
 
                 }
             }
-        }else{
-            //"ALLOW" is false => ws groups are not enabled
+        } else {
+            // "ALLOW" is false => ws groups are not enabled
             close();
         }
     }
+
     @Override
-    public void onMessage(WebSocketMessage message) {
+    public void onMessage(final WebSocketMessage message) {
         //send data to everyone inside the group except for this client (obviously)
         send(message, group, false);
         /**

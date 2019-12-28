@@ -54,166 +54,159 @@ public class EmailReader extends SmtpMessageManager{
     ArrayList<String> checkRCPT_TO = new ArrayList<>();
     ArrayList<SmtpListener> listeners;
     
-    public EmailReader(SmtpServer server,Socket client,ArrayList<SmtpListener> listeners) throws IOException {
-        super(server,client);
+    public EmailReader(final SmtpServer server, final Socket client, final ArrayList<SmtpListener> listeners)
+            throws IOException {
+        super(server, client);
         this.listeners = listeners;
     }
-    
-    public void parse() throws IOException{
+
+    public void parse() throws IOException {
         sayReady();
         line = read();
-        while(line != null && !checkQUIT){
-            if(checkDATA){
+        while (line != null && !checkQUIT) {
+            if (checkDATA) {
                 readData();
-            }else if(isHelo(line) && !checkHELO){ //client says HELO
-                sayOk(hostname+", I'm glad to meet you");
+            } else if (isHelo(line) && !checkHELO) { // client says HELO
+                sayOk(hostname + ", I'm glad to meet you");
                 checkHELO = true;
-            }else if(isEhlo(line) && !checkEHLO){ //client says EHLO
+            } else if (isEhlo(line) && !checkEHLO) { // client says EHLO
                 checkEHLO = true;
                 clientHostName = jumpOnceAndGetRemaining(line);
-                sayOkExtended(hostname+" Hello "+clientHostName);
+                sayOkExtended(hostname + " Hello " + clientHostName);
                 sayOkExtended("SIZE 14680064");
                 sayOkExtended("PIPELINING");
                 sayOk("HELP");
-            }else if(isMailFrom(line) && !checkMAIL_FROM){ //this message is sent by...
+            } else if (isMailFrom(line) && !checkMAIL_FROM) { // this message is sent by...
                 checkMAIL_FROM = true;
                 sender = getMailAddress(line);
                 sayOk("Ok");
-            }else if(isRecipient(line)){ //this message is meant to be received by...
+            } else if (isRecipient(line)) { // this message is meant to be received by...
                 sayOk("Ok");
                 checkRCPT_TO.add(getMailAddress(line));
-            }else if(isData(line) && !checkDATA){ //content of the message
+            } else if (isData(line) && !checkDATA) { // content of the message
                 checkDATA = true;
                 sayEndDataWith();
-            }else if(isQuit(line) && !checkQUIT){ //client wants to quit
+            } else if (isQuit(line) && !checkQUIT) { // client wants to quit
                 checkQUIT = true;
                 sayBye();
                 client.close();
             }
-            if(!checkQUIT){
+            if (!checkQUIT) {
                 line = read();
-            }else{
-                if(client.isConnected()){
+            } else {
+                if (client.isConnected()) {
                     client.close();
                 }
             }
         }
-        
-    }//end read()
-    
+
+    }// end read()
+
     private boolean frameHeadersDone = false;
-    private void readData() throws IOException{
+
+    private void readData() throws IOException {
         /*
-        Since a message body can contain a line with just a period
-        as part of the text, the client sends two periods every time a
-        line starts with a period; correspondingly, the server replaces
-        every sequence of two periods at the beginning of a line
-        with a single one. Such escaping method is called dot-stuffing.
-        */
-        if(line.length()>1){
-            if(line.substring(0, 2).equals("..")){
+         * Since a message body can contain a line with just a period as part of the
+         * text, the client sends two periods every time a line starts with a period;
+         * correspondingly, the server replaces every sequence of two periods at the
+         * beginning of a line with a single one. Such escaping method is called
+         * dot-stuffing.
+         */
+        if (line.length() > 1) {
+            if (line.substring(0, 2).equals("..")) {
                 line = line.substring(1);
             }
         }
 
-        if(headerContentType != null && headerContentType.length > 1 && isNewBoundary(line, headerContentType[1])){ //new frame detected
+        if (headerContentType != null && headerContentType.length > 1 && isNewBoundary(line, headerContentType[1])) { // new
+                                                                                                                      // frame
+                                                                                                                      // detected
             saveFrame();
-        }else if(headerContentType != null && headerContentType.length > 1 && isLastBoundary(line, headerContentType[1])){ //end of message
+        } else if (headerContentType != null && headerContentType.length > 1
+                && isLastBoundary(line, headerContentType[1])) { // end of message
             saveLastFrame();
-        }else if(isEndOfData(line)){
+        } else if (isEndOfData(line)) {
             closeAndNotifyListeners();
-        }else if(readingBody){
+        } else if (readingBody) {
             continueReadingBody();
-        }else{
-            if(currentFrame > lastFrame || readingFrame){ //new frame to be read
+        } else {
+            if (currentFrame > lastFrame || readingFrame) { // new frame to be read
                 readNewFrame();
-            }else{
+            } else {
                 readCurrentFrameHeaders();
             }
         }
-    }//end readData()
-    
-    private void readCurrentFrameHeaders() throws IOException{
-        if(isSubject(line) && !checkSUBJECT){
+    }// end readData()
+
+    private void readCurrentFrameHeaders() throws IOException {
+        if (isSubject(line) && !checkSUBJECT) {
             checkSUBJECT = true;
             subject = getSubject(line);
-        }else if(isFrom(line)){
+        } else if (isFrom(line)) {
             sender = getMailAddress(line);
-        }else if(isContentType(line)){
-            headerContentType = new String[]{
-                getContentType(line),
-                getBoundary(line)
-            };
+        } else if (isContentType(line)) {
+            headerContentType = new String[] { getContentType(line), getBoundary(line) };
 
-            if(!type.trim().equals("multipart/alternative")){
+            if (!type.trim().equals("multipart/alternative")) {
                 sayByeAndClose();
             }
         }
     }
-    
-    private void readNewFrame(){
-        //reading a frame right now...
-        readingFrame = true;
-        if(isContentType(line)){
-            bodyContentType = new String[]{
-                getContentType(line),
-                getCharset(line)
-            };
 
-            //type of the content, this must be: multipart/alternative
-            type=bodyContentType[0].trim();
+    private void readNewFrame() {
+        // reading a frame right now...
+        readingFrame = true;
+        if (isContentType(line)) {
+            bodyContentType = new String[] { getContentType(line), getCharset(line) };
+
+            // type of the content, this must be: multipart/alternative
+            type = bodyContentType[0].trim();
         }
     }
-    
-    private void continueReadingBody(){
-        if(!frameHeadersDone){
-            if(line.trim().equals("")){
+
+    private void continueReadingBody() {
+        if (!frameHeadersDone) {
+            if (line.trim().equals("")) {
                 frameHeadersDone = true;
-            }else if(isContentType(line)){
-                bodyContentType = new String[]{
-                    getContentType(line),
-                    getCharset(line)
-                };
-            }   
-        }else{
-            //reading the actual body of the message right now
-            currentFrameContent += "\n"+line;
+            } else if (isContentType(line)) {
+                bodyContentType = new String[] { getContentType(line), getCharset(line) };
+            }
+        } else {
+            // reading the actual body of the message right now
+            currentFrameContent += "\n" + line;
         }
     }
-    
-    private void closeAndNotifyListeners() throws IOException{
-        //"." means end of DATA
-        //(normaly this should be sent right before the last frame "QUIT"),
-        //however, it seems gmail closes the socket by force
-        //as soon as it sends the end of data frame, containing the character "."
+
+    private void closeAndNotifyListeners() throws IOException {
+        // "." means end of DATA
+        // (normaly this should be sent right before the last frame "QUIT"),
+        // however, it seems gmail closes the socket by force
+        // as soon as it sends the end of data frame, containing the character "."
 
         checkDATA = false;
         sayOkAndQueue(12345);
         checkQUIT = true;
         sayByeAndClose();
-        final Email email  = new Email(subject, frames, sender, checkRCPT_TO);
+        final Email email = new Email(subject, frames, sender, checkRCPT_TO);
         listeners.forEach((listener) -> {
             listener.onEmailReceived(email);
         });
-        
-        ROUTES.forEach((key,wo)->{
-            if(wo.getType().equals("SMTP")){
+
+        ROUTES.forEach((key, wo) -> {
+            if (wo.getType().equals("SMTP")) {
                 try {
-                    Class<?> cls = Class.forName(wo.getClassname());
-                    Constructor<?> constructor = ConstructorFinder.getNoParametersConstructor(cls);
-                    if(constructor == null){
-                        throw new InvalidControllerConstructorException(
-                                String
-                                        .format("\nController %s does not contain a valid constructor.\n"
-                                                + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                                                + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!", 
-                                                wo.getClassname()
-                                        )
-                        );
+                    final Class<?> cls = Class.forName(wo.getClassname());
+                    final Constructor<?> constructor = ConstructorFinder.getNoParametersConstructor(cls);
+                    if (constructor == null) {
+                        throw new InvalidControllerConstructorException(String.format(
+                                "\nController %s does not contain a valid constructor.\n"
+                                        + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                        + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
+                                wo.getClassname()));
                     }
                     try {
-                        SmtpController controller = (SmtpController) constructor.newInstance();
-                        Method method = controller.getClass().getDeclaredMethod("onEmailReceived",Email.class);
+                        final SmtpController controller = (SmtpController) constructor.newInstance();
+                        final Method method = controller.getClass().getDeclaredMethod("onEmailReceived", Email.class);
                         method.invoke(controller,email);
                     } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | InstantiationException ex) {
                         LOGGER.log(Level.SEVERE, null, ex);

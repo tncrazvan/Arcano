@@ -25,58 +25,51 @@ public class Get extends HttpController{
     @ArcanoSecret
     @WebPath(name="/memory")
     public JsonObject memory(){
-        JsonObject result = new JsonObject();
+        final JsonObject result = new JsonObject();
         result.addProperty("free", getFreeMemory());
         result.addProperty("allocated", getAllocatedMemory());
         result.addProperty("max", getMaxMemory());
         return result;
     }
-    
-    @WebPath(name="/file")
-    public HttpResponse file() throws IOException {
-        return new HttpResponse(new File(so.config.webRoot+String.join("/", args)));
-    }
-    
-    class Cookie{
-        String 
-                type,
-                value;
 
-        public Cookie(String type,String value) {
-            this.type=type;
-            this.value=value;
-        }
-        
+    @WebPath(name = "/file")
+    public HttpResponse file() throws IOException {
+        return new HttpResponse(new File(so.config.webRoot + String.join("/", args)));
     }
-    
-    @WebPath(name="/allWebSocketGroups")
-    public void allWebSocketGroups(){
+
+    class Cookie {
+        String type, value;
+
+        public Cookie(final String type, final String value) {
+            this.type = type;
+            this.value = value;
+        }
+
+    }
+
+    @WebPath(name = "/allWebSocketGroups")
+    public void allWebSocketGroups() {
         WebSocketGroup group;
-        JsonArray arr = new JsonArray();
-        for(String key : 
-        WebSocketGroupApi
-        .GROUP_MANAGER
-        .getAllGroups().keySet()){
-            group = WebSocketGroupApi
-                            .GROUP_MANAGER
-                            .getGroup(key);
-            if(group.getVisibility() == WebSocketGroup.PUBLIC){
-                JsonObject o = new JsonObject();
+        final JsonArray arr = new JsonArray();
+        for (final String key : WebSocketGroupApi.GROUP_MANAGER.getAllGroups().keySet()) {
+            group = WebSocketGroupApi.GROUP_MANAGER.getGroup(key);
+            if (group.getVisibility() == WebSocketGroup.PUBLIC) {
+                final JsonObject o = new JsonObject();
                 o.addProperty("name", group.getGroupName());
                 o.addProperty("id", key);
                 arr.add(o);
             }
-            
+
         }
         send(arr.toString());
     }
-    
-    @WebPath(name="/cookie")
-    public void cookie(){
-        String name = String.join("/", args);
-        if(issetRequestCookie(name)){
+
+    @WebPath(name = "/cookie")
+    public void cookie() {
+        final String name = String.join("/", args);
+        if (issetRequestCookie(name)) {
             setResponseContentType("application/json");
-            String jsonCookie = jsonStringify(new Cookie("Cookie", getRequestCookie(name)));
+            final String jsonCookie = jsonStringify(new Cookie("Cookie", getRequestCookie(name)));
             send(jsonCookie);
         }else{
             setResponseStatus(STATUS_NOT_FOUND);

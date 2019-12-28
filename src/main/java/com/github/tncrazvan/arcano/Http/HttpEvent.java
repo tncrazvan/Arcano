@@ -170,12 +170,13 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         }
     }
 
-    private static HttpController serveController(HttpRequestReader reader) throws InstantiationException, IllegalAccessException,
-            NoSuchMethodException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException {
-        
+    private static HttpController serveController(final HttpRequestReader reader)
+            throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException,
+            IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException {
+
         String[] location = reader.location.toString().split("/");
-        String httpMethod = reader.request.headers.get("Method");
-        boolean abusiveUrl = Regex.match(reader.location.toString(),"w3e478tgdf8723qioiuy");
+        final String httpMethod = reader.request.headers.get("Method");
+        final boolean abusiveUrl = Regex.match(reader.location.toString(), "w3e478tgdf8723qioiuy");
         Method method;
         String[] args;
         Class<?> cls;
@@ -194,29 +195,28 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                         .concat(Arrays.stream(new String[] { httpMethod }), Arrays.stream(location))
                         .toArray(String[]::new);
                 wo = resolveClassName(classId + 1, typedLocation);
-                if(wo.isLocked()){
-                    if(!reader.request.headers.issetCookie("ArcanoSecret")){
-                        throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. No key specified.");
-                    }else{
-                        String key = reader.request.headers.getCookie("ArcanoSecret");
-                        if(!reader.so.config.arcanoSecret.equals(key)){
-                            throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. The specified key is invalid.");
+                if (wo.isLocked()) {
+                    if (!reader.request.headers.issetCookie("ArcanoSecret")) {
+                        throw new NoSecretFoundException(
+                                "An unauthorized client attempted to access a locked HttpController. No key specified.");
+                    } else {
+                        final String key = reader.request.headers.getCookie("ArcanoSecret");
+                        if (!reader.so.config.arcanoSecret.equals(key)) {
+                            throw new NoSecretFoundException(
+                                    "An unauthorized client attempted to access a locked HttpController. The specified key is invalid.");
                         }
                     }
                 }
                 cls = Class.forName(wo.getClassname());
                 constructor = ConstructorFinder.getNoParametersConstructor(cls);
-                if(constructor == null){
-                    throw new InvalidControllerConstructorException(
-                            String
-                                    .format("\nController %s does not contain a valid constructor.\n"
-                                            + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                                            + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!", 
-                                            wo.getClassname()
-                                    )
-                    );
+                if (constructor == null) {
+                    throw new InvalidControllerConstructorException(String.format(
+                            "\nController %s does not contain a valid constructor.\n"
+                                    + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                    + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
+                            wo.getClassname()));
                 }
-                controller = (HttpController)constructor.newInstance();
+                controller = (HttpController) constructor.newInstance();
 
                 final String methodname = location.length > classId ? wo.getMethodname() : "main";
                 args = resolveMethodArgs(classId + 1, location);
@@ -227,75 +227,68 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     method = controller.getClass().getDeclaredMethod("main");
                 }
             } else {
-                try{
+                try {
                     cls = Class.forName(reader.so.config.http.controllerDefault.getClassname());
-                }catch(ClassNotFoundException ex){
+                } catch (final ClassNotFoundException ex) {
                     cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
                 }
                 constructor = ConstructorFinder.getNoParametersConstructor(cls);
-                if(constructor == null){
-                    throw new InvalidControllerConstructorException(
-                            String
-                                    .format("\nController %s does not contain a valid constructor.\n"
-                                            + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                                            + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!", 
-                                            cls.getName()
-                                    )
-                    );
+                if (constructor == null) {
+                    throw new InvalidControllerConstructorException(String.format(
+                            "\nController %s does not contain a valid constructor.\n"
+                                    + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                    + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
+                            cls.getName()));
                 }
                 controller = (HttpController) constructor.newInstance();
                 method = controller.getClass().getDeclaredMethod("main");
             }
-            controller.init(reader,args);
+            controller.init(reader, args);
             controller.invoke(controller, method);
         } catch (final ClassNotFoundException ex) {
-            try{
-                cls = Class.forName(reader.so.config.http.controllerDefault.getClassname());
-            }catch(ClassNotFoundException ex2){
+            if(location.length == 1 && location[0].equals("")){
+                try {
+                    cls = Class.forName(reader.so.config.http.controllerDefault.getClassname());
+                } catch (final ClassNotFoundException ex2) {
+                    cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
+                }
+            }else 
                 cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
-            }
-            try{
+            try {
                 constructor = ConstructorFinder.getNoParametersConstructor(cls);
-                if(constructor == null){
-                    throw new InvalidControllerConstructorException(
-                            String
-                                    .format("\nController %s does not contain a valid constructor.\n"
-                                            + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                                            + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!", 
-                                            cls.getName()
-                                    )
-                    );
+                if (constructor == null) {
+                    throw new InvalidControllerConstructorException(String.format(
+                            "\nController %s does not contain a valid constructor.\n"
+                                    + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                    + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
+                            cls.getName()));
                 }
                 controller = (HttpController) constructor.newInstance();
                 method = controller.getClass().getDeclaredMethod("main");
-                controller.init(reader,args);
+                controller.init(reader, location);
                 controller.setResponseStatus(STATUS_NOT_FOUND);
                 controller.invoke(controller, method);
-            }catch (InvalidControllerConstructorException e){
+            } catch (final InvalidControllerConstructorException e) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
-        } catch (NoSecretFoundException ex){
+        } catch (final NoSecretFoundException ex) {
             controller = new HttpController();
+            controller.init(reader, location);
             controller.setHttpHeaders(new HttpHeaders());
             controller.setResponseStatus(STATUS_LOCKED);
-            controller.setSharedObject(reader.so);
-            controller.setDataOutputStream(reader.output);
-            controller.setSocket(reader.client);
-            controller.setHttpRequest(reader.request);
-            controller.initEventManager();
-            controller.initHttpEventManager();
             controller.send("");
             return controller;
-        } catch (InvalidControllerConstructorException ex) {
+        } catch (final InvalidControllerConstructorException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
         return (HttpController) controller;
     }
-    
-    //public static void onControllerRequest(final StringBuilder url,String httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName) {
-    public static void onControllerRequest(HttpRequestReader reader) {
+
+    // public static void onControllerRequest(final StringBuilder url,String
+    // httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName) {
+    public static void onControllerRequest(final HttpRequestReader reader) {
         try {
-            HttpController controller = serveController(reader);
+            final HttpController controller = serveController(reader);
             if(controller != null ) controller.close();
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
             LOGGER.log(Level.WARNING, null, ex);

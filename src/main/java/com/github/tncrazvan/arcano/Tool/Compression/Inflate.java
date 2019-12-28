@@ -12,8 +12,8 @@ public interface Inflate {
     static byte[] inflate(final byte[] input) throws IOException{
         if(input == null || input.length == 0)
             return input;
-        ByteArrayInputStream bais = new ByteArrayInputStream(input);
-        InflaterInputStream iis = new InflaterInputStream(bais);
+        final ByteArrayInputStream bais = new ByteArrayInputStream(input);
+        final InflaterInputStream iis = new InflaterInputStream(bais);
         return iis.readAllBytes();
     }
 }

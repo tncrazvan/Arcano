@@ -38,10 +38,10 @@ public interface FileSystem {
      * 
      * @param directory directory to be removed.
      */
-    public static void rmdir(File directory){
-        File[] files = directory.listFiles();
-        if(files!=null) { //some JVMs return null for empty dirs
-            for(File f: files) {
+    public static void rmdir(final File directory) {
+        final File[] files = directory.listFiles();
+        if (files != null) { // some JVMs return null for empty dirs
+            for (final File f : files) {
                 if(f.isDirectory()) {
                     rmdir(f);
                 } else {

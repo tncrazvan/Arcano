@@ -13,19 +13,20 @@ import javax.net.ssl.SSLSocketFactory;
  */
 public class EmailComposer extends SmtpMessageManager{
     private final Email email;
-    public EmailComposer(Email email,SmtpServer server,String clientHostname,int port,boolean ssl) throws IOException {
-        super(server, (ssl?SSLSocketFactory.getDefault().createSocket(InetAddress.getByName(clientHostname),port):new Socket(clientHostname,port)));
+    public EmailComposer(final Email email, final SmtpServer server, final String clientHostname, final int port,
+            final boolean ssl) throws IOException {
+        super(server, (ssl ? SSLSocketFactory.getDefault().createSocket(InetAddress.getByName(clientHostname), port)
+                : new Socket(clientHostname, port)));
         this.email = email;
     }
 
-    public EmailComposer(Email email,SmtpServer server,String clientHostname,int port) throws IOException {
-        super(server, new Socket(clientHostname,port));
+    public EmailComposer(final Email email, final SmtpServer server, final String clientHostname, final int port)
+            throws IOException {
+        super(server, new Socket(clientHostname, port));
         this.email = email;
     }
-    
-    
-    
-    public boolean submit() throws IOException{
+
+    public boolean submit() throws IOException {
         String error, eodLine;
         if (!isReady(read()))
             return false;
@@ -36,7 +37,7 @@ public class EmailComposer extends SmtpMessageManager{
         if (!isOk(read()))
             return false;
 
-        for (String recipient : email.getRecipients()) {
+        for (final String recipient : email.getRecipients()) {
             sayRecipient(recipient);
 
             if (!isOk((error = read()))) {

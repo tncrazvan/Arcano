@@ -10,8 +10,9 @@ package com.github.tncrazvan.arcano.Tool.Cluster;
  * @author RazvanTanase
  */
 public class InvalidClusterEntryException extends Exception{
+    private static final long serialVersionUID = -751649380261142882L;
 
-    public InvalidClusterEntryException(String message) {
+    public InvalidClusterEntryException(final String message) {
         super(message);
     }
 }

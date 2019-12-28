@@ -20,32 +20,33 @@ import java.util.Map;
  * @author Administrator
  */
 public class ServerFile extends File{
+    private static final long serialVersionUID = 4567989494529454756L;
 
-    public ServerFile(File parent, File file){
-        super(parent,file.getAbsolutePath());
+    public ServerFile(final File parent, final File file) {
+        super(parent, file.getAbsolutePath());
     }
-    
-    public ServerFile(File file){
+
+    public ServerFile(final File file) {
         super(file.getAbsolutePath());
     }
-    
-    public ServerFile(URI filename) {
+
+    public ServerFile(final URI filename) {
         super(filename);
     }
-    
-    public ServerFile(String filename) {
+
+    public ServerFile(final String filename) {
         super(filename);
     }
-    
-    public ServerFile(String parent,String filename) {
-        super(parent,filename);
+
+    public ServerFile(final String parent, final String filename) {
+        super(parent, filename);
     }
 
-    public ServerFile(File parent,String filename) {
-        super(parent,filename);
+    public ServerFile(final File parent, final String filename) {
+        super(parent, filename);
     }
 
-    public byte[] read() throws FileNotFoundException, IOException{
+    public byte[] read() throws FileNotFoundException, IOException {
         byte[] result;
         try (FileInputStream fis = new FileInputStream(this)) {
             result = fis.readAllBytes();
@@ -53,20 +54,21 @@ public class ServerFile extends File{
         return result;
     }
 
-    public void write(String contents,String charset) throws UnsupportedEncodingException, IOException{
+    public void write(final String contents, final String charset) throws UnsupportedEncodingException, IOException {
         write(contents.getBytes(charset));
     }
 
-    public void write(byte[] contents) throws FileNotFoundException, IOException{
-        FileOutputStream fos = new FileOutputStream(this);
+    public void write(final byte[] contents) throws FileNotFoundException, IOException {
+        final FileOutputStream fos = new FileOutputStream(this);
         fos.write(contents);
         fos.close();
     }
 
-    public Map<String,Object> info() throws IOException{
+    public Map<String, Object> info() throws IOException {
         return info("*");
     }
-    public Map<String,Object> info(String selection) throws IOException{
+
+    public Map<String, Object> info(final String selection) throws IOException {
          return Files.readAttributes(this.toPath(), selection);
     }
 }

@@ -21,90 +21,103 @@ public interface Regex {
      * @param flags Regex flags
      * @return the first group matched
      */
-    public static boolean match(String subject, String regex, int flags){
-        Pattern pattern = Pattern.compile(regex, flags);
-        Matcher matcher = pattern.matcher(subject);
+    public static boolean match(final String subject, final String regex, final int flags) {
+        final Pattern pattern = Pattern.compile(regex, flags);
+        final Matcher matcher = pattern.matcher(subject);
         return matcher.find();
     }
+
     /**
      * Matches a regular expression on the given subject String.
+     * 
      * @param subject The string to analyze
-     * @param regex Your regex
+     * @param regex   Your regex
      * @return the first group matched
      */
-    public static boolean match(String subject, String regex){
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(subject);
+    public static boolean match(final String subject, final String regex) {
+        final Pattern pattern = Pattern.compile(regex);
+        final Matcher matcher = pattern.matcher(subject);
         return matcher.find();
     }
-    
+
     /**
-     * Extracts the nth occurrence of the given regular expression on the given subject String.
-     * @param subject the input String.
-     * @param regex your regular expression.
+     * Extracts the nth occurrence of the given regular expression on the given
+     * subject String.
+     * 
+     * @param subject     the input String.
+     * @param regex       your regular expression.
      * @param replacement replacement string.
      * @return the nth occurred String.
      */
-    public static String replace(String subject,String regex,String replacement){
+    public static String replace(final String subject, final String regex, final String replacement) {
         return subject.replaceAll(regex, replacement);
     }
-    
+
     /**
-     * Extracts the nth occurrence of the given regular expression on the given subject String.
+     * Extracts the nth occurrence of the given regular expression on the given
+     * subject String.
+     * 
      * @param subject the input String.
-     * @param regex your regular expression.
-     * @param n the occurences counter.
-     * @param flags Regex flags
+     * @param regex   your regular expression.
+     * @param n       the occurences counter.
+     * @param flags   Regex flags
      * @return the nth occurred String.
      */
-    public static String group(String subject,String regex,int n, int flags){
-        Pattern pattern = Pattern.compile(regex,flags);
-        Matcher matcher = pattern.matcher(subject);
-        if(matcher.find()){
-            if(n < 0){
+    public static String group(final String subject, final String regex, int n, final int flags) {
+        final Pattern pattern = Pattern.compile(regex, flags);
+        final Matcher matcher = pattern.matcher(subject);
+        if (matcher.find()) {
+            if (n < 0) {
                 n = matcher.groupCount() + n;
             }
             return matcher.group(n);
         }
         return null;
     }
+
     /**
-     * Extracts the nth occurrence of the given regular expression on the given subject String.
+     * Extracts the nth occurrence of the given regular expression on the given
+     * subject String.
+     * 
      * @param subject the input String.
-     * @param regex your regular expression.
-     * @param n the occurences counter.
+     * @param regex   your regular expression.
+     * @param n       the occurences counter.
      * @return the nth occurred String.
      */
-    public static String group(String subject,String regex,int n){
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(subject);
-        if(matcher.find()){
-            if(n < 0){
+    public static String group(final String subject, final String regex, int n) {
+        final Pattern pattern = Pattern.compile(regex);
+        final Matcher matcher = pattern.matcher(subject);
+        if (matcher.find()) {
+            if (n < 0) {
                 n = matcher.groupCount() + n;
             }
             return matcher.group(n);
         }
         return null;
     }
-    
+
     /**
-     * Extracts the first occurrence of the given regular expression on the given subject String.
+     * Extracts the first occurrence of the given regular expression on the given
+     * subject String.
+     * 
      * @param subject
      * @param regex
-     * @param flags Regex flags
+     * @param flags   Regex flags
      * @return the first occurred String.
      */
-    public static String extract(String subject,String regex, int flags){
+    public static String extract(final String subject, final String regex, final int flags) {
         return Regex.group(subject, regex, 0, flags);
     }
-    
+
     /**
-     * Extracts the first occurrence of the given regular expression on the given subject String.
+     * Extracts the first occurrence of the given regular expression on the given
+     * subject String.
+     * 
      * @param subject
      * @param regex
      * @return the first occurred String.
      */
-    public static String extract(String subject,String regex){
+    public static String extract(final String subject, final String regex) {
         return group(subject, regex, 0);
     }
 }

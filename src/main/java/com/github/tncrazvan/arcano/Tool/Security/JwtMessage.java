@@ -15,25 +15,33 @@ public class JwtMessage extends SharedObject implements JsonTools{
     private final JsonObject header = new JsonObject();
     private final JsonObject body;
     private String contents = "";
-    public JwtMessage(JsonObject body){
+    public JwtMessage(final JsonObject body) {
         header.addProperty("alg", "HS512");
         header.addProperty("typ", "JWT");
         this.body = body;
-        String header64 = btoa(this.header.toString(),config.charset);
-        String body64 = btoa(this.body.toString(),config.charset);
-        this.contents = header64+"."+body64;
-        String token = btoa(getSha512String(this.contents, SECRET, config.charset),config.charset);
-        
-        this.contents = this.contents+"."+token;
+        final String header64 = btoa(this.header.toString(), config.charset);
+        final String body64 = btoa(this.body.toString(), config.charset);
+        this.contents = header64 + "." + body64;
+        final String token = btoa(getSha512String(this.contents, SECRET, config.charset), config.charset);
+
+        this.contents = this.contents + "." + token;
     }
-    
+
     @Override
-    public String toString(){return contents;}
-    public JsonObject getHeader(){return header;}
-    public JsonObject getBody(){return body;}
-    
-    public static boolean verify(String message,String charset){
-        String[] pieces = message.split("\\.");
+    public String toString() {
+        return contents;
+    }
+
+    public JsonObject getHeader() {
+        return header;
+    }
+
+    public JsonObject getBody() {
+        return body;
+    }
+
+    public static boolean verify(final String message, final String charset) {
+        final String[] pieces = message.split("\\.");
         if(pieces.length < 3) return false;
         return btoa(getSha512String(pieces[0]+"."+pieces[1], SECRET,charset),charset).equals(pieces[2]);
     }

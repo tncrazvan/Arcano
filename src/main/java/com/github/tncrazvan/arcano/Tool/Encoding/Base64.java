@@ -23,92 +23,96 @@ public interface Base64 {
      * @param charset character set to use
      * @return decoded String.
      */
-    public static String atob(String value, String charset){
+    public static String atob(final String value, final String charset) {
         try {
-            return new String(BASE64_DECODER.decode(value.getBytes(charset)),charset);
-        } catch (UnsupportedEncodingException ex) {
-            LOGGER.log(Level.WARNING,null,ex);
+            return new String(BASE64_DECODER.decode(value.getBytes(charset)), charset);
+        } catch (final UnsupportedEncodingException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
         }
         return null;
     }
-    
+
     /**
      * Decodes base64 String to byte array.
-     * @param value encoded String.
+     * 
+     * @param value   encoded String.
      * @param charset character set to use
      * @return decoded byte array.
      */
-    public static  byte[] atobByte(String value, String charset){
+    public static byte[] atobByte(final String value, final String charset) {
         try {
             return BASE64_DECODER.decode(value.getBytes(charset));
-        } catch (UnsupportedEncodingException ex) {
-            LOGGER.log(Level.WARNING,null,ex);
+        } catch (final UnsupportedEncodingException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
         }
         return null;
     }
-    
+
     /**
      * Decodes base64 byte array.
+     * 
      * @param value encoded byte array.
      * @return decoded byte array.
      */
-    public static byte[] atobByte(byte[] value){
+    public static byte[] atobByte(final byte[] value) {
         return BASE64_DECODER.decode(value);
     }
-    
-    
-    
+
     /**
-    * Encodes String to base64.
-    * @param value input String.
-    * @param charset character set to use
-    * @return encoded String.
-    */ 
-    public static String btoa(byte[] value,String charset){
+     * Encodes String to base64.
+     * 
+     * @param value   input String.
+     * @param charset character set to use
+     * @return encoded String.
+     */
+    public static String btoa(final byte[] value, final String charset) {
         try {
-            return new String(BASE64_ENCODER.encode(value),charset);
-        } catch (UnsupportedEncodingException ex) {
-            LOGGER.log(Level.WARNING,null,ex);
+            return new String(BASE64_ENCODER.encode(value), charset);
+        } catch (final UnsupportedEncodingException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
         }
         return null;
     }
-    
-   /**
-    * Encodes String to base64.
-    * @param value input String.
-    * @param charset character set to use
-    * @return encoded String.
-    */ 
-    public static String btoa(String value, String charset){
+
+    /**
+     * Encodes String to base64.
+     * 
+     * @param value   input String.
+     * @param charset character set to use
+     * @return encoded String.
+     */
+    public static String btoa(final String value, final String charset) {
         try {
-            return new String(BASE64_ENCODER.encode(value.getBytes(charset)),charset);
-        } catch (UnsupportedEncodingException ex) {
-            LOGGER.log(Level.WARNING,null,ex);
+            return new String(BASE64_ENCODER.encode(value.getBytes(charset)), charset);
+        } catch (final UnsupportedEncodingException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
         }
         return null;
     }
-    
+
     /**
      * Encodes String to base64 byte array.
-     * @param value input String.
+     * 
+     * @param value   input String.
      * @param charset character set to use
      * @return encoded byte array.
      */
-    public static byte[] btoaGetBytes(String value, String charset){
+    public static byte[] btoaGetBytes(final String value, final String charset) {
         try {
             return BASE64_ENCODER.encode(value.getBytes(charset));
-        } catch (UnsupportedEncodingException ex) {
-            LOGGER.log(Level.WARNING,null,ex);
+        } catch (final UnsupportedEncodingException ex) {
+            LOGGER.log(Level.WARNING, null, ex);
         }
         return null;
     }
-    
+
     /**
      * Encodes byte array to base64.
+     * 
      * @param value input byte array.
      * @return encoded byte array.
      */
-    public static byte[] btoaGetBytes(byte[] value){
+    public static byte[] btoaGetBytes(final byte[] value) {
         return BASE64_ENCODER.encode(value);
     }
 }

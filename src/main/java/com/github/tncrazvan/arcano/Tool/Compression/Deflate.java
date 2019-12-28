@@ -12,7 +12,7 @@ public interface Deflate {
     static byte[] deflate(final byte[] input) throws IOException{
         if(input == null || input.length == 0)
             return input;
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (DeflaterOutputStream dos = new DeflaterOutputStream(baos)) {
             dos.write(input);
             dos.flush();

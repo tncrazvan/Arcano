@@ -10,26 +10,26 @@ public class WebObject {
     private String methodname=null;
     private String type="GET";
     
-    public WebObject(String classname, String methodname, String type, final boolean LOCKED) {
+    public WebObject(final String classname, final String methodname, final String type, final boolean LOCKED) {
         this.classname = classname;
         this.methodname = methodname;
         this.type = type;
         this.LOCKED = LOCKED;
     }
-    
-    public boolean isLocked(){
+
+    public boolean isLocked() {
         return LOCKED;
     }
-    
-    public void setClassname(String classname) {
+
+    public void setClassname(final String classname) {
         this.classname = classname;
     }
 
-    public void setMethodname(String methodname) {
+    public void setMethodname(final String methodname) {
         this.methodname = methodname;
     }
 
-    public void setType(String httpMethod) {
+    public void setType(final String httpMethod) {
         this.type = httpMethod;
     }
     

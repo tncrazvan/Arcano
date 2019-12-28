@@ -15,58 +15,70 @@ public interface JsonTools {
     static final Gson JSON_PARSER = new Gson();
     
     //JsonObject
-    static JsonObject jsonObject(byte[] data){
+    static JsonObject jsonObject(final byte[] data) {
         return JSON_PARSER.fromJson(new String(data), JsonObject.class);
     }
-    static JsonObject jsonObject(String str){
+
+    static JsonObject jsonObject(final String str) {
         return JSON_PARSER.fromJson(str, JsonObject.class);
     }
-    static JsonObject jsonObject(StringBuilder str){
+
+    static JsonObject jsonObject(final StringBuilder str) {
         return jsonObject(str.toString());
     }
-    static JsonObject jsonObject(Object o){
+
+    static JsonObject jsonObject(final Object o) {
         return JSON_PARSER.toJsonTree(o).getAsJsonObject();
     }
-    
-    //JsonArray
-    static JsonArray jsonArray(String str){
+
+    // JsonArray
+    static JsonArray jsonArray(final String str) {
         return JSON_PARSER.fromJson(str, JsonArray.class);
     }
-    static JsonArray jsonArray(Reader str){
+
+    static JsonArray jsonArray(final Reader str) {
         return JSON_PARSER.fromJson(str, JsonArray.class);
     }
-    static JsonArray jsonArray(JsonReader str){
+
+    static JsonArray jsonArray(final JsonReader str) {
         return JSON_PARSER.fromJson(str, JsonArray.class);
     }
-    static JsonArray jsonArray(StringBuilder str){
+
+    static JsonArray jsonArray(final StringBuilder str) {
         return jsonArray(str.toString());
     }
-    static JsonArray jsonArray(Object[] o){
+
+    static JsonArray jsonArray(final Object[] o) {
         return JSON_PARSER.toJsonTree(o).getAsJsonArray();
     }
-    
-    //STRINGIFY
-    static String jsonStringify(Object o){
+
+    // STRINGIFY
+    static String jsonStringify(final Object o) {
         return jsonObject(o).toString();
     }
-    static String jsonStringify(Object[] o){
+
+    static String jsonStringify(final Object[] o) {
         return jsonArray(o).toString();
     }
-    
-    //PARSE TO ?
-    static <T> T jsonParse(String o, Class<T> cls){
+
+    // PARSE TO ?
+    static <T> T jsonParse(final String o, final Class<T> cls) {
         return (T) JSON_PARSER.fromJson(o, cls);
     }
-    static <T> T jsonParse(Reader o, Class<T> cls){
+
+    static <T> T jsonParse(final Reader o, final Class<T> cls) {
         return (T) JSON_PARSER.fromJson(o, cls);
     }
-    static <T> T jsonParse(JsonReader o, Class<T> cls){
+
+    static <T> T jsonParse(final JsonReader o, final Class<T> cls) {
         return (T) JSON_PARSER.fromJson(o, cls);
     }
-    static <T> T jsonParse(StringBuilder o, Class<T> cls){
-        return jsonParse(o.toString(),cls);
+
+    static <T> T jsonParse(final StringBuilder o, final Class<T> cls) {
+        return jsonParse(o.toString(), cls);
     }
-    static <T> T jsonParse(JsonElement o, Class<T> cls){
+
+    static <T> T jsonParse(final JsonElement o, final Class<T> cls) {
         return (T) JSON_PARSER.fromJson(o, cls);
     }
 }

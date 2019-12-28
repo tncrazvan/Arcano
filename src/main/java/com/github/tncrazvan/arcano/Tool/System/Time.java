@@ -5,7 +5,6 @@
  */
 package com.github.tncrazvan.arcano.Tool.System;
 
-import com.github.tncrazvan.arcano.SharedObject;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -16,16 +15,19 @@ import java.time.ZoneId;
  */
 public interface Time {
     
-    public static long toSeconds(ZoneId zone, LocalDateTime time){
+    public static long toSeconds(final ZoneId zone, final LocalDateTime time) {
         return Time.toLocalDateTime().atZone(zone).toEpochSecond();
     }
-    public static LocalDateTime toLocalDateTime(ZoneId zone, long value){
-        return LocalDateTime.ofInstant(Instant.ofEpochSecond(value),zone);
+
+    public static LocalDateTime toLocalDateTime(final ZoneId zone, final long value) {
+        return LocalDateTime.ofInstant(Instant.ofEpochSecond(value), zone);
     }
-    public static LocalDateTime toLocalDateTime(){
+
+    public static LocalDateTime toLocalDateTime() {
         return LocalDateTime.now();
     }
-    public static long now(ZoneId zone){
+
+    public static long now(final ZoneId zone) {
         return toSeconds(zone, LocalDateTime.now());
     }
     

@@ -11,7 +11,12 @@ package com.github.tncrazvan.arcano;
  */
 public class InvalidControllerConstructorException extends Exception{
 
-    public InvalidControllerConstructorException(String message) {
+    /**
+     *
+     */
+    private static final long serialVersionUID = -2402208777522538925L;
+
+    public InvalidControllerConstructorException(final String message) {
         super(message);
     }
     

@@ -58,69 +58,70 @@ public class SharedObject implements Strings{
     public static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
     public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
     
-    public final void expose(Class<?>... classes) {
-        for(Class<?> cls : classes){
+    public final void expose(final Class<?>... classes) {
+        for (final Class<?> cls : classes) {
             try {
-                if(HttpController.class.isAssignableFrom(cls)){
-                    WebPath classRoute = (WebPath) cls.getAnnotation(WebPath.class);
-                    ArcanoSecret classWebLocked = (ArcanoSecret) cls.getAnnotation(ArcanoSecret.class);
-                    WebMethod classWebFilter = (WebMethod) cls.getAnnotation(WebMethod.class);
-                    Method[] methods = cls.getDeclaredMethods();
-                    for(Method method : methods){
-                        WebPath methodRoute = method.getAnnotation(WebPath.class);
-                        ArcanoSecret methodWebLocked = (ArcanoSecret) method.getAnnotation(ArcanoSecret.class);
-                        if(methodRoute != null){
-                            String classPath = normalizePathSlashes(classRoute.name().trim());
-                            String methodPath = normalizePathSlashes(methodRoute.name().trim());
+                if (HttpController.class.isAssignableFrom(cls)) {
+                    final WebPath classRoute = (WebPath) cls.getAnnotation(WebPath.class);
+                    final ArcanoSecret classWebLocked = (ArcanoSecret) cls.getAnnotation(ArcanoSecret.class);
+                    final WebMethod classWebFilter = (WebMethod) cls.getAnnotation(WebMethod.class);
+                    final Method[] methods = cls.getDeclaredMethods();
+                    for (final Method method : methods) {
+                        final WebPath methodRoute = method.getAnnotation(WebPath.class);
+                        final ArcanoSecret methodWebLocked = (ArcanoSecret) method.getAnnotation(ArcanoSecret.class);
+                        if (methodRoute != null) {
+                            final String classPath = normalizePathSlashes(classRoute.name().trim());
+                            final String methodPath = normalizePathSlashes(methodRoute.name().trim());
                             WebMethod methodWebFilter = (WebMethod) method.getAnnotation(WebMethod.class);
-                            if(methodWebFilter == null)
+                            if (methodWebFilter == null)
                                 methodWebFilter = classWebFilter;
-                            String path = (classPath.toLowerCase()+methodPath.toLowerCase()).replaceAll("/+", "/");
+                            String path = (classPath.toLowerCase() + methodPath.toLowerCase()).replaceAll("/+", "/");
                             String type;
-                            if(methodWebFilter != null){
+                            if (methodWebFilter != null) {
                                 type = methodWebFilter.name();
-                            }else{
+                            } else {
                                 type = "GET";
                             }
                             path = normalizePathSlashes(path);
-                            WebObject wo = new WebObject(cls.getName(), method.getName(), type, classWebLocked != null || methodWebLocked != null);
-                            ROUTES.put(type+path, wo);
-                        }else if(method.getAnnotation(WebPathNotFound.class) != null){
-                            String type = "HTTP[404]";
-                            WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
+                            final WebObject wo = new WebObject(cls.getName(), method.getName(), type,
+                                    classWebLocked != null || methodWebLocked != null);
+                            ROUTES.put(type + path, wo);
+                        } else if (method.getAnnotation(WebPathNotFound.class) != null) {
+                            final String type = "HTTP 404";
+                            final WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
                             ROUTES.put(type, wo);
                             this.config.http.controllerNotFound = wo;
-                        }else if(method.getAnnotation(DefaultWebPath.class) != null){
-                            String type = "HTTP[???]";
-                            WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
+                        } else if (method.getAnnotation(DefaultWebPath.class) != null) {
+                            final String type = "HTTP DEFAULT";
+                            final WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
                             ROUTES.put(type, wo);
                             this.config.http.controllerDefault = wo;
                         }
                     }
-                }else if(WebSocketController.class.isAssignableFrom(cls)){
-                    WebPath route = (WebPath) cls.getAnnotation(WebPath.class);
-                    ArcanoSecret classWebLocked = (ArcanoSecret) cls.getAnnotation(ArcanoSecret.class);
-                    if(route != null){
-                        String path = normalizePathSlashes(route.name().toLowerCase());
-                        String type = "WS";
-                        
-                        WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
-                        ROUTES.put(type+path, wo);
-                    }else{
-                        WebPathNotFound nf = (WebPathNotFound) cls.getAnnotation(WebPathNotFound.class);
-                        if(nf != null){
-                            String type = "WS[404]";
-                            WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
+                } else if (WebSocketController.class.isAssignableFrom(cls)) {
+                    final WebPath route = (WebPath) cls.getAnnotation(WebPath.class);
+                    final ArcanoSecret classWebLocked = (ArcanoSecret) cls.getAnnotation(ArcanoSecret.class);
+                    if (route != null) {
+                        final String path = normalizePathSlashes(route.name().toLowerCase());
+                        final String type = "WS";
+
+                        final WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
+                        ROUTES.put(type + path, wo);
+                    } else {
+                        final WebPathNotFound nf = (WebPathNotFound) cls.getAnnotation(WebPathNotFound.class);
+                        if (nf != null) {
+                            final String type = "WS 404";
+                            final WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
                             ROUTES.put(type, wo);
                             this.config.webSocket.controllerNotFound = wo;
                         }
                     }
-                }else if(SmtpController.class.isAssignableFrom(cls)){
-                    EmailPath route = (EmailPath) cls.getAnnotation(EmailPath.class);
-                    ArcanoSecret classWebLocked = (ArcanoSecret) cls.getAnnotation(ArcanoSecret.class);
-                    if(route != null){
-                        String type = "SMTP";
-                        WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
+                } else if (SmtpController.class.isAssignableFrom(cls)) {
+                    final EmailPath route = (EmailPath) cls.getAnnotation(EmailPath.class);
+                    final ArcanoSecret classWebLocked = (ArcanoSecret) cls.getAnnotation(ArcanoSecret.class);
+                    if (route != null) {
+                        final String type = "SMTP";
+                        final WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
                         ROUTES.put(type, wo);
                     }
                 }

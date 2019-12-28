@@ -11,9 +11,8 @@ import com.github.tncrazvan.arcano.Tool.Http.Status;
 import com.github.tncrazvan.asciitable.AsciiTable;
 import com.google.gson.JsonObject;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -84,9 +83,12 @@ public class Configuration {
     }
     public Http http = new Http();
     public String[] compression = new String[0];
-    public HashMap<String,String> headers = new HashMap<String,String>(){{
-        put("@Status",Status.STATUS_SUCCESS);
-    }};
+    public HashMap<String,String> headers = new HashMap<String,String>(){
+		private static final long serialVersionUID = -8770720041851024009L;
+        {
+            put("@Status",Status.STATUS_SUCCESS);
+        }
+};
     public static class Session{
         public int ttl = 1440;
         public boolean keepAlive = false;
@@ -107,7 +109,7 @@ public class Configuration {
         }
     }
     public Cookie cookie = new Cookie();
-    public Cluster cluster = new Cluster(new HashMap<String,ClusterServer>(){{}});
+    public Cluster cluster = new Cluster(new HashMap<String,ClusterServer>());
     public String dir = "./http.json";
     public String arcanoSecret = "HF75HFGY4764TH4TJ4T4TY";
     public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
@@ -129,17 +131,24 @@ public class Configuration {
     public Certificate certificate = new Certificate();
     private JsonObject config = null;
     
+    public void parse(final String settings, final SharedObject so, final String[] args) throws IOException {
+        this.parse(new File(settings),so,args);
+    }
+
     /**
-     * Creates an JsonObject from the given String.
-     * @param settings json file.
+     * Parse configuration from the input filename.
+     * @param settings json configuration filename.
      * @param so
      * @param args
      * @throws IOException 
      */
-    public void parse(final String settings, final SharedObject so, final String[] args) throws IOException{
-        this.dir = new File(args[0]).getParent();
+    public void parse(final File settings, final SharedObject so, final String[] args) throws IOException{
+        this.dir = settings.getParent();
         
-        config = jsonObject(new String(Files.readAllBytes(Paths.get(settings))));
+        final FileInputStream fis = new FileInputStream(settings);
+        final byte[] configBytes = fis.readAllBytes();
+        fis.close();
+        config = jsonObject(new String(configBytes));
         char endchar;
         JsonObject tmp;
         if(config.has("compress")){
@@ -150,207 +159,204 @@ public class Configuration {
         
         if(config.has("cluster")){
             if(config.has("cluster")){
-                JsonObject clusterJson = config.get("cluster").getAsJsonObject();
+                final JsonObject clusterJson = config.get("cluster").getAsJsonObject();
                 clusterJson.keySet().forEach((hostname) -> {
-                    JsonObject serverJson = clusterJson.get(hostname).getAsJsonObject();
-                    try{
-                        if(!serverJson.has("arcanoSecret") || !serverJson.has("weight")){
-                            throw new InvalidClusterEntryException("\nCluster entry "+hostname+" is invalid.\nA cluster enrty should contain the following configuration: \n{\n"
+                    final JsonObject serverJson = clusterJson.get(hostname).getAsJsonObject();
+                    try {
+                        if (!serverJson.has("arcanoSecret") || !serverJson.has("weight")) {
+                            throw new InvalidClusterEntryException("\nCluster entry " + hostname
+                                    + " is invalid.\nA cluster enrty should contain the following configuration: \n{\n"
                                     + "\t\"arcanoSecret\":\"<your secret key>\",\n"
-                                    + "\t\"weight\":<your server weight>\n"
-                                    + "}");
+                                    + "\t\"weight\":<your server weight>\n" + "}");
                         }
-                        ClusterServer server = new ClusterServer(
-                                hostname,
-                                serverJson.get("arcanoSecret").getAsString(), 
-                                serverJson.get("weight").getAsInt()
-                        );
+                        final ClusterServer server = new ClusterServer(hostname,
+                                serverJson.get("arcanoSecret").getAsString(), serverJson.get("weight").getAsInt());
                         this.cluster.setServer(hostname, server);
-                    }catch(InvalidClusterEntryException ex){
-                        LOGGER.log(Level.SEVERE,null,ex);                                                                                                         
+                    } catch (final InvalidClusterEntryException ex) {
+                        LOGGER.log(Level.SEVERE, null, ex);
                     }
                 });
             }
         }
 
-        if(config.has("responseWrapper"))
+        if (config.has("responseWrapper"))
             this.responseWrapper = config.get("responseWrapper").getAsBoolean();
-        
-        if(config.has("secret"))
+
+        if (config.has("secret"))
             this.arcanoSecret = config.get("secret").getAsString();
 
-        if(config.has("sendExceptions"))
+        if (config.has("sendExceptions"))
             this.sendExceptions = config.get("sendExceptions").getAsBoolean();
 
-        if(config.has("minify"))
+        if (config.has("minify"))
             this.minify = config.get("minify").getAsInt();
 
-        if(config.has("threadPoolSize"))
+        if (config.has("threadPoolSize"))
             this.threadPoolSize = config.get("threadPoolSize").getAsInt();
-        
-        if(config.has("timezone"))
+
+        if (config.has("timezone"))
             this.timezone = ZoneId.of(config.get("timezone").getAsString());
-        
-        if(config.has("locale")){
-            String[] localeTmpString = config.get("locale").getAsString().split("_");
-            this.locale = new Locale(localeTmpString[0],localeTmpString[1]);
-            this.formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", this.locale).withZone(this.timezone);
+
+        if (config.has("locale")) {
+            final String[] localeTmpString = config.get("locale").getAsString().split("_");
+            this.locale = new Locale(localeTmpString[0], localeTmpString[1]);
+            this.formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", this.locale)
+                    .withZone(this.timezone);
         }
 
-
-        if(config.has("port"))
+        if (config.has("port"))
             this.port = config.get("port").getAsInt();
 
-        if(config.has("bindAddress"))
+        if (config.has("bindAddress"))
             this.bindAddress = config.get("bindAddress").getAsString();
-        else if(config.has("bindingAddress"))
+        else if (config.has("bindingAddress"))
             this.bindAddress = config.get("bindingAddress").getAsString();
 
-        if(config.has("serverRoot"))
-            this.serverRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+config.get("serverRoot").getAsString();
+        if (config.has("serverRoot"))
+            this.serverRoot = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/"
+                    + config.get("serverRoot").getAsString();
         else
-            this.serverRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+this.serverRoot;
-        endchar = this.serverRoot.charAt(this.serverRoot.length()-1);
+            this.serverRoot = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/" + this.serverRoot;
+        endchar = this.serverRoot.charAt(this.serverRoot.length() - 1);
 
-        if(endchar != '/'){
-            this.serverRoot +="/";
+        if (endchar != '/') {
+            this.serverRoot += "/";
         }
-        
-        if(config.has("webRoot"))
-            this.webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+config.get("webRoot").getAsString();
+
+        if (config.has("webRoot"))
+            this.webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/"
+                    + config.get("webRoot").getAsString();
         else
-            this.webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+this.webRoot;
-        
-        endchar = this.webRoot.charAt(this.webRoot.length()-1);
+            this.webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/" + this.webRoot;
 
-        if(endchar != '/'){
-            this.webRoot +="/";
+        endchar = this.webRoot.charAt(this.webRoot.length() - 1);
+
+        if (endchar != '/') {
+            this.webRoot += "/";
         }
-        
-        
-        
-        if(config.has("assets"))
-            this.assets = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+config.get("assets").getAsString();
+
+        if (config.has("assets"))
+            this.assets = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/"
+                    + config.get("assets").getAsString();
         else
-            this.assets = new File(args[0]).getParent().replaceAll("\\\\", "/")+"/"+this.assets;
+            this.assets = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/" + this.assets;
 
-        endchar = this.assets.charAt(this.assets.length()-1);
+        endchar = this.assets.charAt(this.assets.length() - 1);
 
-        if(endchar != '/'){
-            this.assets +="/";
+        if (endchar != '/') {
+            this.assets += "/";
         }
-        
 
-        if(config.has("charset"))
+        if (config.has("charset"))
             this.charset = config.get("charset").getAsString();
 
-        if(config.has("timeout"))
+        if (config.has("timeout"))
             this.timeout = config.get("timeout").getAsInt();
 
-        if(config.has("session")){
+        if (config.has("session")) {
             tmp = config.get("session").getAsJsonObject();
-            if(tmp.has("ttl"))
+            if (tmp.has("ttl"))
                 this.session.ttl = tmp.get("ttl").getAsInt();
-            if(tmp.has("keepAlive"))
+            if (tmp.has("keepAlive"))
                 this.session.keepAlive = tmp.get("keepAlive").getAsBoolean();
         }
-        session.table.add("ttl",""+this.session.ttl+" seconds");
-        session.table.add("keepAlive",this.session.keepAlive?"True":"False");
-        
-        if(config.has("cookie")){
+        session.table.add("ttl", "" + this.session.ttl + " seconds");
+        session.table.add("keepAlive", this.session.keepAlive ? "True" : "False");
+
+        if (config.has("cookie")) {
             tmp = config.get("cookie").getAsJsonObject();
-            if(tmp.has("ttl"))
+            if (tmp.has("ttl"))
                 this.cookie.ttl = tmp.get("ttl").getAsInt();
         }
-        cookie.table.add("ttl",""+this.cookie.ttl+" seconds");
+        cookie.table.add("ttl", "" + this.cookie.ttl + " seconds");
 
-        if(config.has("webSocket")){
+        if (config.has("webSocket")) {
             tmp = config.get("webSocket").getAsJsonObject();
-            if(tmp.has("mtu"))
+            if (tmp.has("mtu"))
                 this.webSocket.mtu = tmp.get("mtu").getAsInt();
-            if(tmp.has("groups")){
+            if (tmp.has("groups")) {
                 tmp = tmp.get("groups").getAsJsonObject();
-                if(tmp.has("enabled"))
+                if (tmp.has("enabled"))
                     this.webSocket.groups.enabled = tmp.get("enabled").getAsBoolean();
-                if(tmp.has("connections")){
+                if (tmp.has("connections")) {
                     tmp = tmp.get("connections").getAsJsonObject();
                     this.webSocket.groups.connections.max = tmp.get("max").getAsInt();
                 }
             }
         }
-        this.webSocket.groups.connections.table.add("max",this.webSocket.groups.connections.max+" connections");
-        this.webSocket.groups.table.add("connections",this.webSocket.groups.connections.table.toString());
-        this.webSocket.groups.table.add("enabled",this.webSocket.groups.enabled?"True":"False");
-        this.webSocket.table.add("groups",this.webSocket.groups.table.toString());
-        this.webSocket.table.add("mtu",this.webSocket.mtu+" bytes");
+        this.webSocket.groups.connections.table.add("max", this.webSocket.groups.connections.max + " connections");
+        this.webSocket.groups.table.add("connections", this.webSocket.groups.connections.table.toString());
+        this.webSocket.groups.table.add("enabled", this.webSocket.groups.enabled ? "True" : "False");
+        this.webSocket.table.add("groups", this.webSocket.groups.table.toString());
+        this.webSocket.table.add("mtu", this.webSocket.mtu + " bytes");
 
-        if(config.has("http")){
+        if (config.has("http")) {
             tmp = config.get("http").getAsJsonObject();
-            if(tmp.has("mtu"))
+            if (tmp.has("mtu"))
                 this.http.mtu = tmp.get("mtu").getAsInt();
         }
-        this.http.table.add("mtu",this.http.mtu+" bytes");
+        this.http.table.add("mtu", this.http.mtu + " bytes");
 
-        if(config.has("entryPoint"))
+        if (config.has("entryPoint"))
             this.entryPoint = config.get("entryPoint").getAsString();
 
-        AsciiTable configurationTable = new AsciiTable();
-        configurationTable.add("KEY","VALUE");
-        configurationTable.add("locale",""+locale.toString());
-        configurationTable.add("timezone",""+timezone.toString());
-        configurationTable.add("port",""+this.port);
-        configurationTable.add("bindAddress",this.bindAddress);
-        configurationTable.add("serverRoot",this.serverRoot);
-        configurationTable.add("webRoot",this.webRoot);
-        configurationTable.add("charset",this.charset);
-        configurationTable.add("timeout",""+this.timeout+" milliseconds");
-        configurationTable.add("session",this.session.table.toString());
-        configurationTable.add("cookie",this.cookie.table.toString());
-        configurationTable.add("webSocket",this.webSocket.table.toString());
-        configurationTable.add("http",""+this.http.table.toString());
-        configurationTable.add("entryPoint",""+this.entryPoint);
-        configurationTable.add("minify",this.minify+" milliseconds");
-        configurationTable.add("threadPoolSize",this.threadPoolSize+" Threads");
-        configurationTable.add("sendExceptions",this.sendExceptions?"True":"False");
-        configurationTable.add("responseWrapper",this.responseWrapper?"True":"False");
-        
-        //checking for SMTP server
-        if(config.has("smtp")){
-            JsonObject smtpObject = config.get("smtp").getAsJsonObject();
-            if(smtpObject.has("enabled")){
+        final AsciiTable configurationTable = new AsciiTable();
+        configurationTable.add("KEY", "VALUE");
+        configurationTable.add("locale", "" + locale.toString());
+        configurationTable.add("timezone", "" + timezone.toString());
+        configurationTable.add("port", "" + this.port);
+        configurationTable.add("bindAddress", this.bindAddress);
+        configurationTable.add("serverRoot", this.serverRoot);
+        configurationTable.add("webRoot", this.webRoot);
+        configurationTable.add("charset", this.charset);
+        configurationTable.add("timeout", "" + this.timeout + " milliseconds");
+        configurationTable.add("session", this.session.table.toString());
+        configurationTable.add("cookie", this.cookie.table.toString());
+        configurationTable.add("webSocket", this.webSocket.table.toString());
+        configurationTable.add("http", "" + this.http.table.toString());
+        configurationTable.add("entryPoint", "" + this.entryPoint);
+        configurationTable.add("minify", this.minify + " milliseconds");
+        configurationTable.add("threadPoolSize", this.threadPoolSize + " Threads");
+        configurationTable.add("sendExceptions", this.sendExceptions ? "True" : "False");
+        configurationTable.add("responseWrapper", this.responseWrapper ? "True" : "False");
+
+        // checking for SMTP server
+        if (config.has("smtp")) {
+            final JsonObject smtpObject = config.get("smtp").getAsJsonObject();
+            if (smtpObject.has("enabled")) {
                 this.smtp.enabled = smtpObject.get("enabled").getAsBoolean();
-                this.smtp.table.add("enabled",smtpObject.get("enabled").getAsString());
-                if(this.smtp.enabled){
+                this.smtp.table.add("enabled", smtpObject.get("enabled").getAsString());
+                if (this.smtp.enabled) {
                     this.smtp.bindAddress = this.bindAddress;
-                    if(smtpObject.has("bindAddress")){
+                    if (smtpObject.has("bindAddress")) {
                         this.smtp.bindAddress = smtpObject.get("bindAddress").getAsString();
                     }
-                    if(smtpObject.has("port")){
+                    if (smtpObject.has("port")) {
                         this.smtp.port = smtpObject.get("port").getAsInt();
                     }
-                    if(smtpObject.has("hostname")){
+                    if (smtpObject.has("hostname")) {
                         this.smtp.hostname = smtpObject.get("hostname").getAsString();
                     }
-                    this.smtp.table.add("hostname",this.smtp.hostname);
-                    this.smtp.table.add("bindAddress",this.smtp.bindAddress);
-                    this.smtp.table.add("port",""+this.smtp.port);
+                    this.smtp.table.add("hostname", this.smtp.hostname);
+                    this.smtp.table.add("bindAddress", this.smtp.bindAddress);
+                    this.smtp.table.add("port", "" + this.smtp.port);
                 }
             }
         }
-        configurationTable.add("smtp",this.smtp.table.toString());
-        
-        AsciiTable pathsTable = new AsciiTable();
-        pathsTable.add("TYPE","NAME");
+        configurationTable.add("smtp", this.smtp.table.toString());
+
+        final AsciiTable pathsTable = new AsciiTable();
+        pathsTable.add("TYPE", "NAME", "CLASS");
         ROUTES.entrySet().forEach((entry) -> {
-            WebObject wo = entry.getValue();
-            String type = wo.getType();
-            String name = entry.getKey().substring(type.length());
-            pathsTable.add(type,name);
+            final WebObject wo = entry.getValue();
+            final String type = wo.getType();
+            final String name = entry.getKey().substring(type.length());
+            pathsTable.add(type, name, wo.getClassname());
         });
-        configurationTable.add("Paths",pathsTable.toString());
-        
-        if(config.has("certificate")){
-            JsonObject certificateObject = config.get("certificate").getAsJsonObject();
+        configurationTable.add("Paths", pathsTable.toString());
+
+        if (config.has("certificate")) {
+            final JsonObject certificateObject = config.get("certificate").getAsJsonObject();
 
 
             this.certificate.name = certificateObject.get("NAME").getAsString();

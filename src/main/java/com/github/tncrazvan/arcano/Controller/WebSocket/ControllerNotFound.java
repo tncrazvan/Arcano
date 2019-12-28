@@ -16,7 +16,7 @@ public class ControllerNotFound extends WebSocketController{
     }
 
     @Override
-    public void onMessage(WebSocketMessage message) {}
+    public void onMessage(final WebSocketMessage message) {}
 
     @Override
     public void onClose() {}
