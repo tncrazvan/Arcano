@@ -342,18 +342,18 @@ public class Configuration {
                     this.smtp.table.add("port", "" + this.smtp.port);
                 }
             }
+            configurationTable.add("smtp", this.smtp.table.toString());
         }
-        configurationTable.add("smtp", this.smtp.table.toString());
 
-        final AsciiTable pathsTable = new AsciiTable();
-        pathsTable.add("TYPE", "NAME", "CLASS");
+        final AsciiTable controllersTable = new AsciiTable();
+        controllersTable.add("TYPE", "PATH", "CLASS");
         ROUTES.entrySet().forEach((entry) -> {
             final WebObject wo = entry.getValue();
             final String type = wo.getType();
             final String name = entry.getKey().substring(type.length());
-            pathsTable.add(type, name, wo.getClassname());
+            controllersTable.add(type, name, wo.getClassname());
         });
-        configurationTable.add("Paths", pathsTable.toString());
+        configurationTable.add("Controllers", controllersTable.toString());
 
         if (config.has("certificate")) {
             final JsonObject certificateObject = config.get("certificate").getAsJsonObject();

@@ -87,13 +87,14 @@ public class Arcano extends SharedObject {
         if (assetsFile.exists())
             minifier = new Minifier(assetsFile, config.webRoot, "minified");
 
-        if (!config.smtp.hostname.equals("")) {
-            smtpServer = new SmtpServer(new ServerSocket(), config.smtp.bindAddress, config.smtp.port,
-                    config.smtp.hostname);
-            new Thread(smtpServer).start();
-        } else {
-            System.err.println("\n[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
-        }
+        if(config.smtp.enabled)
+            if (!config.smtp.hostname.equals("")) {
+                smtpServer = new SmtpServer(new ServerSocket(), config.smtp.bindAddress, config.smtp.port,
+                        config.smtp.hostname);
+                new Thread(smtpServer).start();
+            } else {
+                System.err.println("\n[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
+            }
 
         if (!config.certificate.name.equals(""))
             try {
