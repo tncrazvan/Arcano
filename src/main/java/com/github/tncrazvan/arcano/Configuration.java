@@ -43,7 +43,18 @@ public class Configuration {
     public Smtp smtp = new Smtp();
     public int port = 80;
     public int timeout = 30000;
-    public int threadPoolSize = 2;
+    public static class Threads{
+        public static final String POLICY_FIX = "fix";
+        public static final String POLICY_CACHE = "cache";
+        public static final String POLICY_STEAL = "steal";
+        public String policy = POLICY_STEAL; 
+        public int pool = 3;
+        public AsciiTable table = new AsciiTable();
+        public Threads() {
+            table.add("KEY","VALUE");
+        }
+    }
+    public Threads threads = new Threads();
     public int minify = 0;
     public static class WebSocket{
         public static class Groups{
@@ -109,7 +120,7 @@ public class Configuration {
         }
     }
     public Cookie cookie = new Cookie();
-    public Cluster cluster = new Cluster(new HashMap<String,ClusterServer>());
+    public Cluster cluster = new Cluster(new HashMap<>());
     public String dir = "./http.json";
     public String arcanoSecret = "HF75HFGY4764TH4TJ4T4TY";
     public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
@@ -145,9 +156,10 @@ public class Configuration {
     public void parse(final File settings, final SharedObject so, final String[] args) throws IOException{
         this.dir = settings.getParent();
         
-        final FileInputStream fis = new FileInputStream(settings);
-        final byte[] configBytes = fis.readAllBytes();
-        fis.close();
+        final byte[] configBytes;
+        try (FileInputStream fis = new FileInputStream(settings)) {
+            configBytes = fis.readAllBytes();
+        }
         config = jsonObject(new String(configBytes));
         char endchar;
         JsonObject tmp;
@@ -191,8 +203,44 @@ public class Configuration {
         if (config.has("minify"))
             this.minify = config.get("minify").getAsInt();
 
-        if (config.has("threadPoolSize"))
-            this.threadPoolSize = config.get("threadPoolSize").getAsInt();
+        if (config.has("threads")){
+            tmp = config.get("threads").getAsJsonObject();
+            if(tmp.has("pool"))
+                this.threads.pool = tmp.get("pool").getAsInt();
+            if(this.threads.pool <= 0)
+                this.threads.pool = 1;
+            if(tmp.has("policy"))
+                this.threads.policy = tmp.get("policy").getAsString();
+        }
+        
+        
+        switch(this.threads.policy){
+            case Threads.POLICY_CACHE:
+                this.threads.table.add("policy", this.threads.policy+" (Creates new threads as needed and reuses them)");
+            break;
+            case Threads.POLICY_FIX:
+                this.threads.table.add("policy", this.threads.policy+" (Uses a fixed number of threads)");
+            break;
+            case Threads.POLICY_STEAL:
+            default:
+                this.threads.table.add("policy", this.threads.policy+" (Uses Work-Stealing thread pool)");
+        }
+        
+        switch(this.threads.policy){
+            case Threads.POLICY_CACHE:
+                this.threads.table.add("pool", "Cache policy ignores this field");
+            break;
+            case Threads.POLICY_FIX:
+                this.threads.table.add("pool", this.threads.pool + " threads");
+            break;
+            case Threads.POLICY_STEAL:
+            default:
+                if(this.threads.pool == 0)
+                    this.threads.table.add("pool", "As many threads as there are available processors.");
+                else
+                    this.threads.table.add("pool", this.threads.pool + " threads (The actual number of threads may grow or shrink dinamically.)");
+            
+        }
 
         if (config.has("timezone"))
             this.timezone = ZoneId.of(config.get("timezone").getAsString());
@@ -284,7 +332,7 @@ public class Configuration {
                 }
             }
         }
-        this.webSocket.groups.connections.table.add("max", this.webSocket.groups.connections.max + " connections");
+        this.webSocket.groups.connections.table.add("max", this.webSocket.groups.connections.max + " connections (This value is ofcourse dependent on the thread pool size)");
         this.webSocket.groups.table.add("connections", this.webSocket.groups.connections.table.toString());
         this.webSocket.groups.table.add("enabled", this.webSocket.groups.enabled ? "True" : "False");
         this.webSocket.table.add("groups", this.webSocket.groups.table.toString());
@@ -302,21 +350,21 @@ public class Configuration {
 
         final AsciiTable configurationTable = new AsciiTable();
         configurationTable.add("KEY", "VALUE");
-        configurationTable.add("locale", "" + locale.toString());
-        configurationTable.add("timezone", "" + timezone.toString());
+        configurationTable.add("locale", locale.toString());
+        configurationTable.add("timezone", timezone.toString()+" (Http cookies by default use GMT aka UTC±00:00)");
         configurationTable.add("port", "" + this.port);
         configurationTable.add("bindAddress", this.bindAddress);
-        configurationTable.add("serverRoot", this.serverRoot);
-        configurationTable.add("webRoot", this.webRoot);
+        configurationTable.add("serverRoot", this.serverRoot+" (Relative to the JSON configuration file)");
+        configurationTable.add("webRoot", this.webRoot+" (Relative to the JSON configuration file)");
+        configurationTable.add("entryPoint", this.entryPoint+" (Relative to the webRoot)");
         configurationTable.add("charset", this.charset);
-        configurationTable.add("timeout", "" + this.timeout + " milliseconds");
+        configurationTable.add("timeout", "After " + this.timeout + " milliseconds");
         configurationTable.add("session", this.session.table.toString());
         configurationTable.add("cookie", this.cookie.table.toString());
         configurationTable.add("webSocket", this.webSocket.table.toString());
         configurationTable.add("http", "" + this.http.table.toString());
-        configurationTable.add("entryPoint", "" + this.entryPoint);
-        configurationTable.add("minify", this.minify + " milliseconds");
-        configurationTable.add("threadPoolSize", this.threadPoolSize + " Threads");
+        configurationTable.add("minify", this.minify == 0?"Once when the server starts": "Once every "+this.minify+" milliseconds");
+        configurationTable.add("threads", this.threads.table.toString());
         configurationTable.add("sendExceptions", this.sendExceptions ? "True" : "False");
         configurationTable.add("responseWrapper", this.responseWrapper ? "True" : "False");
 

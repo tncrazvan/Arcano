@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
+import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.Tool.Cluster.NoSecretFoundException;
 import java.io.UnsupportedEncodingException;
@@ -8,8 +9,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -29,7 +28,41 @@ import java.lang.reflect.Constructor;
  * @author Razvan
  */
 public class HttpEvent extends HttpEventManager implements JsonTools{
-    public void invoke(final Object controller, final Method method) throws IllegalAccessException,
+    private void sendHttpResponse(Exception e){
+        final String message = e.getMessage();
+        final HttpResponse response = new HttpResponse(message == null ? "" : message);
+        sendHttpResponse(response,true);
+    }
+    private void sendHttpResponse(InvocationTargetException e){
+        final String message = e.getTargetException().getMessage();
+        final HttpResponse response = new HttpResponse(message == null ? "" : message);
+        sendHttpResponse(response,true);
+    }
+    private void sendHttpResponse(HttpResponse response){
+        sendHttpResponse(response, false);
+    }
+    private void sendHttpResponse(HttpResponse response,boolean exception){
+        if (response.isRaw()) {
+            final Object content = response.getContent();
+            final byte[] raw = content == null?new byte[]{}:(byte[])content;
+            setResponseHeaderField("Content-Length", raw.length+"");
+            send(raw);
+        } else {
+            final Object content = response.getContent();
+            String tmp = content.toString();
+            if (so.config.responseWrapper) {
+                if(!issetResponseHeaderField("Content-Type"))
+                    setResponseHeaderField("Content-Type", "application/json");
+                final JsonObject obj = new JsonObject();
+                obj.addProperty(exception?"exception":"result", tmp);
+                tmp = obj.toString();
+            }
+            setResponseHeaderField("Content-Length", tmp.length()+"");
+            send(tmp);
+        }
+    }
+
+    public final void invoke(final Object controller, final Method method) throws IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, InvocationTargetException {
         try {
             Class<?> type = method.getReturnType();
@@ -37,136 +70,31 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 method.invoke(controller);
             } else if (type == HttpResponse.class) {
                 final HttpResponse response = (HttpResponse) method.invoke(controller);
-                response.resolve(so);
-                final HashMap<String, String> headers = response.getHashMapHeaders();
-                if (headers != null) {
-                    final Iterator it = headers.entrySet().iterator();
-                    while (it.hasNext()) {
-                        final Map.Entry pair = (Map.Entry) it.next();
-                        setResponseHeaderField((String) pair.getKey(), (String) pair.getValue());
-                        it.remove(); // avoids a ConcurrentModificationException
-                    }
+                response.resolve();
+                final HashMap<String, String> localHeaders = response.getHashMapHeaders();
+                if (localHeaders != null) {
+                    localHeaders.forEach((key, header) -> {
+                        setResponseHeaderField(key, header);
+                    });
                 }
-                if (response.isRaw()) {
-                    send((byte[]) response.getContent());
-                } else {
-                    type = response.getType();
-                    if (type == String.class || type == Character.class) {
-                        final Object content = response.getContent();
-                        if (content != null) {
-                            if (so.config.responseWrapper) {
-                                final JsonObject obj = new JsonObject();
-                                obj.addProperty("result", new String((byte[]) content));
-                                setResponseHeaderField("Content-Type", "application/json");
-                                send(obj.toString().getBytes(so.config.charset));
-                            } else {
-                                send(new String((byte[]) content));
-                            }
-                        } else
-                            send("");
-                    } else {
-                        final Object content = response.getContent();
-                        if (content != null) {
-                            final String tmp = new String((byte[]) content);
-                            if (so.config.responseWrapper) {
-                                setResponseHeaderField("Content-Type", "application/json");
-                                send(("{\"result\": " + tmp + "}").getBytes(so.config.charset));
-                            } else {
-                                send(tmp);
-                            }
-                        } else
-                            send("");
-                    }
-                }
+                sendHttpResponse(response);
             } else {
                 // if it's some other type of object...
                 final Object data = method.invoke(controller);
-                final HttpResponse response = new HttpResponse(data == null ? "" : data);
-                response.resolve(so);
-                if (data == null)
-                    response.setRaw(true);
-
-                if (response.isRaw()) {
-                    send((byte[]) response.getContent());
-                } else {
-                    type = response.getType();
-                    if (type == String.class || type == Character.class) {
-                        final Object content = response.getContent();
-                        if (content != null) {
-                            if (so.config.responseWrapper) {
-                                final JsonObject obj = new JsonObject();
-                                obj.addProperty("result", new String((byte[]) content));
-                                setResponseHeaderField("Content-Type", "application/json");
-                                send(obj.toString().getBytes(so.config.charset));
-                            } else {
-                                send(new String((byte[]) content));
-                            }
-                        } else
-                            send("");
-                    } else {
-                        final Object content = response.getContent();
-                        if (content != null) {
-                            final String tmp = new String((byte[]) content).trim();
-                            if (so.config.responseWrapper) {
-                                setResponseHeaderField("Content-Type", "application/json");
-                                send(("{\"result\": " + tmp + "}").getBytes(so.config.charset));
-                            } else {
-                                send(tmp);
-                            }
-
-                        } else
-                            send("");
-                    }
-                }
+                sendHttpResponse(new HttpResponse(data == null ? "" : data).resolve());
             }
-        } catch (final InvocationTargetException e) {
+        } catch (final InvocationTargetException  e) {
             setResponseStatus(STATUS_INTERNAL_SERVER_ERROR);
             if (so.config.sendExceptions) {
-                final String message = e.getTargetException().getMessage();
-                if (so.config.responseWrapper) {
-                    final JsonObject obj = new JsonObject();
-                    final HttpResponse response = new HttpResponse(message == null ? "" : message);
-                    response.resolve(so);
-                    obj.addProperty("exception", new String((byte[]) (response.getContent())));
-                    setResponseHeaderField("Content-Type", "application/json");
-                    try {
-                        send(obj.toString().getBytes(so.config.charset));
-                    } catch (final UnsupportedEncodingException ex) {
-                        send(obj.toString().getBytes());
-                    }
-                } else {
-                    try {
-                        send(message.getBytes(so.config.charset));
-                    } catch (final UnsupportedEncodingException ex) {
-                        send(message.getBytes());
-                    }
-                }
+                sendHttpResponse(e);
             } else
-                send("");
-        } catch (UnsupportedEncodingException | IllegalAccessException | IllegalArgumentException e) {
+                sendHttpResponse(SharedObject.EMPTY_RESPONSE);
+        }catch (IllegalAccessException | IllegalArgumentException e) {
             setResponseStatus(STATUS_INTERNAL_SERVER_ERROR);
             if (so.config.sendExceptions) {
-                final String message = e.getMessage();
-                if (so.config.responseWrapper) {
-                    final JsonObject obj = new JsonObject();
-                    final HttpResponse response = new HttpResponse(message == null ? "" : message);
-                    response.resolve(so);
-                    obj.addProperty("exception", new String((byte[]) (response.getContent())));
-                    setResponseHeaderField("Content-Type", "application/json");
-                    try {
-                        send(obj.toString().getBytes(so.config.charset));
-                    } catch (final UnsupportedEncodingException ex) {
-                        send(obj.toString().getBytes());
-                    }
-                } else {
-                    try {
-                        send(message.getBytes(so.config.charset));
-                    } catch (final UnsupportedEncodingException ex) {
-                        send(message.getBytes());
-                    }
-                }
+                sendHttpResponse(e);
             } else
-                send("");
+                sendHttpResponse(SharedObject.EMPTY_RESPONSE);
         }
     }
 
@@ -286,7 +214,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
 
     // public static void onControllerRequest(final StringBuilder url,String
     // httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName) {
-    public static void onControllerRequest(final HttpRequestReader reader) {
+    public static final void onControllerRequest(final HttpRequestReader reader) {
         try {
             final HttpController controller = serveController(reader);
             if(controller != null ) controller.close();

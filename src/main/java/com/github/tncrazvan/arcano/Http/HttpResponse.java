@@ -1,6 +1,5 @@
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonStringify;
 import com.github.tncrazvan.arcano.Tool.System.ServerFile;
@@ -65,52 +64,46 @@ public class HttpResponse {
         this.content = content;
     }
 
-    public void resolve(final SharedObject so) {
+    public HttpResponse resolve() {
         try {
             if (type == JsonArray.class) {
                 if (headers != null && !headers.isDefined("Content-Type")) {
                     headers.set("Content-Type", "application/json");
                 }
                 final String tmp = ((JsonArray) content).toString();
-                if (headers != null && !headers.isDefined("Content-Length")) {
-                    headers.set("Content-Length", String.valueOf(tmp.length()));
-                }
                 this.content = tmp;
             } else if (type == File.class || type == ServerFile.class) {
                 final File file = (File) content;
                 if (headers != null && !headers.isDefined("Content-Type")) {
                     headers.set("Content-Type", resolveContentType(file.getName()));
                 }
-                if (headers != null && !headers.isDefined("Content-Length")) {
-                    headers.set("Content-Length", String.valueOf(file.length()));
-                }
                 final FileInputStream fis = new FileInputStream(file);
                 this.content = fis.readAllBytes();
+                fis.close();
                 raw = true;
             } else if (type == String.class || type == Integer.class || type == Float.class || type == Double.class
                     || type == Boolean.class || type == Byte.class || type == Character.class || type == Short.class
                     || type == Long.class) {
-                this.content = String.valueOf(content).getBytes(so.config.charset);
+                this.content = String.valueOf(content);
+                if (headers != null && !headers.isDefined("Content-Type")) {
+                    headers.set("Content-Type", "text/plain");
+                }
             } else if (type == byte[].class) {
-                //this.content = content;
+                if (headers != null && !headers.isDefined("Content-Type")) {
+                    headers.set("Content-Type", "text/plain");
+                }
+                raw = true;
             } else {
-                this.content = jsonStringify(content).getBytes(so.config.charset);
+                this.content = jsonStringify(content);
             }
         } catch (final UnsupportedEncodingException ex) {
             this.content = ex.getMessage().getBytes();
         } catch (final FileNotFoundException ex) {
-            try {
-                this.content = ex.getMessage().getBytes(so.config.charset);
-            } catch (final UnsupportedEncodingException ex1) {
-                this.content = ex1.getMessage().getBytes();
-            }
+            this.content = ex.getMessage();
         } catch (final IOException ex) {
-            try {
-                this.content = ex.getMessage().getBytes(so.config.charset);
-            } catch (final UnsupportedEncodingException ex1) {
-                this.content = ex1.getMessage().getBytes();
-            }
+            this.content = ex.getMessage();
         }
+        return this;
     }
 
     /**

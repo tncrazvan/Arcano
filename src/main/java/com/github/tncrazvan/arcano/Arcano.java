@@ -1,5 +1,6 @@
 package com.github.tncrazvan.arcano;
 
+import com.github.tncrazvan.arcano.Configuration.Threads;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -77,10 +78,21 @@ public class Arcano extends SharedObject {
 
         config.parse(args[0], this, args);
 
-        if (config.threadPoolSize <= 0) {
-            executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-        } else {
-            executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(config.threadPoolSize);
+        switch(config.threads.policy){
+            case Threads.POLICY_FIX:
+                executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(config.threads.pool);
+                break;
+            case Threads.POLICY_CACHE:
+                executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+                break;
+            case Threads.POLICY_STEAL:
+            default:
+                if(config.threads.pool == 0)
+                    service = Executors.newWorkStealingPool();
+                else
+                    service = Executors.newWorkStealingPool(config.threads.pool);
+                break;
+                
         }
 
         final File assetsFile = new File(config.assets);
@@ -117,7 +129,10 @@ public class Arcano extends SharedObject {
                     System.out.println("Server started (using TLSv1.2).");
                     while (config.listen) {
                         listener = new HttpEventListener(this, ss.accept());
-                        executor.submit(listener);
+                        if(executor == null)
+                            service.submit(listener);
+                        else
+                            executor.submit(listener);
                     }
                 }
             } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex) {
@@ -132,7 +147,10 @@ public class Arcano extends SharedObject {
                 System.out.println("Server started.");
                 while (config.listen) {
                     listener = new HttpEventListener(this, ss.accept());
-                    executor.submit(listener);
+                    if(executor == null)
+                        service.submit(listener);
+                    else
+                        executor.submit(listener);
                 }
                 ss.close();
             }

@@ -25,6 +25,8 @@ import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
 import com.github.tncrazvan.arcano.Bean.Security.ArcanoSecret;
 import com.github.tncrazvan.arcano.Bean.Web.WebPathNotFound;
 import com.github.tncrazvan.arcano.Bean.Web.DefaultWebPath;
+import com.github.tncrazvan.arcano.Http.HttpResponse;
+import java.util.concurrent.ExecutorService;
 
 /**
  * 
@@ -35,6 +37,7 @@ public class SharedObject implements Strings{
     public final HttpSessionManager sessions = new HttpSessionManager();
     //THREADS
     public ThreadPoolExecutor executor = null;
+    public ExecutorService service = null;
     //CONFIGURATION OBJECTS
     public final Configuration config = new Configuration();
     public Minifier minifier = null;
@@ -57,6 +60,8 @@ public class SharedObject implements Strings{
     //ENCODING & DECODING
     public static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
     public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
+    //DEFAULT RESPONSES
+    public static final HttpResponse EMPTY_RESPONSE = new HttpResponse("").resolve();
     
     public final void expose(final Class<?>... classes) {
         for (final Class<?> cls : classes) {
