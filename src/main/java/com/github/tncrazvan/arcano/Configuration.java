@@ -160,6 +160,9 @@ public class Configuration {
         }
         this.dir = json.getParent();
         
+        if(this.dir == null)
+            this.dir = ".";
+        
         final byte[] configBytes;
         try (FileInputStream fis = new FileInputStream(json)) {
             configBytes = fis.readAllBytes();
@@ -265,10 +268,9 @@ public class Configuration {
             this.bindAddress = config.get("bindingAddress").getAsString();
 
         if (config.has("serverRoot"))
-            this.serverRoot = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/"
-                    + config.get("serverRoot").getAsString();
+            this.serverRoot = this.dir.replaceAll("\\\\", "/") + "/" + config.get("serverRoot").getAsString();
         else
-            this.serverRoot = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/" + this.serverRoot;
+            this.serverRoot = this.dir.replaceAll("\\\\", "/") + "/" + this.serverRoot;
         endchar = this.serverRoot.charAt(this.serverRoot.length() - 1);
 
         if (endchar != '/') {
@@ -287,10 +289,10 @@ public class Configuration {
         }
 
         if (config.has("assets"))
-            this.assets = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/"
+            this.assets = this.dir.replaceAll("\\\\", "/") + "/"
                     + config.get("assets").getAsString();
         else
-            this.assets = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/" + this.assets;
+            this.assets = this.dir.replaceAll("\\\\", "/") + "/" + this.assets;
 
         endchar = this.assets.charAt(this.assets.length() - 1);
 
