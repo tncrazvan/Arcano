@@ -121,7 +121,7 @@ public class Configuration {
     }
     public Cookie cookie = new Cookie();
     public Cluster cluster = new Cluster(new HashMap<>());
-    public String dir = "./http.json";
+    public String dir;
     public String arcanoSecret = "HF75HFGY4764TH4TJ4T4TY";
     public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
     public String assets = "/www/assets.json";
@@ -148,16 +148,20 @@ public class Configuration {
 
     /**
      * Parse configuration from the input filename.
-     * @param settings json configuration filename.
+     * @param json json configuration filename.
      * @param so
      * @param args
      * @throws IOException 
      */
-    public void parse(final File settings, final SharedObject so, final String[] args) throws IOException{
-        this.dir = settings.getParent();
+    public void parse(final File json, final SharedObject so, final String[] args) throws IOException{
+        if(!json.exists()){
+            System.out.println("Configuration file "+json.getPath()+" does not seem to exist.");
+            return;
+        }
+        this.dir = json.getParent();
         
         final byte[] configBytes;
-        try (FileInputStream fis = new FileInputStream(settings)) {
+        try (FileInputStream fis = new FileInputStream(json)) {
             configBytes = fis.readAllBytes();
         }
         config = jsonObject(new String(configBytes));
@@ -272,10 +276,9 @@ public class Configuration {
         }
 
         if (config.has("webRoot"))
-            this.webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/"
-                    + config.get("webRoot").getAsString();
+            this.webRoot = this.dir .replaceAll("\\\\", "/") + "/" + config.get("webRoot").getAsString();
         else
-            this.webRoot = new File(args[0]).getParent().replaceAll("\\\\", "/") + "/" + this.webRoot;
+            this.webRoot = this.dir .replaceAll("\\\\", "/") + "/" + this.webRoot;
 
         endchar = this.webRoot.charAt(this.webRoot.length() - 1);
 

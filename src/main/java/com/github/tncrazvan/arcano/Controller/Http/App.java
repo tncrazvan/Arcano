@@ -14,7 +14,10 @@ import com.github.tncrazvan.arcano.Bean.Web.WebPath;
 public class App extends HttpController {
     @DefaultWebPath
     public HttpResponse main() throws IOException, ClassNotFoundException {
-        if(args.length == 0) args = new String[]{so.config.entryPoint};
+        if(args.length == 0) 
+            args = new String[]{so.config.entryPoint};
+        else if(args.length == 1 && args[0].equals("")) 
+            args[0] = so.config.entryPoint;
         return new Delegate<Get>(){}.start().file();
     }
 }
