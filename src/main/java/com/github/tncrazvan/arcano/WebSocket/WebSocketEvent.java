@@ -38,7 +38,7 @@ public abstract class WebSocketEvent extends WebSocketManager{
         }
         controller.setBufferedReader(reader.bufferedReader);
 
-        controller.setHttpHeaders(new HttpHeaders());
+        controller.setResponseHttpHeaders(new HttpHeaders());
         controller.setSharedObject(reader.so);
         controller.setSocket(reader.client);
         controller.setHttpRequest(reader.request);

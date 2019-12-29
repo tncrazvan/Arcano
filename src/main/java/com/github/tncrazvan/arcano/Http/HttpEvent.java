@@ -22,11 +22,11 @@ import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_LOCKED;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
 import com.google.gson.JsonObject;
-import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -67,16 +67,16 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             send(tmp);
         }
     }
-
-    public final void invoke(final Object controller, final Method method) throws IllegalAccessException,
+    
+    public final void invoke(final Method method) throws IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, InvocationTargetException {
         try {
             Class<?> type = method.getReturnType();
             if (type == void.class || type == Void.class) {
-                method.invoke(controller);
+                method.invoke(this);
                 sendHttpResponse(SharedObject.EMPTY_RESPONSE);
             } else if (type == HttpResponse.class) {
-                final HttpResponse response = (HttpResponse) method.invoke(controller);
+                final HttpResponse response = (HttpResponse) method.invoke(this);
                 response.resolve();
                 final HashMap<String, String> localHeaders = response.getHashMapHeaders();
                 if (localHeaders != null) {
@@ -87,7 +87,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 sendHttpResponse(response);
             } else {
                 // if it's some other type of object...
-                final Object data = method.invoke(controller);
+                final Object data = method.invoke(this);
                 sendHttpResponse(new HttpResponse(data == null ? "" : data).resolve());
             }
         } catch (final InvocationTargetException  e) {
@@ -157,13 +157,30 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 try {
                     method = controller.getClass().getDeclaredMethod(methodname);
                     if(wo.getShellScript() != null){
-                        controller.init(reader, args);
-                        controller.setHttpHeaders(new HttpHeaders());
-                        Process ps = RUNTIME.exec(wo.getShellScript(), args, null);
-                        ps.destroyForcibly();
-                        InputStream input = ps.getInputStream();
-                        byte[] result = input.readAllBytes();
-                        controller.send(result);
+                        try {
+                            final String cmd = wo.getShellScript();
+                            Process p = RUNTIME.exec(cmd, args, new File(reader.so.config.dir));
+                            controller = new HttpController();
+                            controller.init(reader, args);
+                            controller.setResponseHttpHeaders(new HttpHeaders());
+                            p.waitFor(reader.so.config.timeout,TimeUnit.MILLISECONDS);
+                            p.destroyForcibly();
+                            InputStream error = p.getErrorStream();
+                            final byte[] errors = error.readAllBytes();
+                            if(errors.length > 0){
+                                controller.setResponseHeaderField("Content-Type", "text/plain");
+                                controller.setResponseHeaderField("Content-Length", errors.length+"");
+                                controller.send(errors);
+                            }else{
+                                //final InputStream input = p.getInputStream();
+                                //final byte[] raw = input.readAllBytes();
+                                //final String result = new String(raw,reader.so.config.charset);
+                                
+                                controller.send(p.getInputStream().readAllBytes(),false);
+                            }
+                        } catch (InterruptedException ex) {
+                            LOGGER.log(Level.SEVERE, null, ex);
+                        }
                         return controller;
                     }
                 } catch (final NoSuchMethodException ex) {
@@ -189,7 +206,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 method = controller.getClass().getDeclaredMethod("main");
             }
             controller.init(reader, args);
-            controller.invoke(controller, method);
+            controller.invoke(method);
         } catch (final ClassNotFoundException ex) {
             if(location.length == 1 && location[0].equals("")){
                 try {
@@ -212,14 +229,14 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 method = controller.getClass().getDeclaredMethod("main");
                 controller.init(reader, location);
                 controller.setResponseStatus(STATUS_NOT_FOUND);
-                controller.invoke(controller, method);
+                controller.invoke(method);
             } catch (final InvalidControllerConstructorException e) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         } catch (final NoSecretFoundException ex) {
             controller = new HttpController();
             controller.init(reader, location);
-            controller.setHttpHeaders(new HttpHeaders());
+            controller.setResponseHttpHeaders(new HttpHeaders());
             controller.setResponseStatus(STATUS_LOCKED);
             controller.send("");
             LOGGER.log(Level.SEVERE, null, ex);
@@ -238,8 +255,18 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             if(controller != null ) controller.close();
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | IllegalArgumentException | InvocationTargetException | UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
+            try {
+                reader.client.close();
+            } catch (IOException ex1) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
+            try {
+                reader.client.close();
+            } catch (IOException ex1) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
         }
     } 
 }

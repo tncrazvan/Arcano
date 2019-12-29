@@ -20,7 +20,7 @@ public class HttpController extends HttpEvent{
     public final HttpController init(final HttpRequestReader reader, final String[] args) {
         try {
             this.reader = reader;
-            this.setHttpHeaders(new HttpHeaders());
+            this.setResponseHttpHeaders(new HttpHeaders());
             this.setSharedObject(reader.so);
             this.setDataOutputStream(reader.output);
             this.setSocket(reader.client);

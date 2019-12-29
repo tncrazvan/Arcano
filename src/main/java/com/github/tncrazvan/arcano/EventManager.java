@@ -30,7 +30,7 @@ public abstract class EventManager{
     public SharedObject so;
     public Configuration config;
     
-    public void setHttpHeaders(final HttpHeaders headers) {
+    public void setResponseHttpHeaders(final HttpHeaders headers) {
         this.headers = headers;
     }
 

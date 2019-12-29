@@ -132,17 +132,17 @@ public abstract class HttpEventManager extends EventManager{
     }
     /**
      * Send data to the client.The first time this method is called within an
- HttpEvent, it will also call the sendHEaders() method, to make sure the
- headers. This means that whatever http headers are being set after the first
- time this method is called are completely ignored. Calling this method is the
- same as returning a Object from your HttpController method. There is really
- no good reason to call this method from within your HttpController.
+     * HttpEvent, it will also call the sendHEaders() method, to make sure the
+     * headers. This means that whatever http headers are being set after the first
+     * time this method is called are completely ignored. Calling this method is the
+     * same as returning a Object from your HttpController method. There is really
+     * no good reason to call this method from within your HttpController.
      * 
      * @param data data to be sent.
-     * @param inclodeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
+     * @param includeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
      * If this value is set to false, headers must be set manually.
      */
-    public void send(byte[] data, boolean inclodeHeaders) {
+    public void send(byte[] data, boolean includeHeaders) {
         if (alive) {
             try {
                 for (final String cmpr : so.config.compression) {
@@ -163,7 +163,7 @@ public abstract class HttpEventManager extends EventManager{
                         break;
                     }
                 }
-                if (inclodeHeaders && firstMessage && defaultHeaders) {
+                if (includeHeaders && firstMessage && defaultHeaders) {
                     sendHeaders();
                 }
                 output.write(data);
@@ -185,6 +185,9 @@ public abstract class HttpEventManager extends EventManager{
         sendHeaders();
     }
 
+    public void send(String data) {
+        send(data,true);
+    }
     /**
      * Send data to the client. The first time this method is called within an
      * HttpEvent, it will also call the sendHEaders() method, to make sure the
@@ -194,13 +197,15 @@ public abstract class HttpEventManager extends EventManager{
      * no good reason to call this method from within your HttpController.
      * 
      * @param data data to be sent.
+     * @param includeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
+     * If this value is set to false, headers must be set manually.
      */
-    public void send(String data) {
+    public void send(String data, boolean  includeHeaders) {
         try {
             if (data == null)
                 data = "";
 
-            HttpEventManager.this.send(data.getBytes(so.config.charset));
+            this.send(data.getBytes(so.config.charset),includeHeaders);
         } catch (final UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
