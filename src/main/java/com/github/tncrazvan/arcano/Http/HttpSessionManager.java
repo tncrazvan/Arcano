@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.EventManager;
+import static com.github.tncrazvan.arcano.SharedObject.NAME_SESSION_ID;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,10 +15,10 @@ public class HttpSessionManager {
     public HttpSessionManager() {}
     
     public HttpSession startSession(final EventManager e, final long sessionTtl) {
-        if (e.issetRequestCookie("sessionId")) {// if session_id is set
-            final String sessionId = e.getRequestCookie("sessionId");
-            if (LIST.containsKey(sessionId)) {// if session exists
-                final HttpSession session = LIST.get(sessionId);
+        if (e.issetRequestCookie(NAME_SESSION_ID)) {// if session id is set
+            final String sessionID = e.getRequestCookie(NAME_SESSION_ID);
+            if (LIST.containsKey(sessionID)) {// if session exists
+                final HttpSession session = LIST.get(sessionID);
                 if (e.so.config.session.keepAlive)
                     session.setTime(System.currentTimeMillis());
                 return session;
@@ -29,16 +30,16 @@ public class HttpSessionManager {
         return session;
     }
 
-    public HttpSession getSession(final String sessionId) {
-        return LIST.get(sessionId);
+    public HttpSession getSession(final String sessionID) {
+        return LIST.get(sessionID);
     }
 
     public void setSession(final HttpSession session) {
         LIST.put(session.id(), session);
     }
 
-    public boolean issetSession(final String sessionId) {
-        return LIST.containsKey(sessionId);
+    public boolean issetSession(final String sessionID) {
+        return LIST.containsKey(sessionID);
     }
 
     public void stopSession(final HttpSession session) {

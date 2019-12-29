@@ -8,22 +8,22 @@ import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.io.File;
-import com.github.tncrazvan.arcano.Bean.Web.WebPath;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonStringify;
 import static com.github.tncrazvan.arcano.Tool.System.Memory.getAllocatedMemory;
 import static com.github.tncrazvan.arcano.Tool.System.Memory.getFreeMemory;
 import static com.github.tncrazvan.arcano.Tool.System.Memory.getMaxMemory;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
-import com.github.tncrazvan.arcano.Bean.Security.ArcanoSecret;
+import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
+import com.github.tncrazvan.arcano.Bean.Security.HttpLock;
 /**
  *
  * @author Razvan
  */
-@WebPath(name = "/@get")
+@HttpPath(name = "/@get")
 public class Get extends HttpController{
     
-    @ArcanoSecret
-    @WebPath(name="/memory")
+    @HttpLock
+    @HttpPath(name="/memory")
     public JsonObject memory(){
         final JsonObject result = new JsonObject();
         result.addProperty("free", getFreeMemory());
@@ -32,7 +32,7 @@ public class Get extends HttpController{
         return result;
     }
 
-    @WebPath(name = "/file")
+    @HttpPath(name = "/file")
     public HttpResponse file() throws IOException {
         return new HttpResponse(new File(so.config.webRoot + String.join("/", args)));
     }
@@ -47,7 +47,7 @@ public class Get extends HttpController{
 
     }
 
-    @WebPath(name = "/allWebSocketGroups")
+    @HttpPath(name = "/allWebSocketGroups")
     public void allWebSocketGroups() {
         WebSocketGroup group;
         final JsonArray arr = new JsonArray();
@@ -64,7 +64,7 @@ public class Get extends HttpController{
         send(arr.toString());
     }
 
-    @WebPath(name = "/cookie")
+    @HttpPath(name = "/cookie")
     public void cookie() {
         final String name = String.join("/", args);
         if (issetRequestCookie(name)) {

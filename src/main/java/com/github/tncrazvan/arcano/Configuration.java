@@ -114,15 +114,15 @@ public class Configuration {
     public static class Cookie{
         public int ttl = 1440;
         public AsciiTable table = new AsciiTable();
-        
         public Cookie() {
             table.add("KEY","VALUE");
         }
     }
     public Cookie cookie = new Cookie();
     public Cluster cluster = new Cluster(new HashMap<>());
+
+    public String key;
     public String dir;
-    public String arcanoSecret = "HF75HFGY4764TH4TJ4T4TY";
     public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
     public String assets = "/www/assets.json";
     public String webRoot = "www";
@@ -176,6 +176,11 @@ public class Configuration {
             this.compression = new String[]{};
         }
         
+        if(config.has("key"))
+            key =config.get("key").getAsString();
+        else
+            key = "EW3RWSETR2W345TW34ETGWSETQ3E325TE47E45T324W5RTWESRTF3QW245RW3ERFEFRG435444444TRWSEFRGTSER324RW3ERFASERTFWSERTWSETRWESWTESTE";
+        
         if(config.has("cluster")){
             if(config.has("cluster")){
                 final JsonObject clusterJson = config.get("cluster").getAsJsonObject();
@@ -200,9 +205,6 @@ public class Configuration {
 
         if (config.has("responseWrapper"))
             this.responseWrapper = config.get("responseWrapper").getAsBoolean();
-
-        if (config.has("secret"))
-            this.arcanoSecret = config.get("secret").getAsString();
 
         if (config.has("sendExceptions"))
             this.sendExceptions = config.get("sendExceptions").getAsBoolean();

@@ -3,16 +3,18 @@ package com.github.tncrazvan.arcano.Controller.Http;
 import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.io.IOException;
-import com.github.tncrazvan.arcano.Bean.Web.DefaultWebPath;
-import com.github.tncrazvan.arcano.Bean.Web.WebPath;
+import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
+import com.github.tncrazvan.arcano.Bean.Web.HttpDefault;
+import com.github.tncrazvan.arcano.Bean.ShellScript;
 
 /**
  *
  * @author Administrator
  */
-@WebPath
+@HttpPath
 public class App extends HttpController {
-    @DefaultWebPath
+    @HttpDefault
+    @ShellScript(execute = "ls")
     public HttpResponse main() throws IOException, ClassNotFoundException {
         if(args.length == 0) 
             args = new String[]{so.config.entryPoint};

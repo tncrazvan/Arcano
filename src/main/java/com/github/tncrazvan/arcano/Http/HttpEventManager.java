@@ -14,6 +14,9 @@ import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentTy
 import static com.github.tncrazvan.arcano.Tool.Http.MultipartFormData.generateMultipartBoundary;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_PARTIAL_CONTENT;
+import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
+import com.github.tncrazvan.arcano.Tool.Strings;
+import com.google.gson.JsonObject;
 import java.io.DataOutputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
@@ -124,17 +127,22 @@ public abstract class HttpEventManager extends EventManager{
         }
     }
 
+    public void send(byte[] data) {
+        send(data,true);
+    }
     /**
-     * Send data to the client. The first time this method is called within an
-     * HttpEvent, it will also call the sendHEaders() method, to make sure the
-     * headers. This means that whatever http headers are being set after the first
-     * time this method is called are completely ignored. Calling this method is the
-     * same as returning a Object from your HttpController method. There is really
-     * no good reason to call this method from within your HttpController.
+     * Send data to the client.The first time this method is called within an
+ HttpEvent, it will also call the sendHEaders() method, to make sure the
+ headers. This means that whatever http headers are being set after the first
+ time this method is called are completely ignored. Calling this method is the
+ same as returning a Object from your HttpController method. There is really
+ no good reason to call this method from within your HttpController.
      * 
      * @param data data to be sent.
+     * @param inclodeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
+     * If this value is set to false, headers must be set manually.
      */
-    public void send(byte[] data) {
+    public void send(byte[] data, boolean inclodeHeaders) {
         if (alive) {
             try {
                 for (final String cmpr : so.config.compression) {
@@ -155,7 +163,7 @@ public abstract class HttpEventManager extends EventManager{
                         break;
                     }
                 }
-                if (firstMessage && defaultHeaders) {
+                if (inclodeHeaders && firstMessage && defaultHeaders) {
                     sendHeaders();
                 }
                 output.write(data);
@@ -197,7 +205,14 @@ public abstract class HttpEventManager extends EventManager{
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
-
+    
+    public final void grantKey(){
+        final JsonObject obj = new JsonObject();
+        obj.addProperty("token", Strings.uuid());
+        final JwtMessage message = new JwtMessage(obj,so.config.key,so.config.charset);
+        setResponseCookie("JavaArcanoKey", message.toString());
+    }
+    
     /**
      * Send data to the client. The first time this method is called within an
      * HttpEvent, it will also call the sendHEaders() method, to make sure the

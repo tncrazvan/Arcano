@@ -1,4 +1,4 @@
-package com.github.tncrazvan.arcano.Bean.Security;
+package com.github.tncrazvan.arcano.Bean.Web;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -15,5 +15,6 @@ import java.lang.annotation.Target;
 @Target(value = {ElementType.TYPE, ElementType.METHOD, ElementType.PACKAGE})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
-public @interface ArcanoSecret {
+public @interface HttpMethod {
+    public String name();
 }

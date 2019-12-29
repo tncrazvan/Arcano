@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import com.github.tncrazvan.arcano.SharedObject;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -21,7 +22,7 @@ import javax.net.ssl.SSLSocket;
  *
  * @author Razvan
  */
-public abstract class HttpRequestReader extends SharedObject implements Runnable{
+public abstract class HttpRequestReader implements Runnable{
     public final Socket client;
     public SSLSocket secureClient=null;
     public final BufferedReader bufferedReader;
@@ -85,18 +86,18 @@ public abstract class HttpRequestReader extends SharedObject implements Runnable
                         // outputString.append(new String(chain,charset));
                     } else {
                         int offset = 0;
-                        chain = new byte[config.http.mtu];
+                        chain = new byte[so.config.http.mtu];
                         try {
                             if (input.available() > 0)
                                 while (input.read(chain) > 0) {
-                                    if (offset < config.http.mtu) {
+                                    if (offset < so.config.http.mtu) {
                                         offset++;
                                     } else {
                                         // outputString.append(new String(chain,charset));
                                         inputList.add(chain);
                                         length += chain.length;
                                         offset = 0;
-                                        chain = new byte[config.http.mtu];
+                                        chain = new byte[so.config.http.mtu];
                                     }
                                 }
                         } catch (SocketTimeoutException | EOFException e) {

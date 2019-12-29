@@ -1,6 +1,8 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.SharedObject;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import static com.github.tncrazvan.arcano.SharedObject.londonTimezone;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.io.IOException;
@@ -66,7 +68,7 @@ public class HttpEventListener extends HttpRequestReader{
                 }
             } else {
                 try {
-                    client.setSoTimeout(config.timeout);
+                    client.setSoTimeout(so.config.timeout);
                     // default connection, assuming it's Http 1.x
 
                     // HttpHeaders headers = controller.getResponseHttpHeaders();

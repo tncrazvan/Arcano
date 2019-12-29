@@ -3,15 +3,15 @@ package com.github.tncrazvan.arcano.Controller.WebSocket;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
-import com.github.tncrazvan.arcano.Bean.Web.WebPath;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketMessage;
+import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
 
 /**
  *
  * @author razvan
  */
-@WebPath(name = "/WebSocketGroupApi")
+@HttpPath(name = "/WebSocketGroupApi")
 public class WebSocketGroupApi extends WebSocketController{
     private String groupName;
     private com.github.tncrazvan.arcano.WebSocket.WebSocketGroup group;

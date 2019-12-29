@@ -4,18 +4,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import com.github.tncrazvan.arcano.Http.HttpController;
-import com.github.tncrazvan.arcano.Bean.Web.WebPath;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_FOUND;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
+import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
 
 /**
  *
  * @author Razvan
  */
 
-@WebPath(name="/@isset")
+@HttpPath(name="/@isset")
 public class Isset extends HttpController{
-    @WebPath(name="/file")
+    @HttpPath(name="/file")
     public void file() throws FileNotFoundException, IOException{
         final String url = String.join("/", args);
         final File f = new File(so.config.webRoot, url);
@@ -27,7 +27,7 @@ public class Isset extends HttpController{
         flush();
     }
 
-    @WebPath(name = "/cookie")
+    @HttpPath(name = "/cookie")
     public void cookie() {
         final String name = String.join("/", args);
         if(issetRequestCookie(name)){

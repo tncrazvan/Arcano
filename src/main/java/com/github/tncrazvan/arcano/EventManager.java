@@ -3,6 +3,7 @@ package com.github.tncrazvan.arcano;
 import com.github.tncrazvan.arcano.Http.HttpHeaders;
 import com.github.tncrazvan.arcano.Http.HttpRequest;
 import com.github.tncrazvan.arcano.Http.HttpSession;
+import static com.github.tncrazvan.arcano.SharedObject.NAME_SESSION_ID;
 import com.github.tncrazvan.arcano.Tool.System.Time;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
@@ -76,13 +77,13 @@ public abstract class EventManager{
     }
 
     public boolean issetSession() {
-        return (issetRequestCookie("sessionId") && so.sessions.issetSession(getRequestCookie("sessionId")));
+        return (issetRequestCookie(NAME_SESSION_ID) && so.sessions.issetSession(getRequestCookie(NAME_SESSION_ID)));
     }
 
     /**
      * Start an HttpSession. This method will request the client to set a
-     * "sessionId" cookie which will identify this session. If the client already
-     * has a VALID sessionId, then that sessionId is used instead, thus fetching an
+     * SharedObject.NAME_SESSION_ID cookie which will identify this session. If the client already
+     * has a VALID SharedObject.NAME_SESSION_ID, then that SharedObject.NAME_SESSION_ID is used instead, thus fetching an
      * existing session instead of creating a new one. This means that you can
      * safely call this method multiple times and can expect it to return the same
      * HttpSession (unless the session itself has expired meanwhile) object. The
@@ -94,9 +95,9 @@ public abstract class EventManager{
      * "responseWrapper": false }
      * 
      * @return the HttpSession object. This is a new object if the client's
-     *         sessionId is invalid or non existent, or an already existing
+     *         SharedObject.NAME_SESSION_ID is invalid or non existent, or an already existing
      *         HttpSession object if the client provides a valid and existing
-     *         sessionId.
+     *         SharedObject.NAME_SESSION_ID.
      */
     public HttpSession startSession() {
         session = so.sessions.startSession(this, so.config.session.ttl);
@@ -105,7 +106,7 @@ public abstract class EventManager{
 
     /**
      * Stops the current HttpSession of the client if it has one. This will also
-     * delete the client's "sessionId" cookie.
+     * delete the client's SharedObject.NAME_SESSION_ID cookie.
      */
     public void stopSession() {
         if (session == null)

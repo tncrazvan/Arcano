@@ -3,6 +3,7 @@ package com.github.tncrazvan.arcano.Http;
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import static com.github.tncrazvan.arcano.SharedObject.RUNTIME;
 import com.github.tncrazvan.arcano.Tool.Cluster.NoSecretFoundException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -19,7 +20,12 @@ import com.github.tncrazvan.arcano.Tool.Regex;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVER_ERROR;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_LOCKED;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
+import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
 import com.google.gson.JsonObject;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 
 
@@ -68,6 +74,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             Class<?> type = method.getReturnType();
             if (type == void.class || type == Void.class) {
                 method.invoke(controller);
+                sendHttpResponse(SharedObject.EMPTY_RESPONSE);
             } else if (type == HttpResponse.class) {
                 final HttpResponse response = (HttpResponse) method.invoke(controller);
                 response.resolve();
@@ -100,7 +107,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
 
     private static HttpController serveController(final HttpRequestReader reader)
             throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException,
-            IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException {
+            IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException, IOException {
 
         String[] location = reader.location.toString().split("/");
         final String httpMethod = reader.request.headers.get("Method");
@@ -124,17 +131,16 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                         .toArray(String[]::new);
                 wo = resolveClassName(classId + 1, typedLocation);
                 if (wo.isLocked()) {
-                    if (!reader.request.headers.issetCookie("ArcanoSecret")) {
-                        throw new NoSecretFoundException(
-                                "An unauthorized client attempted to access a locked HttpController. No key specified.");
+                    if (!reader.request.headers.issetCookie("JavaArcanoKey")) {
+                        throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. No key specified.");
                     } else {
-                        final String key = reader.request.headers.getCookie("ArcanoSecret");
-                        if (!reader.so.config.arcanoSecret.equals(key)) {
-                            throw new NoSecretFoundException(
-                                    "An unauthorized client attempted to access a locked HttpController. The specified key is invalid.");
+                        final String key = reader.request.headers.getCookie("JavaArcanoKey");
+                        if (!JwtMessage.verify(key,reader.so.config.key,reader.so.config.charset)) {
+                            throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. The specified key is invalid.");
                         }
                     }
                 }
+                
                 cls = Class.forName(wo.getClassname());
                 constructor = ConstructorFinder.getNoParametersConstructor(cls);
                 if (constructor == null) {
@@ -150,10 +156,21 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 args = resolveMethodArgs(classId + 1, location);
                 try {
                     method = controller.getClass().getDeclaredMethod(methodname);
+                    if(wo.getShellScript() != null){
+                        controller.init(reader, args);
+                        controller.setHttpHeaders(new HttpHeaders());
+                        Process ps = RUNTIME.exec(wo.getShellScript(), args, null);
+                        ps.destroyForcibly();
+                        InputStream input = ps.getInputStream();
+                        byte[] result = input.readAllBytes();
+                        controller.send(result);
+                        return controller;
+                    }
                 } catch (final NoSuchMethodException ex) {
                     args = resolveMethodArgs(classId, location);
                     method = controller.getClass().getDeclaredMethod("main");
                 }
+                
             } else {
                 try {
                     cls = Class.forName(reader.so.config.http.controllerDefault.getClassname());
@@ -205,6 +222,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             controller.setHttpHeaders(new HttpHeaders());
             controller.setResponseStatus(STATUS_LOCKED);
             controller.send("");
+            LOGGER.log(Level.SEVERE, null, ex);
             return controller;
         } catch (final InvalidControllerConstructorException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -218,9 +236,9 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         try {
             final HttpController controller = serveController(reader);
             if(controller != null ) controller.close();
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException ex) {
-            LOGGER.log(Level.WARNING, null, ex);
-        } catch (IllegalArgumentException | InvocationTargetException | UnsupportedEncodingException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | IllegalArgumentException | InvocationTargetException | UnsupportedEncodingException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     } 
