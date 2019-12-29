@@ -3,8 +3,10 @@ package com.github.tncrazvan.arcano.Http;
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import static com.github.tncrazvan.arcano.SharedObject.ROUTES;
 import static com.github.tncrazvan.arcano.SharedObject.RUNTIME;
 import com.github.tncrazvan.arcano.Tool.Cluster.NoSecretFoundException;
+import com.github.tncrazvan.arcano.Tool.Encoding.Base64;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -21,6 +23,7 @@ import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVE
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_LOCKED;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +37,47 @@ import java.util.concurrent.TimeUnit;
  * @author Razvan
  */
 public class HttpEvent extends HttpEventManager implements JsonTools{
+
+    private static HttpController script(final WebObject wo, final String[] args, final HttpRequestReader reader) throws IOException, InterruptedException {
+        final String cmd = wo.getShellScript();
+        
+        HttpController controller = new HttpController();
+        controller.init(reader, args);
+        controller.setResponseHttpHeaders(new HttpHeaders());
+        
+        final JsonArray argsArray = new JsonArray();
+        for (String arg : args) {
+            argsArray.add(arg);
+        }
+        final JsonObject queryObject = new JsonObject();
+        controller.getRequestQueryStringHashMap().forEach((key, value) -> {
+            queryObject.addProperty(key, value);
+        });
+        
+        final JsonObject pargs = new JsonObject();
+        
+        pargs.add("args", argsArray);
+        pargs.add("query", queryObject);
+        
+        Process p = RUNTIME.exec(cmd+" "+Base64.btoa(pargs.toString(), reader.so.config.charset), new String[]{}, new File(reader.so.config.dir));
+        p.waitFor(reader.so.config.timeout,TimeUnit.MILLISECONDS);
+        p.destroyForcibly();
+        InputStream error = p.getErrorStream();
+        final byte[] errors = error.readAllBytes();
+        if(errors.length > 0){
+            controller.setResponseHeaderField("Content-Type", "text/plain");
+            controller.setResponseHeaderField("Content-Length", errors.length+"");
+            controller.send(errors);
+        }else{
+            //final InputStream input = p.getInputStream();
+            //final byte[] raw = input.readAllBytes();
+            //final String result = new String(raw,reader.so.config.charset);
+
+            controller.send(p.getInputStream().readAllBytes(),false);
+        }
+        return controller;
+    }
+    
     private void sendHttpResponse(Exception e){
         final String message = e.getMessage();
         final HttpResponse response = new HttpResponse(message == null ? "" : message);
@@ -158,26 +202,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     method = controller.getClass().getDeclaredMethod(methodname);
                     if(wo.getShellScript() != null){
                         try {
-                            final String cmd = wo.getShellScript();
-                            Process p = RUNTIME.exec(cmd, args, new File(reader.so.config.dir));
-                            controller = new HttpController();
-                            controller.init(reader, args);
-                            controller.setResponseHttpHeaders(new HttpHeaders());
-                            p.waitFor(reader.so.config.timeout,TimeUnit.MILLISECONDS);
-                            p.destroyForcibly();
-                            InputStream error = p.getErrorStream();
-                            final byte[] errors = error.readAllBytes();
-                            if(errors.length > 0){
-                                controller.setResponseHeaderField("Content-Type", "text/plain");
-                                controller.setResponseHeaderField("Content-Length", errors.length+"");
-                                controller.send(errors);
-                            }else{
-                                //final InputStream input = p.getInputStream();
-                                //final byte[] raw = input.readAllBytes();
-                                //final String result = new String(raw,reader.so.config.charset);
-                                
-                                controller.send(p.getInputStream().readAllBytes(),false);
-                            }
+                            controller = script(wo,args,reader);
                         } catch (InterruptedException ex) {
                             LOGGER.log(Level.SEVERE, null, ex);
                         }
@@ -210,12 +235,40 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         } catch (final ClassNotFoundException ex) {
             if(location.length == 1 && location[0].equals("")){
                 try {
-                    cls = Class.forName(reader.so.config.http.controllerDefault.getClassname());
+                    wo = ROUTES.get("HTTP DEFAULT");
+                    if(wo.getShellScript() != null){
+                        try {
+                            controller = script(wo,location,reader);
+                        } catch (InterruptedException ex2) {
+                            LOGGER.log(Level.SEVERE, null, ex2);
+                        }
+                        return controller;
+                    }else
+                        cls = Class.forName(reader.so.config.http.controllerDefault.getClassname());
                 } catch (final ClassNotFoundException ex2) {
-                    cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
+                    wo = ROUTES.get("HTTP 404");
+                    if(wo.getShellScript() != null){
+                        try {
+                            controller = script(wo,location,reader);
+                        } catch (InterruptedException ex3) {
+                            LOGGER.log(Level.SEVERE, null, ex3);
+                        }
+                        return controller;
+                    }else
+                        cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
                 }
-            }else 
-                cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
+            }else {
+                wo = ROUTES.get("HTTP 404");
+                if(wo.getShellScript() != null){
+                    try {
+                        controller = script(wo,location,reader);
+                    } catch (InterruptedException ex3) {
+                        LOGGER.log(Level.SEVERE, null, ex3);
+                    }
+                    return controller;
+                }else
+                    cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
+            }
             try {
                 constructor = ConstructorFinder.getNoParametersConstructor(cls);
                 if (constructor == null) {

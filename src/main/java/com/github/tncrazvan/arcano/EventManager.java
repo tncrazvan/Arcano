@@ -158,6 +158,10 @@ public abstract class EventManager{
         return args;
     }
 
+    public HashMap<String,String> getRequestQueryStringHashMap(){
+        return queryString;
+    }
+    
     /**
      * Checks if the requested URL contains the given key as a query.
      * 
