@@ -7,6 +7,7 @@ package com.github.tncrazvan.arcano.Http;
 
 import static com.github.tncrazvan.arcano.SharedObject.RUNTIME;
 import com.github.tncrazvan.arcano.Tool.Encoding.Base64;
+import com.github.tncrazvan.arcano.Tool.Regex;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.File;
@@ -20,30 +21,30 @@ import java.util.concurrent.TimeUnit;
  * @author Administrator
  */
 public class ShellScript {
-    private final String filename;
+    private String script;
     private final HashMap<String, String> query;
     private final String[] args;
 
     public ShellScript(String script, String[] args, HashMap<String, String> query) {
-        this.filename = script;
+        this.script = script;
         this.args = args;
         this.query = query;
     }
     
     public ShellScript(String script, String[] args) {
-        this.filename = script;
+        this.script = script;
         this.args = args;
         this.query = null;
     }
     
     public ShellScript(String script, HashMap<String, String> query) {
-        this.filename = script;
+        this.script = script;
         this.args = null;
         this.query = query;
     }
     
     public ShellScript(String script) {
-        this.filename = script;
+        this.script = script;
         this.args = null;
         this.query = null;
     }
@@ -65,7 +66,14 @@ public class ShellScript {
         pargs.add("args", argsArray);
         pargs.add("query", queryObject);
         
-        Process p = RUNTIME.exec(filename+" "+Base64.btoa(pargs.toString(), controller.so.config.charset), new String[]{}, new File(controller.so.config.dir));
+        if(Regex.match(script, ""))
+            script = Regex.replace(script, "\\$_INPUT", "\""+Base64.btoa(pargs.toString() , controller.so.config.charset)+"\"");
+        
+        Process p = RUNTIME.exec(
+                script,
+                new String[]{}, 
+                new File(controller.so.config.dir)
+        );
         p.waitFor(controller.so.config.timeout,TimeUnit.MILLISECONDS);
         p.destroyForcibly();
         InputStream error = p.getErrorStream();
