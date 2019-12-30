@@ -4,9 +4,7 @@ import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import static com.github.tncrazvan.arcano.SharedObject.ROUTES;
-import static com.github.tncrazvan.arcano.SharedObject.RUNTIME;
 import com.github.tncrazvan.arcano.Tool.Cluster.NoSecretFoundException;
-import com.github.tncrazvan.arcano.Tool.Encoding.Base64;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,13 +21,10 @@ import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVE
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_LOCKED;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 
 /**
@@ -38,7 +33,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpEvent extends HttpEventManager implements JsonTools{
 
-    private static HttpController script(final WebObject wo, final String[] args, final HttpRequestReader reader) throws IOException, InterruptedException {
+    /*private static HttpController script(final WebObject wo, final String[] args, final HttpRequestReader reader) throws IOException, InterruptedException {
         final String cmd = wo.getShellScript();
         
         HttpController controller = new HttpController();
@@ -76,7 +71,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             controller.send(p.getInputStream().readAllBytes(),false);
         }
         return controller;
-    }
+    }*/
     
     private void sendHttpResponse(Exception e){
         final String message = e.getMessage();
@@ -116,7 +111,10 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             IllegalArgumentException, InvocationTargetException, InvocationTargetException {
         try {
             Class<?> type = method.getReturnType();
-            if (type == void.class || type == Void.class) {
+            if (type == ShellScript.class) {
+                final ShellScript script = (ShellScript) method.invoke(this);
+                script.execute(this);
+            }else if (type == void.class || type == Void.class) {
                 method.invoke(this);
                 sendHttpResponse(SharedObject.EMPTY_RESPONSE);
             } else if (type == HttpResponse.class) {
@@ -146,6 +144,10 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 sendHttpResponse(e);
             } else
                 sendHttpResponse(SharedObject.EMPTY_RESPONSE);
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
         }
     }
 
@@ -155,7 +157,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
 
         String[] location = reader.location.toString().split("/");
         final String httpMethod = reader.request.headers.get("Method");
-        final boolean abusiveUrl = Regex.match(reader.location.toString(), "w3e478tgdf8723qioiuy");
+        //final boolean abusiveUrl = Regex.match(reader.location.toString(), "w3e478tgdf8723qioiuy");
         Method method;
         String[] args;
         Class<?> cls;
@@ -168,7 +170,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             location = new String[] { "" };
         }
         try {
-            if (location.length > 0 && !abusiveUrl) {
+            //if (!abusiveUrl) {
                 classId = getClassnameIndex(location, httpMethod);
                 final String[] typedLocation = Stream
                         .concat(Arrays.stream(new String[] { httpMethod }), Arrays.stream(location))
@@ -200,24 +202,19 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 args = resolveMethodArgs(classId + 1, location);
                 try {
                     method = controller.getClass().getDeclaredMethod(methodname);
-                    if(wo.getShellScript() != null){
-                        try {
-                            controller = script(wo,args,reader);
-                        } catch (InterruptedException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        }
-                        return controller;
-                    }
                 } catch (final NoSuchMethodException ex) {
                     args = resolveMethodArgs(classId, location);
                     method = controller.getClass().getDeclaredMethod("main");
                 }
                 
-            } else {
-                try {
+            //} else {
+                //String methodname = "main";
+                /*try {
                     cls = Class.forName(reader.so.config.http.controllerDefault.getClassname());
+                    methodname = reader.so.config.http.controllerDefault.getMethodname();
                 } catch (final ClassNotFoundException ex) {
                     cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
+                    methodname = reader.so.config.http.controllerNotFound.getMethodname();
                 }
                 constructor = ConstructorFinder.getNoParametersConstructor(cls);
                 if (constructor == null) {
@@ -228,46 +225,23 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                             cls.getName()));
                 }
                 controller = (HttpController) constructor.newInstance();
-                method = controller.getClass().getDeclaredMethod("main");
-            }
+                method = controller.getClass().getDeclaredMethod(methodname);*/
+            //}
             controller.init(reader, args);
             controller.invoke(method);
         } catch (final ClassNotFoundException ex) {
+            String methodname = "main";
             if(location.length == 1 && location[0].equals("")){
                 try {
-                    wo = ROUTES.get("HTTP DEFAULT");
-                    if(wo.getShellScript() != null){
-                        try {
-                            controller = script(wo,location,reader);
-                        } catch (InterruptedException ex2) {
-                            LOGGER.log(Level.SEVERE, null, ex2);
-                        }
-                        return controller;
-                    }else
-                        cls = Class.forName(reader.so.config.http.controllerDefault.getClassname());
+                    cls = Class.forName(reader.so.config.http.controllerDefault.getClassname());
+                    methodname = reader.so.config.http.controllerDefault.getMethodname();
                 } catch (final ClassNotFoundException ex2) {
-                    wo = ROUTES.get("HTTP 404");
-                    if(wo.getShellScript() != null){
-                        try {
-                            controller = script(wo,location,reader);
-                        } catch (InterruptedException ex3) {
-                            LOGGER.log(Level.SEVERE, null, ex3);
-                        }
-                        return controller;
-                    }else
-                        cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
+                    cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
+                    methodname = reader.so.config.http.controllerNotFound.getMethodname();
                 }
             }else {
-                wo = ROUTES.get("HTTP 404");
-                if(wo.getShellScript() != null){
-                    try {
-                        controller = script(wo,location,reader);
-                    } catch (InterruptedException ex3) {
-                        LOGGER.log(Level.SEVERE, null, ex3);
-                    }
-                    return controller;
-                }else
-                    cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
+                cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
+                methodname = reader.so.config.http.controllerNotFound.getMethodname();
             }
             try {
                 constructor = ConstructorFinder.getNoParametersConstructor(cls);
@@ -279,7 +253,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                             cls.getName()));
                 }
                 controller = (HttpController) constructor.newInstance();
-                method = controller.getClass().getDeclaredMethod("main");
+                method = controller.getClass().getDeclaredMethod(methodname);
                 controller.init(reader, location);
                 controller.setResponseStatus(STATUS_NOT_FOUND);
                 controller.invoke(method);

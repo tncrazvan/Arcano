@@ -6,18 +6,12 @@ package com.github.tncrazvan.arcano;
  */
 public class WebObject {
     private final boolean LOCKED;
-    private final String SHELL_SCRIPT;
     private String classname=null;
     private String methodname=null;
     private String type="GET";
-
-    public String getShellScript() {
-        return SHELL_SCRIPT;
-    }
     
-    public WebObject(final String CLASSNAME, final String METRHOD_NAME, final String TYPE, final boolean LOCKED, final String SHELL_SCRIPT) {
+    public WebObject(final String CLASSNAME, final String METRHOD_NAME, final String TYPE, final boolean LOCKED) {
         this.classname = CLASSNAME;
-        this.SHELL_SCRIPT = SHELL_SCRIPT;
         this.methodname = METRHOD_NAME;
         this.type = TYPE;
         this.LOCKED = LOCKED;

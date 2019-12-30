@@ -26,7 +26,6 @@ import com.github.tncrazvan.arcano.Bean.Web.HttpNotFound;
 import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
 import com.github.tncrazvan.arcano.Bean.Web.HttpDefault;
 import com.github.tncrazvan.arcano.Bean.Security.HttpLock;
-import com.github.tncrazvan.arcano.Bean.ShellScript;
 
 /**
  * 
@@ -72,12 +71,10 @@ public class SharedObject implements Strings{
                     final HttpPath classRoute = (HttpPath) cls.getAnnotation(HttpPath.class);
                     final HttpLock classHttpLocked = (HttpLock) cls.getAnnotation(HttpLock.class);
                     final HttpMethod classWebFilter = (HttpMethod) cls.getAnnotation(HttpMethod.class);
-                    final ShellScript classShellScript = (ShellScript) cls.getAnnotation(ShellScript.class);
                     final Method[] methods = cls.getDeclaredMethods();
                     for (final Method method : methods) {
                         final HttpPath methodRoute = method.getAnnotation(HttpPath.class);
                         final HttpLock methodHttpLocked = (HttpLock) method.getAnnotation(HttpLock.class);
-                        final ShellScript methodShellScript = (ShellScript) method.getAnnotation(ShellScript.class);
                         if (methodRoute != null) {
                             final String classPath = normalizePathSlashes(classRoute.name().trim());
                             final String methodPath = normalizePathSlashes(methodRoute.name().trim());
@@ -96,61 +93,48 @@ public class SharedObject implements Strings{
                                 cls.getName(), 
                                 method.getName(), 
                                 type, 
-                                classHttpLocked != null || methodHttpLocked != null, 
-                                methodShellScript != null?
-                                        methodShellScript.execute():
-                                        classShellScript != null?
-                                            classShellScript.execute():
-                                            null
+                                classHttpLocked != null || methodHttpLocked != null
                             );
                             ROUTES.put(type + path, wo);
-                        } else if (method.getAnnotation(HttpNotFound.class) != null) {
-                            final String type = "HTTP 404";
-                            final WebObject wo = new WebObject(
-                                cls.getName(), 
-                                null, 
-                                type, 
-                                classHttpLocked != null || methodHttpLocked != null, 
-                                methodShellScript != null?
-                                        methodShellScript.execute():
-                                        classShellScript != null?
-                                            classShellScript.execute():
-                                            null
-                            );
-                            ROUTES.put(type, wo);
-                            this.config.http.controllerNotFound = wo;
-                        } else if (method.getAnnotation(HttpDefault.class) != null) {
-                            final String type = "HTTP DEFAULT";
-                            final WebObject wo = new WebObject(
-                                cls.getName(), 
-                                null, 
-                                type, 
-                                classHttpLocked != null || methodHttpLocked != null, 
-                                methodShellScript != null?
-                                        methodShellScript.execute():
-                                        classShellScript != null?
-                                            classShellScript.execute():
-                                            null
-                            );
-                            ROUTES.put(type, wo);
-                            this.config.http.controllerDefault = wo;
+                        } else {
+                            if (method.getAnnotation(HttpNotFound.class) != null) {
+                                final String type = "HTTP 404";
+                                final WebObject wo = new WebObject(
+                                    cls.getName(), 
+                                    method.getName(), 
+                                    type, 
+                                    classHttpLocked != null || methodHttpLocked != null
+                                );
+                                ROUTES.put(type, wo);
+                                this.config.http.controllerNotFound = wo;
+                            }
+                            if (method.getAnnotation(HttpDefault.class) != null) {
+                                final String type = "HTTP DEFAULT";
+                                final WebObject wo = new WebObject(
+                                    cls.getName(), 
+                                    method.getName(), 
+                                    type, 
+                                    classHttpLocked != null || methodHttpLocked != null
+                                );
+                                ROUTES.put(type, wo);
+                                this.config.http.controllerDefault = wo;
+                            }
                         }
                     }
                 } else if (WebSocketController.class.isAssignableFrom(cls)) {
                     final HttpPath route = (HttpPath) cls.getAnnotation(HttpPath.class);
                     final HttpLock classWebLocked = (HttpLock) cls.getAnnotation(HttpLock.class);
-                    final ShellScript classShellScript = (ShellScript) cls.getAnnotation(ShellScript.class);
                     if (route != null) {
                         final String path = normalizePathSlashes(route.name().toLowerCase());
                         final String type = "WS";
 
-                        final WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null, classShellScript != null?classShellScript.execute():null);
+                        final WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
                         ROUTES.put(type + path, wo);
                     } else {
                         final HttpNotFound nf = (HttpNotFound) cls.getAnnotation(HttpNotFound.class);
                         if (nf != null) {
                             final String type = "WS 404";
-                            final WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null, classShellScript != null?classShellScript.execute():null);
+                            final WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
                             ROUTES.put(type, wo);
                             this.config.webSocket.controllerNotFound = wo;
                         }
@@ -158,10 +142,9 @@ public class SharedObject implements Strings{
                 } else if (SmtpController.class.isAssignableFrom(cls)) {
                     final HttpPath route = (HttpPath) cls.getAnnotation(HttpPath.class);
                     final HttpLock classWebLocked = (HttpLock) cls.getAnnotation(HttpLock.class);
-                    final ShellScript classShellScript = (ShellScript) cls.getAnnotation(ShellScript.class);
                     if (route != null) {
                         final String type = "SMTP";
-                        final WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null, classShellScript != null?classShellScript.execute():null);
+                        final WebObject wo = new WebObject(cls.getName(), null, type, classWebLocked != null);
                         ROUTES.put(type, wo);
                     }
                 }
