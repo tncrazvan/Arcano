@@ -66,8 +66,8 @@ public class ShellScript {
         pargs.add("args", argsArray);
         pargs.add("query", queryObject);
         
-        if(Regex.match(script, ""))
-            script = Regex.replace(script, "\\$_INPUT", "\""+Base64.btoa(pargs.toString() , controller.so.config.charset)+"\"");
+        script = Regex.replace(script, "(?<!\\\\)\\$_INPUT", "\""+Base64.btoa(pargs.toString() , controller.so.config.charset)+"\"");
+        script = Regex.replace(script, "\\$_INPUT", "$_INPUT");
         
         Process p = RUNTIME.exec(
                 script,
