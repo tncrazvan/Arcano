@@ -96,29 +96,28 @@ public class SharedObject implements Strings{
                                 classHttpLocked != null || methodHttpLocked != null
                             );
                             ROUTES.put(type + path, wo);
-                        } else {
-                            if (method.getAnnotation(HttpNotFound.class) != null) {
-                                final String type = "HTTP 404";
-                                final WebObject wo = new WebObject(
-                                    cls.getName(), 
-                                    method.getName(), 
-                                    type, 
-                                    classHttpLocked != null || methodHttpLocked != null
-                                );
-                                ROUTES.put(type, wo);
-                                this.config.http.controllerNotFound = wo;
-                            }
-                            if (method.getAnnotation(HttpDefault.class) != null) {
-                                final String type = "HTTP DEFAULT";
-                                final WebObject wo = new WebObject(
-                                    cls.getName(), 
-                                    method.getName(), 
-                                    type, 
-                                    classHttpLocked != null || methodHttpLocked != null
-                                );
-                                ROUTES.put(type, wo);
-                                this.config.http.controllerDefault = wo;
-                            }
+                        }
+                        if (method.getAnnotation(HttpNotFound.class) != null) {
+                            final String type = "HTTP 404";
+                            final WebObject wo = new WebObject(
+                                cls.getName(), 
+                                method.getName(), 
+                                type, 
+                                classHttpLocked != null || methodHttpLocked != null
+                            );
+                            ROUTES.put(type, wo);
+                            this.config.http.controllerNotFound = wo;
+                        }
+                        if (method.getAnnotation(HttpDefault.class) != null) {
+                            final String type = "HTTP DEFAULT";
+                            final WebObject wo = new WebObject(
+                                cls.getName(), 
+                                method.getName(), 
+                                type, 
+                                classHttpLocked != null || methodHttpLocked != null
+                            );
+                            ROUTES.put(type, wo);
+                            this.config.http.controllerDefault = wo;
                         }
                     }
                 } else if (WebSocketController.class.isAssignableFrom(cls)) {

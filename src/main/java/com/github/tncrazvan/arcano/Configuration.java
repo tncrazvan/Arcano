@@ -406,7 +406,7 @@ public class Configuration {
             final WebObject wo = entry.getValue();
             final String type = wo.getType();
             final String name = entry.getKey().substring(type.length());
-            controllersTable.add(type, name, wo.getClassname());
+            controllersTable.add(type, name, wo.getClassname()+"."+wo.getMethodname());
         });
         configurationTable.add("Controllers", controllersTable.toString());
 
