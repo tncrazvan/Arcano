@@ -184,6 +184,28 @@ public abstract class EventManager{
     public String getRequestQueryString(final String key) {
         return queryString.get(key);
     }
+    
+    /**
+     * Get the value of a specific query string. For example:<br />
+     * given the url <b>http://127.0.0.1/new/user?username=my_username</b><br />
+     * you can get the username from the url by calling
+     * getRequestQueryString("username").<br />
+     * The difference between this method and getRequestQueryString is that this method
+     * tries to cast the String value to an int if possible and return it as an Object.<br />
+     * From the user point of view there are no advantages using this method.<br />
+     * This method is used by the HttpEvent when packing your @HttpParam parameters to seemengly cast your parameters.
+     * 
+     * @param key name of the query.
+     * @return the value of the query.
+     */
+    public Object getRequestQueryStringAsObject(final String key) {
+        String value = queryString.get(key);
+        try{
+            return Integer.parseInt(value);
+        }catch(Exception e){
+            return value;
+        }
+    }
 
     /**
      * Finds the languages of the client application. The value is stored in

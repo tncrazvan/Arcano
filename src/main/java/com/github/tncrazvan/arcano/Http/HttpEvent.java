@@ -91,7 +91,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             //if the query string exists...
             if(controller.issetRequestQueryString(paramName)){
                 //...use it.
-                methodInput[i] = (Object) controller.getRequestQueryString(paramName);
+                methodInput[i] = controller.getRequestQueryStringAsObject(paramName);
             }else{
                 //otherwise set the param to null.
                 methodInput[i] = null;
