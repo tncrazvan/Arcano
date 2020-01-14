@@ -97,7 +97,7 @@ public class Arcano extends SharedObject {
 
         final File assetsFile = new File(config.assets);
         if (assetsFile.exists())
-            minifier = new Minifier(assetsFile, config.webRoot, "minified");
+            minifier = new Minifier(config, assetsFile, config.webRoot, "minified");
 
         if(config.smtp.enabled)
             if (!config.smtp.hostname.equals("")) {
@@ -108,43 +108,24 @@ public class Arcano extends SharedObject {
                 System.err.println("\n[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
             }
 
-        if (!config.certificate.name.equals(""))
-            try {
-                minify();
-                final char[] password = config.certificate.password.toCharArray();
-                final KeyStore keyStore = KeyStore.getInstance(new File(config.dir + "/" + config.certificate.name),
-                        password);
-                final TrustManagerFactory trustManagerFactory = TrustManagerFactory
-                        .getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                trustManagerFactory.init(keyStore);
-                final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("NewSunX509");
-                keyManagerFactory.init(keyStore, password);
-                final SSLContext context = SSLContext.getInstance("TLSv1.2");// "SSL" "TLS"
-                context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+        if (!config.certificate.name.equals("")) try {
+            minify();
+            final char[] password = config.certificate.password.toCharArray();
+            final KeyStore keyStore = KeyStore.getInstance(new File(config.dir + "/" + config.certificate.name),
+                    password);
+            final TrustManagerFactory trustManagerFactory = TrustManagerFactory
+                    .getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init(keyStore);
+            final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("NewSunX509");
+            keyManagerFactory.init(keyStore, password);
+            final SSLContext context = SSLContext.getInstance("TLSv1.2");// "SSL" "TLS"
+            context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
-                final SSLServerSocketFactory factory = context.getServerSocketFactory();
-                try (SSLServerSocket ss = ((SSLServerSocket) factory.createServerSocket())) {
-                    ss.bind(new InetSocketAddress(config.bindAddress, config.port));
-                    HttpEventListener listener;
-                    System.out.println("Server started (using TLSv1.2).");
-                    while (config.listen) {
-                        listener = new HttpEventListener(this, ss.accept());
-                        if(executor == null)
-                            service.submit(listener);
-                        else
-                            executor.submit(listener);
-                    }
-                }
-            } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-        else
-            try (ServerSocket ss = new ServerSocket()) {
+            final SSLServerSocketFactory factory = context.getServerSocketFactory();
+            try (SSLServerSocket ss = ((SSLServerSocket) factory.createServerSocket())) {
                 ss.bind(new InetSocketAddress(config.bindAddress, config.port));
-
-                minify();
                 HttpEventListener listener;
-                System.out.println("Server started.");
+                System.out.println("Server started (using TLSv1.2).");
                 while (config.listen) {
                     listener = new HttpEventListener(this, ss.accept());
                     if(executor == null)
@@ -152,32 +133,54 @@ public class Arcano extends SharedObject {
                     else
                         executor.submit(listener);
                 }
-                ss.close();
             }
+        } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+        else try (ServerSocket ss = new ServerSocket()) {
+            ss.bind(new InetSocketAddress(config.bindAddress, config.port));
+
+            minify();
+            HttpEventListener listener;
+            System.out.println("Server started.");
+            while (config.listen) {
+                listener = new HttpEventListener(this, ss.accept());
+                if(executor == null)
+                    service.submit(listener);
+                else
+                    executor.submit(listener);
+            }
+            ss.close();
+        }
     }
 
-    private final void minify() throws IOException {
-        if(config.minify > 0 && minifier != null) {
-            minifier.minify();
+    private void minify() throws IOException {
+        if(config.pack.interval > 0 && !config.pack.script.isBlank()) {
+            minifier.minify(config.pack.minify);
             System.out.println("Files minified.");
-        }else if(config.minify < 0 && minifier != null){
-            minifier.minify(false);
-            System.out.println("Files glued but not minified.");
         }
-        if((config.minify > 0 || config.minify < 0) && minifier != null) {
-            System.out.println("Server will minify files in background once every "+config.minify+"ms.");
+        if((config.pack.interval > 0 || config.pack.interval < 0) && minifier != null && !config.pack.script.isBlank()) {
+            System.out.println("Server will minify files in background once every "+config.pack.interval+" ms.");
             new Thread(() -> {
                 while(true){
-                    try {
-                        if(config.minify < 0){
-                            Thread.sleep(-config.minify);
-                            minifier.minify(false);
-                        }else{
-                            Thread.sleep(config.minify);
-                            minifier.minify();
+                    try{
+                        try {
+                            if(config.pack.script.isBlank()){
+                                Thread.sleep(config.pack.interval);
+                                continue;
+                            }
+                            if(config.pack.interval > 0){
+                                minifier.minify(config.pack.minify);
+                                Thread.sleep(config.pack.interval);
+                            }else
+                                Thread.sleep(5000);
+                        } catch (IOException ex) {
+                            LOGGER.log(Level.SEVERE, null, ex);
+                            Thread.sleep(5000);
                         }
-                    } catch (InterruptedException | IOException ex) {
+                    }catch(InterruptedException ex){
                         LOGGER.log(Level.SEVERE, null, ex);
+                        break;
                     }
                 }
             }).start();

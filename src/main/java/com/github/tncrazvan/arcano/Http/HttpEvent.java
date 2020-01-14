@@ -1,9 +1,9 @@
 package com.github.tncrazvan.arcano.Http;
 
+import com.github.tncrazvan.arcano.Bean.Web.HttpParam;
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import static com.github.tncrazvan.arcano.SharedObject.ROUTES;
 import com.github.tncrazvan.arcano.Tool.Cluster.NoSecretFoundException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -16,7 +16,6 @@ import java.util.stream.Stream;
 import com.github.tncrazvan.arcano.WebObject;
 import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
-import com.github.tncrazvan.arcano.Tool.Regex;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVER_ERROR;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_LOCKED;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
@@ -24,7 +23,7 @@ import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
 import com.google.gson.JsonObject;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.util.logging.Logger;
+import java.lang.reflect.Parameter;
 
 
 /**
@@ -32,47 +31,6 @@ import java.util.logging.Logger;
  * @author Razvan
  */
 public class HttpEvent extends HttpEventManager implements JsonTools{
-
-    /*private static HttpController script(final WebObject wo, final String[] args, final HttpRequestReader reader) throws IOException, InterruptedException {
-        final String cmd = wo.getShellScript();
-        
-        HttpController controller = new HttpController();
-        controller.init(reader, args);
-        controller.setResponseHttpHeaders(new HttpHeaders());
-        
-        final JsonArray argsArray = new JsonArray();
-        for (String arg : args) {
-            argsArray.add(arg);
-        }
-        final JsonObject queryObject = new JsonObject();
-        controller.getRequestQueryStringHashMap().forEach((key, value) -> {
-            queryObject.addProperty(key, value);
-        });
-        
-        final JsonObject pargs = new JsonObject();
-        
-        pargs.add("args", argsArray);
-        pargs.add("query", queryObject);
-        
-        Process p = RUNTIME.exec(cmd+" "+Base64.btoa(pargs.toString(), reader.so.config.charset), new String[]{}, new File(reader.so.config.dir));
-        p.waitFor(reader.so.config.timeout,TimeUnit.MILLISECONDS);
-        p.destroyForcibly();
-        InputStream error = p.getErrorStream();
-        final byte[] errors = error.readAllBytes();
-        if(errors.length > 0){
-            controller.setResponseHeaderField("Content-Type", "text/plain");
-            controller.setResponseHeaderField("Content-Length", errors.length+"");
-            controller.send(errors);
-        }else{
-            //final InputStream input = p.getInputStream();
-            //final byte[] raw = input.readAllBytes();
-            //final String result = new String(raw,reader.so.config.charset);
-
-            controller.send(p.getInputStream().readAllBytes(),false);
-        }
-        return controller;
-    }*/
-    
     private void sendHttpResponse(Exception e){
         final String message = e.getMessage();
         final HttpResponse response = new HttpResponse(message == null ? "" : message);
@@ -107,18 +65,56 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         }
     }
     
+    private static Object[] getMethodParameters(HttpEvent controller, Method method){
+        //get query strings
+        Parameter[] params = method.getParameters();
+        Object[] methodInput = new Object[params.length];
+        String paramName;
+        for(short i = 0; i < methodInput.length; i++){
+            HttpParam annotation = (HttpParam) params[i].getAnnotation(HttpParam.class);
+            //if the parameter is not defined as an HttpParam...
+            if(annotation == null){
+                //set it to null.
+                methodInput[i] = null;
+                continue;
+            }
+
+            paramName = 
+                    //if the name of HttpParam is blank...
+                    annotation.name().isBlank()?
+                    //use the name of the parameter itself
+                    params[i].getName()
+                    :
+                    annotation.name();
+            //NOTE: The name oh HttpParam is blank by default.
+
+            //if the query string exists...
+            if(controller.issetRequestQueryString(paramName)){
+                //...use it.
+                methodInput[i] = (Object) controller.getRequestQueryString(paramName);
+            }else{
+                //otherwise set the param to null.
+                methodInput[i] = null;
+            }
+        }
+        return methodInput;
+    }
+    
     public final void invoke(final Method method) throws IllegalAccessException,
             IllegalArgumentException, InvocationTargetException, InvocationTargetException {
         try {
             Class<?> type = method.getReturnType();
+            Object[] params = getMethodParameters(this, method);
+            
+            //try to invoke method
             if (type == ShellScript.class) {
-                final ShellScript script = (ShellScript) method.invoke(this);
+                final ShellScript script = (ShellScript) method.invoke(this,params);
                 script.execute(this);
             }else if (type == void.class || type == Void.class) {
-                method.invoke(this);
+                method.invoke(this,params);
                 sendHttpResponse(SharedObject.EMPTY_RESPONSE);
             } else if (type == HttpResponse.class) {
-                final HttpResponse response = (HttpResponse) method.invoke(this);
+                final HttpResponse response = (HttpResponse) method.invoke(this,params);
                 response.resolve();
                 final HashMap<String, String> localHeaders = response.getHashMapHeaders();
                 if (localHeaders != null) {
@@ -129,7 +125,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 sendHttpResponse(response);
             } else {
                 // if it's some other type of object...
-                final Object data = method.invoke(this);
+                final Object data = method.invoke(this,params);
                 sendHttpResponse(new HttpResponse(data == null ? "" : data).resolve());
             }
         } catch (final InvocationTargetException  e) {
@@ -158,7 +154,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         String[] location = reader.location.toString().split("/");
         final String httpMethod = reader.request.headers.get("Method");
         //final boolean abusiveUrl = Regex.match(reader.location.toString(), "w3e478tgdf8723qioiuy");
-        Method method;
+        Method method = null;
         String[] args;
         Class<?> cls;
         HttpController controller = null;
@@ -170,64 +166,50 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             location = new String[] { "" };
         }
         try {
-            //if (!abusiveUrl) {
-                classId = getClassnameIndex(location, httpMethod);
-                final String[] typedLocation = Stream
-                        .concat(Arrays.stream(new String[] { httpMethod }), Arrays.stream(location))
-                        .toArray(String[]::new);
-                wo = resolveClassName(classId + 1, typedLocation);
-                if (wo.isLocked()) {
-                    if (!reader.request.headers.issetCookie("JavaArcanoKey")) {
-                        throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. No key specified.");
-                    } else {
-                        final String key = reader.request.headers.getCookie("JavaArcanoKey");
-                        if (!JwtMessage.verify(key,reader.so.config.key,reader.so.config.charset)) {
-                            throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. The specified key is invalid.");
-                        }
+            classId = getClassnameIndex(location, httpMethod);
+            final String[] typedLocation = Stream
+                    .concat(Arrays.stream(new String[] { httpMethod }), Arrays.stream(location))
+                    .toArray(String[]::new);
+            wo = resolveClassName(classId + 1, typedLocation);
+            if (wo.isLocked()) {
+                if (!reader.request.headers.issetCookie("JavaArcanoKey")) {
+                    throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. No key specified.");
+                } else {
+                    final String key = reader.request.headers.getCookie("JavaArcanoKey");
+                    if (!JwtMessage.verify(key,reader.so.config.key,reader.so.config.charset)) {
+                        throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. The specified key is invalid.");
                     }
                 }
-                
-                cls = Class.forName(wo.getClassname());
-                constructor = ConstructorFinder.getNoParametersConstructor(cls);
-                if (constructor == null) {
-                    throw new InvalidControllerConstructorException(String.format(
-                            "\nController %s does not contain a valid constructor.\n"
-                                    + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                                    + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
-                            wo.getClassname()));
-                }
-                controller = (HttpController) constructor.newInstance();
+            }
 
-                final String methodname = location.length > classId ? wo.getMethodname() : "main";
-                args = resolveMethodArgs(classId + 1, location);
-                try {
-                    method = controller.getClass().getDeclaredMethod(methodname);
-                } catch (final NoSuchMethodException ex) {
-                    args = resolveMethodArgs(classId, location);
-                    method = controller.getClass().getDeclaredMethod("main");
-                }
-                
-            //} else {
-                //String methodname = "main";
-                /*try {
-                    cls = Class.forName(reader.so.config.http.controllerDefault.getClassname());
-                    methodname = reader.so.config.http.controllerDefault.getMethodname();
-                } catch (final ClassNotFoundException ex) {
-                    cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
-                    methodname = reader.so.config.http.controllerNotFound.getMethodname();
-                }
-                constructor = ConstructorFinder.getNoParametersConstructor(cls);
-                if (constructor == null) {
-                    throw new InvalidControllerConstructorException(String.format(
-                            "\nController %s does not contain a valid constructor.\n"
-                                    + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                                    + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
-                            cls.getName()));
-                }
-                controller = (HttpController) constructor.newInstance();
-                method = controller.getClass().getDeclaredMethod(methodname);*/
-            //}
+            cls = Class.forName(wo.getClassname());
+            constructor = ConstructorFinder.getNoParametersConstructor(cls);
+            if (constructor == null) {
+                throw new InvalidControllerConstructorException(String.format(
+                        "\nController %s does not contain a valid constructor.\n"
+                                + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                + "Perhaps your class is an inner class and it's not public or static? Try make it a \"public static class\"!",
+                        wo.getClassname()));
+            }
+            controller = (HttpController) constructor.newInstance();
+
+            final String methodname = location.length > classId ? wo.getMethodname() : "main";
+            args = resolveMethodArgs(classId + 1, location);
             controller.init(reader, args);
+            Method[] methods = controller.getClass().getDeclaredMethods();
+            for(Method m : methods){
+                if(!m.getName().equals(methodname)) continue;    
+                method = m;
+                break;
+            }
+            if(method == null) {
+                args = resolveMethodArgs(classId, location);
+                for(Method m : methods){
+                    if(!m.getName().equals("main")) continue;    
+                    method = m;
+                    break;
+                }
+            }
             controller.invoke(method);
         } catch (final ClassNotFoundException ex) {
             String methodname = "main";
@@ -253,7 +235,12 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                             cls.getName()));
                 }
                 controller = (HttpController) constructor.newInstance();
-                method = controller.getClass().getDeclaredMethod(methodname);
+                Method[] methods = controller.getClass().getDeclaredMethods();
+                for(Method m : methods){
+                    if(!m.getName().equals(methodname)) continue;    
+                    method = m;
+                    break;
+                }
                 controller.init(reader, location);
                 controller.setResponseStatus(STATUS_NOT_FOUND);
                 controller.invoke(method);

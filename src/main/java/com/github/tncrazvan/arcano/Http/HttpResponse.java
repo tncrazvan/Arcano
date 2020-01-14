@@ -94,7 +94,11 @@ public class HttpResponse {
                 }
                 raw = true;
             } else {
-                this.content = jsonStringify(content);
+                if(type.isArray()){
+                    this.content = jsonStringify((Object[])content);
+                }else{
+                    this.content = jsonStringify(content);
+                }
             }
         } catch (final UnsupportedEncodingException ex) {
             this.content = ex.getMessage().getBytes();

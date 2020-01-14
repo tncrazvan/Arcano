@@ -1,5 +1,7 @@
 package com.github.tncrazvan.arcano.Tool;
 
+import com.github.tncrazvan.arcano.Configuration;
+import static com.github.tncrazvan.arcano.SharedObject.RUNTIME;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonArray;
 import com.google.gson.JsonArray;
 import java.io.File;
@@ -22,22 +24,24 @@ public class Minifier{
     private final String outputFilename = "minified";
     private final File minifiedJS;
     private final File minifiedCSS;
+    private final Configuration config;
     private File dir;
 
-    public Minifier(final File assetsFile, final String inputDirName, final String outputSubDirName) throws IOException {
+    public Minifier(Configuration config, final File assetsFile, final String inputDirName, final String outputSubDirName) throws IOException {
         new HashMap<>();
         this.assets = assetsFile;
         this.inputDirName = inputDirName;
         dir = new File(inputDirName + outputDirectoryname);
         minifiedJS = new File(inputDirName + outputDirectoryname + "/" + outputFilename + ".js");
         minifiedCSS = new File(inputDirName + outputDirectoryname + "/" + outputFilename + ".css");
+        this.config = config;
     }
 
-    public static byte[] minify(final byte[] content, final String type) throws IOException {
-        return minify(content, type, Thread.currentThread().getId() + "");
+    public static byte[] minify(Configuration config, final byte[] content, final String type) throws IOException {
+        return minify(config, content, type, Thread.currentThread().getId() + "");
     }
 
-    public static byte[] minify(final byte[] content, final String type, final String hashCode) throws IOException {
+    public static byte[] minify(Configuration config, final byte[] content, final String type, final String hashCode) throws IOException {
         File tmp = new File("tmp");
         if (!tmp.exists())
             tmp.mkdir();
@@ -56,8 +60,8 @@ public class Minifier{
 
         Process process;
         final String filename = tmp.toPath().toAbsolutePath().toString().replace("\\", "/");
-        final String cmd = String.format("minify --type=%s \"%s\"", type, filename);
-        process = Runtime.getRuntime().exec(cmd);
+        final String script = Regex.replace(Regex.replace(config.pack.script, "\\$\\_TYPE", type), "\\$\\_FILE", filename);
+        process = RUNTIME.exec(script, new String[]{}, new File(config.dir));
         final byte[] result = process.getInputStream().readAllBytes();
         process.destroy();
         tmp.delete();
@@ -132,10 +136,10 @@ public class Minifier{
                     f = new File(listedFilename);
                     fis = new FileInputStream(f);
                     if (listedFilename.endsWith(".js")) {
-                        js += min ? new String(minify(fis.readAllBytes(), "js", this.hashCode() + ""))
+                        js += min ? new String(minify(config, fis.readAllBytes(), "js", this.hashCode() + ""))
                                 : new String(fis.readAllBytes());
                     } else if (listedFilename.endsWith(".css")) {
-                        css += min ? new String(minify(fis.readAllBytes(), "css", this.hashCode() + ""))
+                        css += min ? new String(minify(config, fis.readAllBytes(), "css", this.hashCode() + ""))
                                 : new String(fis.readAllBytes());
                     }
 
