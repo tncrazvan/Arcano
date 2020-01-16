@@ -16,5 +16,5 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
 public @interface HttpMethod {
-    public String name();
+    public String name() default "GET";
 }
