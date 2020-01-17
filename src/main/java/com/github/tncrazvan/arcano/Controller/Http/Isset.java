@@ -13,9 +13,8 @@ import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
  * @author Razvan
  */
 
-@HttpPath(name="/@isset")
 public class Isset extends HttpController{
-    @HttpPath(name="/file")
+    @HttpPath(name="/@isset/file")
     public void file() throws FileNotFoundException, IOException{
         final String url = String.join("/", args);
         final File f = new File(so.config.webRoot, url);
@@ -27,7 +26,7 @@ public class Isset extends HttpController{
         flush();
     }
 
-    @HttpPath(name = "/cookie")
+    @HttpPath(name = "/@isset/cookie")
     public void cookie() {
         final String name = String.join("/", args);
         if(issetRequestCookie(name)){

@@ -16,9 +16,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.logging.Level;
+import static jdk.nashorn.internal.objects.NativeArray.map;
 
 /**
  * Containst the configuration file objects.
@@ -473,12 +477,30 @@ public class Configuration {
 
         final AsciiTable controllersTable = new AsciiTable();
         controllersTable.add("TYPE", "PATH", "CLASS");
-        ROUTES.entrySet().forEach((entry) -> {
+        
+        ArrayList<String> sortedKeys = new ArrayList<>(ROUTES.keySet());
+        Collections.sort(sortedKeys, new Comparator<String>() {
+            @Override
+            public int compare(String a, String b) {
+              return a.compareTo(b);
+            }
+        });
+        
+        
+        for(String key : sortedKeys){
+            final WebObject wo = ROUTES.get(key);
+            final String type = wo.getType();
+            final String name = key.substring(type.length());
+            final String methodName = wo.getMethodName()==null?"<?>":wo.getMethodName();
+            controllersTable.add(type, name, wo.getClassName()+"."+methodName);
+        }
+        /*ROUTES.entrySet().forEach((entry) -> {
             final WebObject wo = entry.getValue();
             final String type = wo.getType();
             final String name = entry.getKey().substring(type.length());
-            controllersTable.add(type, name, wo.getClassname()+"."+wo.getMethodname());
-        });
+            final String methodName = wo.getMethodName()==null?"<?>":wo.getMethodName();
+            controllersTable.add(type, name, wo.getClassName()+"."+methodName);
+        });*/
         configurationTable.add("Controllers", controllersTable.toString());
 
         if (config.has("certificate")) {

@@ -28,11 +28,11 @@ public abstract class WebSocketEvent extends WebSocketManager{
             final String[] typedLocation = Stream.concat(Arrays.stream(new String[] { "WS" }), Arrays.stream(location))
                     .toArray(String[]::new);
             final WebObject wo = resolveClassName(classId + 1, typedLocation);
-            cls = Class.forName(wo.getClassname());
+            cls = Class.forName(wo.getClassName());
             controller = (WebSocketController) cls.getDeclaredConstructor().newInstance();
             controller.setArgs(args);
         } catch (final ClassNotFoundException ex) {
-            cls = Class.forName(reader.so.config.webSocket.controllerNotFound.getClassname());
+            cls = Class.forName(reader.so.config.webSocket.controllerNotFound.getClassName());
             controller = (WebSocketController) cls.getDeclaredConstructor().newInstance();
             controller.setArgs(location);
         }

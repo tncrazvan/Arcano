@@ -2,13 +2,13 @@ package com.github.tncrazvan.arcano.Controller.WebSocket;
 
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketMessage;
-import com.github.tncrazvan.arcano.Bean.Web.HttpNotFound;
+import com.github.tncrazvan.arcano.Bean.Web.WebSocketNotFound;
 
 /**
  *
  * @author razvan
  */
-@HttpNotFound
+@WebSocketNotFound
 public class ControllerNotFound extends WebSocketController{
     @Override
     public void onOpen() {

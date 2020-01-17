@@ -195,14 +195,14 @@ public class EmailReader extends SmtpMessageManager{
         ROUTES.forEach((key, wo) -> {
             if (wo.getType().equals("SMTP")) {
                 try {
-                    final Class<?> cls = Class.forName(wo.getClassname());
+                    final Class<?> cls = Class.forName(wo.getClassName());
                     final Constructor<?> constructor = ConstructorFinder.getNoParametersConstructor(cls);
                     if (constructor == null) {
                         throw new InvalidControllerConstructorException(String.format(
                                 "\nController %s does not contain a valid constructor.\n"
                                         + "A valid constructor for your controller is a constructor that has no parameters.\n"
                                         + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
-                                wo.getClassname()));
+                                wo.getClassName()));
                     }
                     try {
                         final SmtpController controller = (SmtpController) constructor.newInstance();

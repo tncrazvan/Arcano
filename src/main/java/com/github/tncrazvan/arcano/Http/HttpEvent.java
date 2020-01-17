@@ -182,18 +182,18 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 }
             }
 
-            cls = Class.forName(wo.getClassname());
+            cls = Class.forName(wo.getClassName());
             constructor = ConstructorFinder.getNoParametersConstructor(cls);
             if (constructor == null) {
                 throw new InvalidControllerConstructorException(String.format(
                         "\nController %s does not contain a valid constructor.\n"
                                 + "A valid constructor for your controller is a constructor that has no parameters.\n"
                                 + "Perhaps your class is an inner class and it's not public or static? Try make it a \"public static class\"!",
-                        wo.getClassname()));
+                        wo.getClassName()));
             }
             controller = (HttpController) constructor.newInstance();
 
-            final String methodname = location.length > classId ? wo.getMethodname() : "main";
+            final String methodname = location.length > classId ? wo.getMethodName() : "main";
             args = resolveMethodArgs(classId + 1, location);
             controller.init(reader, args);
             Method[] methods = controller.getClass().getDeclaredMethods();
@@ -215,15 +215,15 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             String methodname = "main";
             if(location.length == 1 && location[0].equals("")){
                 try {
-                    cls = Class.forName(reader.so.config.http.controllerDefault.getClassname());
-                    methodname = reader.so.config.http.controllerDefault.getMethodname();
+                    cls = Class.forName(reader.so.config.http.controllerDefault.getClassName());
+                    methodname = reader.so.config.http.controllerDefault.getMethodName();
                 } catch (final ClassNotFoundException ex2) {
-                    cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
-                    methodname = reader.so.config.http.controllerNotFound.getMethodname();
+                    cls = Class.forName(reader.so.config.http.controllerNotFound.getClassName());
+                    methodname = reader.so.config.http.controllerNotFound.getMethodName();
                 }
             }else {
-                cls = Class.forName(reader.so.config.http.controllerNotFound.getClassname());
-                methodname = reader.so.config.http.controllerNotFound.getMethodname();
+                cls = Class.forName(reader.so.config.http.controllerNotFound.getClassName());
+                methodname = reader.so.config.http.controllerNotFound.getMethodName();
             }
             try {
                 constructor = ConstructorFinder.getNoParametersConstructor(cls);

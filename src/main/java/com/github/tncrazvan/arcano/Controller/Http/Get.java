@@ -19,11 +19,10 @@ import com.github.tncrazvan.arcano.Bean.Security.HttpLock;
  *
  * @author Razvan
  */
-@HttpPath(name = "/@get")
 public class Get extends HttpController{
     
     @HttpLock
-    @HttpPath(name="/memory")
+    @HttpPath(name="/@get/memory")
     public JsonObject memory(){
         final JsonObject result = new JsonObject();
         result.addProperty("free", getFreeMemory());
@@ -32,9 +31,9 @@ public class Get extends HttpController{
         return result;
     }
 
-    @HttpPath(name = "/file")
-    public HttpResponse file() throws IOException {
-        return new HttpResponse(new File(so.config.webRoot + String.join("/", args)));
+    @HttpPath(name = "/@get/file")
+    public File file() throws IOException {
+        return new File(so.config.webRoot + String.join("/", args));
     }
 
     class Cookie {
@@ -47,7 +46,7 @@ public class Get extends HttpController{
 
     }
 
-    @HttpPath(name = "/allWebSocketGroups")
+    @HttpPath(name = "/@get/allWebSocketGroups")
     public void allWebSocketGroups() {
         WebSocketGroup group;
         final JsonArray arr = new JsonArray();
@@ -64,7 +63,7 @@ public class Get extends HttpController{
         send(arr.toString());
     }
 
-    @HttpPath(name = "/cookie")
+    @HttpPath(name = "/@get/cookie")
     public void cookie() {
         final String name = String.join("/", args);
         if (issetRequestCookie(name)) {

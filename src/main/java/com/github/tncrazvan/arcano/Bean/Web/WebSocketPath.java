@@ -12,9 +12,9 @@ import java.lang.annotation.Target;
  */
 
 
-@Target(value = {ElementType.METHOD})
+@Target(value = {ElementType.TYPE})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
-public @interface HttpMethod {
+public @interface WebSocketPath {
     public String name();
 }

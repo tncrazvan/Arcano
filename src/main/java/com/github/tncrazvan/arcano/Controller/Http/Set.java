@@ -14,12 +14,11 @@ import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
  *
  * @author Razvan
  */
-@HttpPath(name="/@set")
 public class Set extends HttpController {
     private static final String 
             GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.";
 
-    @HttpPath(name="/webSocketGroup")
+    @HttpPath(name="/@set/webSocketGroup")
     @HttpMethod(name="POST")
     public void webSocketGroup(){
         if(so.config.webSocket.groups.enabled){
@@ -39,7 +38,7 @@ public class Set extends HttpController {
         }
     }
 
-    @HttpPath(name = "/cookie")
+    @HttpPath(name = "/@set/cookie")
     @HttpMethod(name = "POST")
     public void cookie() {
         final String name = String.join("/", args);

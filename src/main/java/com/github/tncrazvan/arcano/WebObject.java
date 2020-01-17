@@ -5,7 +5,7 @@ package com.github.tncrazvan.arcano;
  * @author Administrator
  */
 public class WebObject {
-    private final boolean LOCKED;
+    private boolean locked;
     private String classname=null;
     private String methodname=null;
     private String type="GET";
@@ -14,18 +14,18 @@ public class WebObject {
         this.classname = CLASSNAME;
         this.methodname = METRHOD_NAME;
         this.type = TYPE;
-        this.LOCKED = LOCKED;
+        this.locked = LOCKED;
     }
 
     public boolean isLocked() {
-        return LOCKED;
+        return this.locked;
     }
 
-    public void setClassname(final String classname) {
+    public void setClassName(final String classname) {
         this.classname = classname;
     }
 
-    public void setMethodname(final String methodname) {
+    public void setMethodName(final String methodname) {
         this.methodname = methodname;
     }
 
@@ -33,15 +33,15 @@ public class WebObject {
         this.type = httpMethod;
     }
     
-    public String getClassname(){
-        return classname;
+    public String getClassName(){
+        return this.classname;
     }
     
-    public String getMethodname(){
-        return methodname;
+    public String getMethodName(){
+        return this.methodname;
     }
     
     public String getType(){
-        return type;
+        return this.type;
     }
 }

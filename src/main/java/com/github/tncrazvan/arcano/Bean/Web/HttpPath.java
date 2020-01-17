@@ -12,9 +12,9 @@ import java.lang.annotation.Target;
  */
 
 
-@Target(value = {ElementType.TYPE, ElementType.METHOD, ElementType.PACKAGE})
+@Target(value = {ElementType.METHOD})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
 public @interface HttpPath {
-    public String name() default "/";
+    public String name();
 }

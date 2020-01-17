@@ -1,19 +1,17 @@
 package com.github.tncrazvan.arcano.Controller.Http;
 
 import com.github.tncrazvan.arcano.Http.HttpController;
-import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.io.IOException;
-import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
 import com.github.tncrazvan.arcano.Bean.Web.HttpDefault;
+import java.io.File;
 
 /**
  *
  * @author Administrator
  */
-@HttpPath
 public class App extends HttpController {
     @HttpDefault
-    public HttpResponse main() throws IOException, ClassNotFoundException {
+    public File main() throws IOException, ClassNotFoundException {
         if(args.length == 0) 
             args = new String[]{so.config.entryPoint};
         else if(args.length == 1 && args[0].equals("")) 
