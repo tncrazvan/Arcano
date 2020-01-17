@@ -92,7 +92,6 @@ public class Arcano extends SharedObject {
                 else
                     service = Executors.newWorkStealingPool(config.threads.pool);
                 break;
-                
         }
 
         final File assetsFile = new File(config.assets);
