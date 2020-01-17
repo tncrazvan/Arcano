@@ -1,10 +1,6 @@
 package com.github.tncrazvan.arcano;
 
-import com.github.tncrazvan.arcano.Bean.Web.HttpMethod;
-import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
 import com.github.tncrazvan.arcano.Configuration.Threads;
-import com.github.tncrazvan.arcano.Controller.Http.Get;
-import com.github.tncrazvan.arcano.Http.HttpController;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -27,7 +23,6 @@ import javax.net.ssl.TrustManagerFactory;
 import com.github.tncrazvan.arcano.Http.HttpEventListener;
 import com.github.tncrazvan.arcano.Smtp.SmtpServer;
 import com.github.tncrazvan.arcano.Tool.Minifier;
-import com.github.tncrazvan.arcano.Tool.Regex;
 import java.util.Arrays;
 import javax.net.ssl.SSLServerSocket;
 
