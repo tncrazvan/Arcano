@@ -42,23 +42,11 @@ public class HttpEventListener extends HttpRequestReader{
                 matcher = WEB_SOCKET_PATTERN.matcher(request.headers.get("Upgrade"));
                 // WebSocket connection
                 if (matcher.find()) {
-                    try {
-                        WebSocketController.serveController(this);
-                        /*
-                         * try { new WebSocketController(so, bufferedReader, client, request).execute();
-                         * }catch(final IOException e){ try { client.close(); } catch (final IOException
-                         * ex) { LOGGER.log(Level.SEVERE,null,ex); } } catch (InstantiationException |
-                         * IllegalAccessException | NoSuchMethodException ex) {
-                         * LOGGER.log(Level.SEVERE,null,ex); } catch (ClassNotFoundException |
-                         * IllegalArgumentException | InvocationTargetException ex) {
-                         * LOGGER.log(Level.SEVERE, null, ex); }
-                         */
-                    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-                            | IllegalArgumentException | InvocationTargetException | NoSuchMethodException ex) {
-                        LOGGER.log(Level.SEVERE, null, ex);
-                    } catch (final IOException ex) {
-                        Logger.getLogger(HttpEventListener.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                        try{
+                            WebSocketController.serveController(this);
+                        }catch(Exception e){
+                            LOGGER.log(Level.SEVERE, null, e);
+                        }
                 } else {
                     matcher = HTTP2_PATTERN.matcher(request.headers.get("Upgrade"));
                     // Http 2.x connection

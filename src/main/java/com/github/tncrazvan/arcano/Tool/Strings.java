@@ -36,6 +36,7 @@ public interface Strings {
     }
 
     public static String normalizePathSlashes(String path) {
+        path = path.trim().toLowerCase();
         final int classPathLength = path.length();
         if (classPathLength >= 1 && path.charAt(0) != '/') {
             path = '/' + path;
@@ -44,7 +45,7 @@ public interface Strings {
             path = path.substring(0, classPathLength - 1);
         }
 
-        return path;
+        return path.replaceAll("\\/{2,}", "/");
     }
 
     /**

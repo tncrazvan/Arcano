@@ -7,8 +7,7 @@ import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonObject;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 import com.google.gson.JsonObject;
-import com.github.tncrazvan.arcano.Bean.Web.HttpMethod;
-import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
+import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 
 /**
  *
@@ -18,8 +17,7 @@ public class Set extends HttpController {
     private static final String 
             GROUPS_NOT_ALLOWED = "WebSocket groups are not allowd.";
 
-    @HttpPath(name="/@set/webSocketGroup")
-    @HttpMethod(name="POST")
+    @HttpService(path="/@set/webSocketGroup",method = "POST")
     public void webSocketGroup(){
         if(so.config.webSocket.groups.enabled){
             final HttpSession session = startSession();
@@ -38,8 +36,7 @@ public class Set extends HttpController {
         }
     }
 
-    @HttpPath(name = "/@set/cookie")
-    @HttpMethod(name = "POST")
+    @HttpService(path = "/@set/cookie",method = "POST")
     public void cookie() {
         final String name = String.join("/", args);
         final JsonObject data = jsonObject(new String(request.content));

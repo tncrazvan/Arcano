@@ -440,7 +440,7 @@ public class Configuration {
         configurationTable.add("cookie", this.cookie.table.toString());
         configurationTable.add("webSocket", this.webSocket.table.toString());
         configurationTable.add("http", "" + this.http.table.toString());
-        configurationTable.add("minify", this.pack.table.toString());
+        configurationTable.add("pack", this.pack.table.toString());
         configurationTable.add("threads", this.threads.table.toString());
         configurationTable.add("sendExceptions", this.sendExceptions ? "True" : "False");
         configurationTable.add("responseWrapper", this.responseWrapper ? "True" : "False");

@@ -13,9 +13,9 @@ import java.util.logging.Level;
  *
  * @author razvan
  */
-public class HttpController extends HttpEvent{
-    protected String[] args;
-    protected HttpRequestReader reader = null;
+public class HttpController extends HttpEvent implements HttpControllerFeatures{
+    public String[] args;
+    public HttpRequestReader reader = null;
     
     public final HttpController init(final HttpRequestReader reader, final String[] args) {
         try {

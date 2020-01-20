@@ -1,4 +1,4 @@
-package com.github.tncrazvan.arcano.Bean.Web;
+package com.github.tncrazvan.arcano.Bean.WebSocket;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -12,9 +12,7 @@ import java.lang.annotation.Target;
  */
 
 
-@Target(value = {ElementType.PARAMETER})
+@Target(value = {ElementType.TYPE})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
-public @interface HttpParam {
-    public String name() default "";
-}
+public @interface WebSocketNotFound {}

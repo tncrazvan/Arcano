@@ -6,23 +6,20 @@ import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi;
 import java.io.IOException;
 import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
-import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.io.File;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonStringify;
 import static com.github.tncrazvan.arcano.Tool.System.Memory.getAllocatedMemory;
 import static com.github.tncrazvan.arcano.Tool.System.Memory.getFreeMemory;
 import static com.github.tncrazvan.arcano.Tool.System.Memory.getMaxMemory;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
-import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
-import com.github.tncrazvan.arcano.Bean.Security.HttpLock;
+import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 /**
  *
  * @author Razvan
  */
 public class Get extends HttpController{
     
-    @HttpLock
-    @HttpPath(name="/@get/memory")
+    @HttpService(path="/@get/memory",locked = true)
     public JsonObject memory(){
         final JsonObject result = new JsonObject();
         result.addProperty("free", getFreeMemory());
@@ -31,7 +28,7 @@ public class Get extends HttpController{
         return result;
     }
 
-    @HttpPath(name = "/@get/file")
+    @HttpService(path = "/@get/file")
     public File file() throws IOException {
         return new File(so.config.webRoot + String.join("/", args));
     }
@@ -46,7 +43,7 @@ public class Get extends HttpController{
 
     }
 
-    @HttpPath(name = "/@get/allWebSocketGroups")
+    @HttpService(path = "/@get/allWebSocketGroups")
     public void allWebSocketGroups() {
         WebSocketGroup group;
         final JsonArray arr = new JsonArray();
@@ -63,7 +60,7 @@ public class Get extends HttpController{
         send(arr.toString());
     }
 
-    @HttpPath(name = "/@get/cookie")
+    @HttpService(path = "/@get/cookie")
     public void cookie() {
         final String name = String.join("/", args);
         if (issetRequestCookie(name)) {

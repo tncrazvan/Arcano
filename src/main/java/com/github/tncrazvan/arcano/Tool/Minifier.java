@@ -49,22 +49,26 @@ public class Minifier{
             tmp.delete();
             tmp.mkdir();
         }
-
-        tmp = new File("tmp/." + hashCode + "." + type + ".minified.input.tmp");
+        String filename = "./tmp/." + hashCode + "." + type + ".minified.input.tmp".replace("\\", "/").replace("//","/");
+        tmp = new File(config.dir,filename); 
+        //System.out.println("Creating new file: "+filename);
+        //System.out.println("Content length: "+content.length);
         if (tmp.exists())
             tmp.delete();
+        
         tmp.createNewFile();
-        try (FileOutputStream fos = new FileOutputStream(tmp)) {
-            fos.write(content);
-        }
-
+        FileOutputStream fos = new FileOutputStream(tmp);
+        fos.write(content);
+        fos.close();
+        //System.out.println("Tried to write to file, file is now "+tmp.length()+" bytes in size.");
         Process process;
-        final String filename = tmp.toPath().toAbsolutePath().toString().replace("\\", "/");
         final String script = Regex.replace(Regex.replace(config.pack.script, "\\$\\_TYPE", type), "\\$\\_FILE", filename);
+        //System.out.println("Executing: "+script);
         process = RUNTIME.exec(script, new String[]{}, new File(config.dir));
         final byte[] result = process.getInputStream().readAllBytes();
+        //System.out.println("Read "+result.length+" bytes.");
         process.destroy();
-        tmp.delete();
+        //System.out.println("Maintaining file...");
         return result;
     }
 
@@ -135,6 +139,7 @@ public class Minifier{
                         continue;
                     f = new File(listedFilename);
                     fis = new FileInputStream(f);
+                    //System.out.println("Loading filename: "+listedFilename);
                     if (listedFilename.endsWith(".js")) {
                         js += min ? new String(minify(config, fis.readAllBytes(), "js", this.hashCode() + ""))
                                 : new String(fis.readAllBytes());

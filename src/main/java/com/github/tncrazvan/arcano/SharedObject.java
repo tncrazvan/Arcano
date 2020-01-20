@@ -1,5 +1,6 @@
 package com.github.tncrazvan.arcano;
 
+import com.github.tncrazvan.arcano.Bean.Email.SmtpService;
 import com.github.tncrazvan.arcano.Tool.Minifier;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
 import java.lang.reflect.Method;
@@ -21,15 +22,11 @@ import com.github.tncrazvan.arcano.Tool.Strings;
 import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.util.concurrent.ExecutorService;
-import com.github.tncrazvan.arcano.Bean.Web.HttpMethod;
-import com.github.tncrazvan.arcano.Bean.Web.HttpNotFound;
-import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
-import com.github.tncrazvan.arcano.Bean.Web.HttpDefault;
-import com.github.tncrazvan.arcano.Bean.Security.HttpLock;
-import com.github.tncrazvan.arcano.Bean.Security.SmtpLock;
-import com.github.tncrazvan.arcano.Bean.Security.WebSocketLock;
-import com.github.tncrazvan.arcano.Bean.Web.WebSocketNotFound;
-import com.github.tncrazvan.arcano.Bean.Web.WebSocketPath;
+import com.github.tncrazvan.arcano.Bean.Http.HttpNotFound;
+import com.github.tncrazvan.arcano.Bean.Http.HttpDefault;
+import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketNotFound;
+import com.github.tncrazvan.arcano.Bean.Http.HttpService;
+import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketService;
 
 /**
  * 
@@ -67,77 +64,62 @@ public class SharedObject implements Strings{
     public static final HttpResponse EMPTY_RESPONSE = new HttpResponse("").resolve();
     //DEFAULT PROJECT NAMES
     public static final String NAME_SESSION_ID = "JavaSessionID";
-    
-    public final void expose(final Class<?>... classes) {
-        for (final Class<?> cls : classes) {
+    private static final String HTTP_SERVICE_METHOD_404 = "HTTP 404";
+    private static final String HTTP_SERVICE_METHOD_DEFAULT = "HTTP DEFAULT";
+    public final void expose(Class<?>... classes) {
+        for (Class<?> cls : classes) {
             try {
                 if (HttpController.class.isAssignableFrom(cls)) {
-                    final Method[] methods = cls.getDeclaredMethods();
-                    for (final Method method : methods) {
-                        final HttpPath route = method.getAnnotation(HttpPath.class);
-                        final HttpLock locked = (HttpLock) method.getAnnotation(HttpLock.class);
-                        if (route != null) {
-                            final String methodPath = normalizePathSlashes(route.name().trim());
-                            HttpMethod methodWebFilter = (HttpMethod) method.getAnnotation(HttpMethod.class);
-                            String path = (methodPath.toLowerCase()).replaceAll("/+", "/");
-                            String type;
-                            if (methodWebFilter != null) {
-                                type = methodWebFilter.name();
-                            } else {
-                                type = "GET";
-                            }
-                            path = normalizePathSlashes(path);
+                    Method[] methods = cls.getDeclaredMethods();
+                    for (Method method : methods) {
+                        HttpService service = method.getAnnotation(HttpService.class);
+                        if (service != null) {
                             final WebObject wo = new WebObject(
                                 cls.getName(), 
                                 method.getName(), 
-                                type, 
-                                locked != null
+                                service.method(), 
+                                service.locked()
                             );
-                            ROUTES.put(type + path, wo);
+                            ROUTES.put(service.method() + normalizePathSlashes(service.path()), wo);
                         }
                         if (method.getAnnotation(HttpNotFound.class) != null) {
-                            final String type = "HTTP 404";
-                            final WebObject wo = new WebObject(
+                            WebObject wo = new WebObject(
                                 cls.getName(), 
                                 method.getName(), 
-                                type, 
-                                locked != null
+                                HTTP_SERVICE_METHOD_404, 
+                                service != null && service.locked()
                             );
-                            ROUTES.put(type, wo);
+                            ROUTES.put(HTTP_SERVICE_METHOD_404, wo);
                             this.config.http.controllerNotFound = wo;
                         }
                         if (method.getAnnotation(HttpDefault.class) != null) {
-                            final String type = "HTTP DEFAULT";
-                            final WebObject wo = new WebObject(
+                            WebObject wo = new WebObject(
                                 cls.getName(), 
                                 method.getName(), 
-                                type, 
-                                locked != null
+                                HTTP_SERVICE_METHOD_DEFAULT, 
+                                service != null && service.locked()
                             );
-                            ROUTES.put(type, wo);
+                            ROUTES.put(HTTP_SERVICE_METHOD_DEFAULT, wo);
                             this.config.http.controllerDefault = wo;
                         }
                     }
                 } else if (WebSocketController.class.isAssignableFrom(cls)) {
-                    final WebSocketPath route = (WebSocketPath) cls.getAnnotation(WebSocketPath.class);
-                    final WebSocketLock locked = (WebSocketLock) cls.getAnnotation(WebSocketLock.class);
-                    if (route != null) {
-                        final String path = normalizePathSlashes(route.name().toLowerCase());
-                        final String type = "WS";
-
-                        final WebObject wo = new WebObject(cls.getName(), null, type, locked != null);
-                        ROUTES.put(type + path, wo);
+                    WebSocketService service = (WebSocketService) cls.getAnnotation(WebSocketService.class);
+                    if (service != null) {
+                        String type = "WS";
+                        WebObject wo = new WebObject(cls.getName(), null, type, service.locked());
+                        ROUTES.put(type + normalizePathSlashes(service.path()), wo);
                     }
                     if (cls.getAnnotation(WebSocketNotFound.class) != null){
-                        final String type = "WS 404";
-                        final WebObject wo = new WebObject(cls.getName(), null, type, locked != null);
+                        String type = "WS 404";
+                        WebObject wo = new WebObject(cls.getName(), null, type, service != null && service.locked());
                         ROUTES.put(type, wo);
                         this.config.webSocket.controllerNotFound = wo;
                     }
                 } else if (SmtpController.class.isAssignableFrom(cls)) {
-                    final SmtpLock locked = (SmtpLock) cls.getAnnotation(SmtpLock.class);
-                    final String type = "SMTP";
-                    final WebObject wo = new WebObject(cls.getName(), null, type, locked != null);
+                    SmtpService service = (SmtpService) cls.getAnnotation(SmtpService.class);
+                    String type = "SMTP";
+                    WebObject wo = new WebObject(cls.getName(), null, type, service != null && service.locked());
                     ROUTES.put(type, wo);
                 }
             } catch (SecurityException | IllegalArgumentException  ex) {

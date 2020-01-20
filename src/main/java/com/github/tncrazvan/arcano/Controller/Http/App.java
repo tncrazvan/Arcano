@@ -2,7 +2,7 @@ package com.github.tncrazvan.arcano.Controller.Http;
 
 import com.github.tncrazvan.arcano.Http.HttpController;
 import java.io.IOException;
-import com.github.tncrazvan.arcano.Bean.Web.HttpDefault;
+import com.github.tncrazvan.arcano.Bean.Http.HttpDefault;
 import java.io.File;
 
 /**

@@ -1,6 +1,6 @@
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.Bean.Web.HttpParam;
+import com.github.tncrazvan.arcano.Bean.Http.HttpParam;
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;

@@ -1,14 +1,14 @@
 package com.github.tncrazvan.arcano.Controller.Http;
 
 import com.github.tncrazvan.arcano.Http.HttpController;
-import com.github.tncrazvan.arcano.Bean.Web.HttpPath;
+import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 
 /**
  *
  * @author Razvan
  */
 public class Unset extends HttpController{
-    @HttpPath(name="/@unset/cookie")
+    @HttpService(path="/@unset/cookie")
     public void cookie(){
         final String name = String.join("/", args);
         if(issetRequestCookie(name)){

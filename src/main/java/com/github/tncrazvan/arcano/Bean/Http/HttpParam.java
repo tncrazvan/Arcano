@@ -1,4 +1,4 @@
-package com.github.tncrazvan.arcano.Bean.Web;
+package com.github.tncrazvan.arcano.Bean.Http;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -12,7 +12,9 @@ import java.lang.annotation.Target;
  */
 
 
-@Target(value = {ElementType.METHOD})
+@Target(value = {ElementType.PARAMETER})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
-public @interface HttpNotFound {}
+public @interface HttpParam {
+    public String name() default "";
+}

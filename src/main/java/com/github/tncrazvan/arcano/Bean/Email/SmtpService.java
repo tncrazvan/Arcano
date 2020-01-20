@@ -1,4 +1,4 @@
-package com.github.tncrazvan.arcano.Bean.Security;
+package com.github.tncrazvan.arcano.Bean.Email;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -12,8 +12,9 @@ import java.lang.annotation.Target;
  */
 
 
-@Target(value = {ElementType.METHOD})
+@Target(value = {ElementType.TYPE, ElementType.METHOD, ElementType.PACKAGE})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
-public @interface SmtpLock {
+public @interface SmtpService {
+    public boolean locked() default false;
 }

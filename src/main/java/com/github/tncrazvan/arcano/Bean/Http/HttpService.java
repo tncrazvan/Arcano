@@ -1,4 +1,4 @@
-package com.github.tncrazvan.arcano.Bean.Web;
+package com.github.tncrazvan.arcano.Bean.Http;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -12,9 +12,11 @@ import java.lang.annotation.Target;
  */
 
 
-@Target(value = {ElementType.METHOD})
+@Target(value = {ElementType.METHOD, ElementType.TYPE})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
-public @interface HttpMethod {
-    public String name();
+public @interface HttpService {
+    public String path();
+    public String method() default "GET";
+    public boolean locked() default false;
 }

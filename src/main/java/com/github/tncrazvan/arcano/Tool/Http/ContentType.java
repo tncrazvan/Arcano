@@ -39,6 +39,7 @@ public interface ContentType {
             tmp_type = "";
         }
         switch(tmp_type){
+            case "wasm":return "application/wasm";
             case "html":return "text/html";
             case "css": return "text/css";
             case "csv": return "text/csv";

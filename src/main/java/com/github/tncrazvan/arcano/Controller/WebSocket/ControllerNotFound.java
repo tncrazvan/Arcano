@@ -2,7 +2,7 @@ package com.github.tncrazvan.arcano.Controller.WebSocket;
 
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketMessage;
-import com.github.tncrazvan.arcano.Bean.Web.WebSocketNotFound;
+import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketNotFound;
 
 /**
  *
