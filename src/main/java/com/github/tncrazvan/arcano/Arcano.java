@@ -23,6 +23,7 @@ import javax.net.ssl.TrustManagerFactory;
 import com.github.tncrazvan.arcano.Http.HttpEventListener;
 import com.github.tncrazvan.arcano.Smtp.SmtpServer;
 import com.github.tncrazvan.arcano.Tool.Minifier;
+import com.github.tncrazvan.arcano.Tool.Strings;
 import java.util.Arrays;
 import javax.net.ssl.SSLServerSocket;
 
@@ -96,7 +97,7 @@ public class Arcano extends SharedObject {
 
         final File assetsFile = new File(config.assets);
         if (assetsFile.exists())
-            minifier = new Minifier(config, assetsFile, config.webRoot, "minified");
+            minifier = new Minifier(config, assetsFile, Strings.normalizePathSlashes(config.dir+"/"+config.webRoot), "minified");
 
         if(config.smtp.enabled)
             if (!config.smtp.hostname.equals("")) {

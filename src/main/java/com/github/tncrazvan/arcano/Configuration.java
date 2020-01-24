@@ -177,7 +177,7 @@ public class Configuration {
             System.out.println("Configuration file "+json.getPath()+" does not seem to exist.");
             return;
         }
-        this.dir = json.getParent();
+        this.dir = json.getAbsoluteFile().getParent();
         
         if(this.dir == null)
             this.dir = ".";
