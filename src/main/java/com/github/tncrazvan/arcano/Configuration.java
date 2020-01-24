@@ -8,6 +8,7 @@ import com.github.tncrazvan.arcano.Tool.Cluster.InvalidClusterEntryException;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonObject;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonParse;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
+import com.github.tncrazvan.arcano.Tool.Strings;
 import com.github.tncrazvan.asciitable.AsciiTable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -315,26 +316,28 @@ public class Configuration {
             this.bindAddress = config.get("bindingAddress").getAsString();
 
         if (config.has("serverRoot"))
-            this.serverRoot = this.dir.replaceAll("\\\\", "/") + "/" + config.get("serverRoot").getAsString();
+            this.serverRoot = "/" + config.get("serverRoot").getAsString();
         else
-            this.serverRoot = this.dir.replaceAll("\\\\", "/") + "/" + this.serverRoot;
+            this.serverRoot = "/" + this.serverRoot;
         endchar = this.serverRoot.charAt(this.serverRoot.length() - 1);
 
         if (endchar != '/') {
             this.serverRoot += "/";
         }
+        this.serverRoot = Strings.normalizePathSlashes(this.serverRoot);
 
         if (config.has("webRoot"))
-            this.webRoot = this.dir .replaceAll("\\\\", "/") + "/" + config.get("webRoot").getAsString();
+            this.webRoot = "/" + config.get("webRoot").getAsString();
         else
-            this.webRoot = this.dir .replaceAll("\\\\", "/") + "/" + this.webRoot;
+            this.webRoot = "/" + this.webRoot;
 
         endchar = this.webRoot.charAt(this.webRoot.length() - 1);
 
         if (endchar != '/') {
             this.webRoot += "/";
         }
-
+        this.webRoot = Strings.normalizePathSlashes(this.webRoot);
+        
         if (config.has("assets"))
             this.assets = this.dir.replaceAll("\\\\", "/") + "/"
                     + config.get("assets").getAsString();
@@ -423,7 +426,9 @@ public class Configuration {
         this.http.table.add("mtu", this.http.mtu + " bytes");
 
         if (config.has("entryPoint"))
-            this.entryPoint = config.get("entryPoint").getAsString();
+            this.entryPoint = "/"+config.get("entryPoint").getAsString();
+        
+        this.entryPoint = Strings.normalizePathSlashes(this.entryPoint);
 
         final AsciiTable configurationTable = new AsciiTable();
         configurationTable.add("KEY", "VALUE");

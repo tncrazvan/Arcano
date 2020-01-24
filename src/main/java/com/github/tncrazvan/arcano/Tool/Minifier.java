@@ -62,6 +62,8 @@ public class Minifier{
         fos.close();
         //System.out.println("Tried to write to file, file is now "+tmp.length()+" bytes in size.");
         Process process;
+        // Script example: minify --type=$_TYPE \"$_FILE\"
+        // Using https://github.com/tdewolff/minify
         final String script = Regex.replace(Regex.replace(config.pack.script, "\\$\\_TYPE", type), "\\$\\_FILE", filename);
         //System.out.println("Executing: "+script);
         process = RUNTIME.exec(script, new String[]{}, new File(config.dir));

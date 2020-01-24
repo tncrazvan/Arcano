@@ -72,7 +72,8 @@ public class SharedObject implements Strings{
                 if (HttpController.class.isAssignableFrom(cls)) {
                     Method[] methods = cls.getDeclaredMethods();
                     for (Method method : methods) {
-                        HttpService service = method.getAnnotation(HttpService.class);
+                    	HttpService service = method.getAnnotation(HttpService.class);
+                    	HttpService classService = cls.getAnnotation(HttpService.class);
                         if (service != null) {
                             final WebObject wo = new WebObject(
                                 cls.getName(), 
@@ -80,7 +81,7 @@ public class SharedObject implements Strings{
                                 service.method(), 
                                 service.locked()
                             );
-                            ROUTES.put(service.method() + normalizePathSlashes(service.path()), wo);
+                            ROUTES.put(service.method() + normalizePathSlashes((classService != null?classService.path():"")+"/"+service.path()), wo);
                         }
                         if (method.getAnnotation(HttpNotFound.class) != null) {
                             WebObject wo = new WebObject(
