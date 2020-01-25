@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano.Http;
 
 import com.github.tncrazvan.arcano.Bean.Http.HttpParam;
+import com.github.tncrazvan.arcano.Controller.Http.Get;
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
@@ -20,7 +21,9 @@ import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVE
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_LOCKED;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
+import com.github.tncrazvan.arcano.Tool.Strings;
 import com.google.gson.JsonObject;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
@@ -150,8 +153,8 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
     private static HttpController serveController(final HttpRequestReader reader)
             throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException,
             IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException, IOException {
-
-        String[] location = reader.location.toString().split("/");
+        String stringifiedLocation = Strings.normalizePathSlashes(reader.location.toString());
+        String[] location = stringifiedLocation.split("/");
         final String httpMethod = reader.request.headers.get("Method");
         //final boolean abusiveUrl = Regex.match(reader.location.toString(), "w3e478tgdf8723qioiuy");
         Method method = null;
@@ -164,6 +167,15 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         args = new String[0];
         if (location.length == 0 || location.length == 1 && location[0].equals("")) {
             location = new String[] { "" };
+        }else{
+            File check = new File(Strings.normalizePathSlashes(reader.so.config.dir+"/"+reader.so.config.webRoot),stringifiedLocation);
+            if(check.exists()){
+                controller = new Get();
+                controller.init(reader, location);
+                method = controller.getClass().getDeclaredMethod("file");
+                controller.invoke(method);
+                return controller;
+            }
         }
         try {
             classId = getClassnameIndex(location, httpMethod);
@@ -254,7 +266,6 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             controller.setResponseStatus(STATUS_LOCKED);
             controller.send("");
             LOGGER.log(Level.SEVERE, null, ex);
-            return controller;
         } catch (final InvalidControllerConstructorException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
