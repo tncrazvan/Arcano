@@ -39,7 +39,8 @@ public class Set extends HttpController {
     @HttpService(path = "/@set/cookie",method = "POST")
     public void cookie() {
         final String name = String.join("/", args);
-        final JsonObject data = jsonObject(new String(request.content));
+        String tmp = new String(request.content);
+        final JsonObject data = jsonObject(tmp);
         setResponseCookie(name, data.get("value").getAsString(), getRequestQueryString("path"), getRequestQueryString("path"), Integer.parseInt(getRequestQueryString("expire")));
     }
 }

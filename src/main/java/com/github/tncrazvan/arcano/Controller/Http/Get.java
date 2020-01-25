@@ -44,7 +44,7 @@ public class Get extends HttpController{
     }
 
     @HttpService(path = "/@get/allWebSocketGroups")
-    public void allWebSocketGroups() {
+    public String allWebSocketGroups() {
         WebSocketGroup group;
         final JsonArray arr = new JsonArray();
         for (final String key : WebSocketGroupApi.GROUP_MANAGER.getAllGroups().keySet()) {
@@ -57,19 +57,19 @@ public class Get extends HttpController{
             }
 
         }
-        send(arr.toString());
+        return arr.toString();
     }
 
     @HttpService(path = "/@get/cookie")
-    public void cookie() {
+    public String cookie() {
         final String name = String.join("/", args);
         if (issetRequestCookie(name)) {
             setResponseContentType("application/json");
             final String jsonCookie = jsonStringify(new Cookie("Cookie", getRequestCookie(name)));
-            send(jsonCookie);
+            return jsonCookie;
         }else{
             setResponseStatus(STATUS_NOT_FOUND);
-            flush();
+            return "";
         }
     }
 }

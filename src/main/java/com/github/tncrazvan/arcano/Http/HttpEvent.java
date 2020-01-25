@@ -154,7 +154,8 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
     private static HttpController serveController(final HttpRequestReader reader)
             throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException,
             IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException, IOException {
-        String stringifiedLocation = Regex.replace(Strings.normalizePathSlashes(reader.location.toString()), "^/", "");
+        String stringifiedLocation = reader.location.toString().replaceAll("/+", "/");
+        stringifiedLocation = Regex.replace(stringifiedLocation, "^/", "");
         String[] location = stringifiedLocation.split("/");
         final String httpMethod = reader.request.headers.get("Method");
         //final boolean abusiveUrl = Regex.match(reader.location.toString(), "w3e478tgdf8723qioiuy");

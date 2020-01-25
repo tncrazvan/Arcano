@@ -323,7 +323,7 @@ public class Configuration {
         if (endchar != '/') {
             this.serverRoot += "/";
         }
-        this.serverRoot = Strings.normalizePathSlashes(this.serverRoot);
+        this.serverRoot = this.serverRoot.replaceAll("/+", "/");
 
         if (config.has("webRoot"))
             this.webRoot = this.dir + "/" + config.get("webRoot").getAsString();
@@ -335,7 +335,7 @@ public class Configuration {
         if (endchar != '/') {
             this.webRoot += "/";
         }
-        this.webRoot = Strings.normalizePathSlashes(this.webRoot);
+        this.webRoot = this.webRoot.replaceAll("/+", "/");
         
         if (config.has("assets"))
             this.assets = this.dir.replaceAll("\\\\", "/") + "/"
@@ -427,7 +427,7 @@ public class Configuration {
         if (config.has("entryPoint"))
             this.entryPoint = "/"+config.get("entryPoint").getAsString();
         
-        this.entryPoint = Strings.normalizePathSlashes(this.entryPoint);
+        this.entryPoint = this.entryPoint.replaceAll("/+", "/");
 
         final AsciiTable configurationTable = new AsciiTable();
         configurationTable.add("KEY", "VALUE");

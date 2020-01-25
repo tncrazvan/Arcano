@@ -97,7 +97,7 @@ public class Arcano extends SharedObject {
 
         final File assetsFile = new File(config.assets);
         if (assetsFile.exists())
-            minifier = new Minifier(config, assetsFile, Strings.normalizePathSlashes(config.dir+"/"+config.webRoot), "minified");
+            minifier = new Minifier(config, assetsFile, config.webRoot, "minified");
 
         if(config.smtp.enabled)
             if (!config.smtp.hostname.equals("")) {

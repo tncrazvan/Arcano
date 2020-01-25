@@ -19,7 +19,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import com.github.tncrazvan.arcano.Http.HttpSessionManager;
 import com.github.tncrazvan.arcano.Smtp.SmtpController;
 import com.github.tncrazvan.arcano.Tool.Strings;
-import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.util.concurrent.ExecutorService;
 import com.github.tncrazvan.arcano.Bean.Http.HttpNotFound;
@@ -27,6 +26,7 @@ import com.github.tncrazvan.arcano.Bean.Http.HttpDefault;
 import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketNotFound;
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketService;
+import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
 
 /**
  * 
@@ -109,7 +109,7 @@ public class SharedObject implements Strings{
                     if (service != null) {
                         String type = "WS";
                         WebObject wo = new WebObject(cls.getName(), null, type, service.locked());
-                        ROUTES.put(type + normalizePathSlashes(service.path()), wo);
+                        ROUTES.put(type + service.path().replaceAll("/+", "/"), wo);
                     }
                     if (cls.getAnnotation(WebSocketNotFound.class) != null){
                         String type = "WS 404";

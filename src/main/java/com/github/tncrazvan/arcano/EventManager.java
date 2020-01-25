@@ -206,7 +206,7 @@ public abstract class EventManager{
             return value;
         }
     }
-
+    
     /**
      * Finds the languages of the client application. The value is stored in
      * EventManager#userLanguages.
