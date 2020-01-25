@@ -23,7 +23,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.logging.Level;
-import static jdk.nashorn.internal.objects.NativeArray.map;
 
 /**
  * Containst the configuration file objects.
@@ -316,9 +315,9 @@ public class Configuration {
             this.bindAddress = config.get("bindingAddress").getAsString();
 
         if (config.has("serverRoot"))
-            this.serverRoot = "/" + config.get("serverRoot").getAsString();
+            this.serverRoot = this.dir + "/" + config.get("serverRoot").getAsString();
         else
-            this.serverRoot = "/" + this.serverRoot;
+            this.serverRoot = this.dir + "/" + this.serverRoot;
         endchar = this.serverRoot.charAt(this.serverRoot.length() - 1);
 
         if (endchar != '/') {
@@ -327,9 +326,9 @@ public class Configuration {
         this.serverRoot = Strings.normalizePathSlashes(this.serverRoot);
 
         if (config.has("webRoot"))
-            this.webRoot = "/" + config.get("webRoot").getAsString();
+            this.webRoot = this.dir + "/" + config.get("webRoot").getAsString();
         else
-            this.webRoot = "/" + this.webRoot;
+            this.webRoot = this.dir + "/" + this.webRoot;
 
         endchar = this.webRoot.charAt(this.webRoot.length() - 1);
 

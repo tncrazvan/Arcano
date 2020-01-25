@@ -30,7 +30,7 @@ public class Get extends HttpController{
 
     @HttpService(path = "/@get/file")
     public File file() throws IOException {
-        return new File(so.config.dir,so.config.webRoot + String.join("/", args));
+        return new File(so.config.webRoot, String.join("/", args));
     }
 
     class Cookie {

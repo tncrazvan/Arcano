@@ -20,6 +20,7 @@ import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVER_ERROR;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_LOCKED;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
+import com.github.tncrazvan.arcano.Tool.Regex;
 import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
 import com.github.tncrazvan.arcano.Tool.Strings;
 import com.google.gson.JsonObject;
@@ -153,7 +154,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
     private static HttpController serveController(final HttpRequestReader reader)
             throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException,
             IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException, IOException {
-        String stringifiedLocation = Strings.normalizePathSlashes(reader.location.toString());
+        String stringifiedLocation = Regex.replace(Strings.normalizePathSlashes(reader.location.toString()), "^/", "");
         String[] location = stringifiedLocation.split("/");
         final String httpMethod = reader.request.headers.get("Method");
         //final boolean abusiveUrl = Regex.match(reader.location.toString(), "w3e478tgdf8723qioiuy");
@@ -168,7 +169,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         if (location.length == 0 || location.length == 1 && location[0].equals("")) {
             location = new String[] { "" };
         }else{
-            File check = new File(Strings.normalizePathSlashes(reader.so.config.dir+"/"+reader.so.config.webRoot),stringifiedLocation);
+            File check = new File(reader.so.config.webRoot,stringifiedLocation);
             if(check.exists()){
                 controller = new Get();
                 controller.init(reader, location);
