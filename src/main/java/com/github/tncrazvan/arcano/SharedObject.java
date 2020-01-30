@@ -42,8 +42,9 @@ public class SharedObject implements Strings{
     public final Configuration config = new Configuration();
     public Minifier minifier = null;
     public static final String NO_COMPRESSION="",DEFLATE="deflate",GZIP="gzip";
-    //SYSTEM RUNTIME
+    //SYSTEM RUNTIME & PROCESS BUILDERS
     public static final Runtime RUNTIME = Runtime.getRuntime();
+    public static final ProcessBuilder PROCESS_BUILDER = new ProcessBuilder();
     //ROUTING
     public static final HashMap<String, WebObject> ROUTES = new HashMap<>();
     //LOCALE & DATES

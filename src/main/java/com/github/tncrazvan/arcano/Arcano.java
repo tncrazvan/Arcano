@@ -23,7 +23,6 @@ import javax.net.ssl.TrustManagerFactory;
 import com.github.tncrazvan.arcano.Http.HttpEventListener;
 import com.github.tncrazvan.arcano.Smtp.SmtpServer;
 import com.github.tncrazvan.arcano.Tool.Minifier;
-import com.github.tncrazvan.arcano.Tool.Strings;
 import java.util.Arrays;
 import javax.net.ssl.SSLServerSocket;
 
