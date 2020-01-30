@@ -23,7 +23,7 @@ import javax.net.ssl.SSLSocket;
  * @author Razvan
  */
 public abstract class HttpRequestReader implements Runnable{
-    public final Socket client;
+    public Socket client;
     public SSLSocket secureClient=null;
     public final BufferedReader bufferedReader;
     public final BufferedWriter bufferedWriter;

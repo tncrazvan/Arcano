@@ -27,7 +27,7 @@ import java.io.UnsupportedEncodingException;
  */
 public abstract class HttpEventManager extends EventManager{
     private DataOutputStream output;
-    //private HttpHeaders headers;
+    //private HttpHeaders responseHeaders;
     private boolean defaultHeaders=true;
     private boolean alive=true;
     protected boolean isDir = false;
@@ -39,11 +39,11 @@ public abstract class HttpEventManager extends EventManager{
     }
 
     public void initHttpEventManager() {
-        if (this.request.headers.isDefined("Accept-Encoding")) {
-            acceptEncoding = this.request.headers.get("Accept-Encoding");
+        if (this.reader.request.headers.isDefined("Accept-Encoding")) {
+            acceptEncoding = this.reader.request.headers.get("Accept-Encoding");
             encodingLabel = "Content-Encoding";
-        } else if (this.request.headers.isDefined("Transfer-Encoding")) {
-            acceptEncoding = this.request.headers.get("Transfer-Encoding");
+        } else if (this.reader.request.headers.isDefined("Transfer-Encoding")) {
+            acceptEncoding = this.reader.request.headers.get("Transfer-Encoding");
             encodingLabel = "Transfer-Encoding";
         } else {
             acceptEncoding = "";
@@ -56,7 +56,7 @@ public abstract class HttpEventManager extends EventManager{
      */
     public void close() {
         try {
-            client.close();
+            reader.client.close();
         } catch (final IOException ex) {
             LOGGER.log(Level.WARNING, null, ex);
         }
@@ -69,7 +69,7 @@ public abstract class HttpEventManager extends EventManager{
      * @param value value of your header.
      */
     public void setResponseHeaderField(final String name, final String value) {
-        headers.set(name, value);
+        responseHeaders.set(name, value);
     }
 
     /**
@@ -79,7 +79,7 @@ public abstract class HttpEventManager extends EventManager{
      * @return value of the header as a String.
      */
     public String getResponseHeaderField(final String name) {
-        return headers.get(name);
+        return responseHeaders.get(name);
     }
 
     /**
@@ -89,7 +89,7 @@ public abstract class HttpEventManager extends EventManager{
      * @return true if the header exists, false otherwise.
      */
     public boolean issetResponseHeaderField(final String name) {
-        return headers.isDefined(name);
+        return responseHeaders.isDefined(name);
     }
 
     /**
@@ -106,10 +106,10 @@ public abstract class HttpEventManager extends EventManager{
     /**
      * Get the HttpHEaders object of your response.
      * 
-     * @return headers of the response.
+     * @return responseHeaders of the response.
      */
     public HttpHeaders getResponseHttpHeaders() {
-        return headers;
+        return responseHeaders;
     }
 
     private boolean firstMessage = true;
@@ -117,7 +117,7 @@ public abstract class HttpEventManager extends EventManager{
     public void sendHeaders() {
         firstMessage = false;
         try {
-            output.write((headers.toString() + "\r\n").getBytes(so.config.charset));
+            output.write((responseHeaders.toString() + "\r\n").getBytes(so.config.charset));
             output.flush();
             alive = true;
         } catch (final IOException ex) {
@@ -140,7 +140,7 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @param data data to be sent.
      * @param includeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
-     * If this value is set to false, headers must be set manually.
+ If this value is set to false, responseHeaders must be set manually.
      */
     public void send(byte[] data, boolean includeHeaders) {
         if (alive) {
@@ -150,14 +150,14 @@ public abstract class HttpEventManager extends EventManager{
                     case DEFLATE:
                         if (acceptEncoding.matches(".+" + cmpr + ".*")) {
                             data = Deflate.deflate(data);
-                            this.headers.set(encodingLabel, cmpr);
+                            this.responseHeaders.set(encodingLabel, cmpr);
                             break;
                         }
                         break;
                     case GZIP:
                         if (acceptEncoding.matches(".+" + cmpr + ".*")) {
                             data = Gzip.compress(data);
-                            this.headers.set(encodingLabel, cmpr);
+                            this.responseHeaders.set(encodingLabel, cmpr);
                             break;
                         }
                         break;
@@ -198,7 +198,7 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @param data data to be sent.
      * @param includeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
-     * If this value is set to false, headers must be set manually.
+ If this value is set to false, responseHeaders must be set manually.
      */
     public void send(String data, boolean  includeHeaders) {
         try {
@@ -238,7 +238,7 @@ public abstract class HttpEventManager extends EventManager{
      * @param type Content-Type string.
      */
     public void setResponseContentType(final String type) {
-        headers.set("Content-Type", type);
+        responseHeaders.set("Content-Type", type);
     }
 
     /**
@@ -247,22 +247,22 @@ public abstract class HttpEventManager extends EventManager{
      * @return Content-Type of the response.
      */
     public String getResponseContentType() {
-        return headers.get("Content-Type");
+        return responseHeaders.get("Content-Type");
     }
 
     /**
-     * Usually the server sets a few headers to your HttpResponse, such as the
-     * "@Status" of the response as "200 OK", "Cache-Control" to "no-store", "Date"
-     * to the current Greenwich date.
+     * Usually the server sets a few responseHeaders to your HttpResponse, such as the
+ "@Status" of the response as "200 OK", "Cache-Control" to "no-store", "Date"
+ to the current Greenwich date.
      */
     public void disableDefaultResponseHeaders() {
         defaultHeaders = false;
     }
 
     /**
-     * Usually the server sets a few headers to your HttpResponse, such as the
-     * "@Status" of the response as "200 OK", "Cache-Control" to "no-store", "Date"
-     * to the current Greenwich date.
+     * Usually the server sets a few responseHeaders to your HttpResponse, such as the
+ "@Status" of the response as "200 OK", "Cache-Control" to "no-store", "Date"
+ to the current Greenwich date.
      */
     public void enableDefaultResponseHeaders() {
         defaultHeaders = true;
@@ -287,13 +287,13 @@ public abstract class HttpEventManager extends EventManager{
             }
             byte[] buffer;
             try (RandomAccessFile raf = new RandomAccessFile(data, "r");
-                    DataOutputStream dos = new DataOutputStream(client.getOutputStream())) {
+                    DataOutputStream dos = new DataOutputStream(reader.client.getOutputStream())) {
 
                 final int fileLength = (int) raf.length();
 
-                if (this.request.headers.isDefined("Range")) {
+                if (this.reader.request.headers.isDefined("Range")) {
                     setResponseStatus(STATUS_PARTIAL_CONTENT);
-                    final String[] ranges = this.request.headers.get("Range").split("=")[1].split(",");
+                    final String[] ranges = this.reader.request.headers.get("Range").split("=")[1].split(",");
                     final int[] rangeStart = new int[ranges.length];
                     final int[] rangeEnd = new int[ranges.length];
                     int lastIndex;
@@ -318,8 +318,8 @@ public abstract class HttpEventManager extends EventManager{
                         if (firstMessage && defaultHeaders) {
                             firstMessage = false;
                             // header.set("Content-Length", ""+clength);
-                            headers.set("Content-Type", "multipart/byteranges; boundary=" + boundary);
-                            dos.writeUTF(headers.toString());
+                            responseHeaders.set("Content-Type", "multipart/byteranges; boundary=" + boundary);
+                            dos.writeUTF(responseHeaders.toString());
                         }
 
                         for (int i = 0; i < rangeStart.length; i++) {
@@ -364,9 +364,9 @@ public abstract class HttpEventManager extends EventManager{
                         final int len = end - start + 1;
                         if (firstMessage && defaultHeaders) {
                             firstMessage = false;
-                            headers.set("Content-Range", "bytes " + start + "-" + end + "/" + fileLength);
-                            headers.set("Content-Length", "" + len);
-                            dos.write((headers.toString() + "\r\n").getBytes());
+                            responseHeaders.set("Content-Range", "bytes " + start + "-" + end + "/" + fileLength);
+                            responseHeaders.set("Content-Length", "" + len);
+                            dos.write((responseHeaders.toString() + "\r\n").getBytes());
                         }
                         buffer = new byte[end - start + 1];
                         raf.seek(start);
@@ -376,8 +376,8 @@ public abstract class HttpEventManager extends EventManager{
                 } else {
                     if (firstMessage && defaultHeaders) {
                         firstMessage = false;
-                        headers.set("Content-Length", "" + fileLength);
-                        dos.write((headers.toString() + "\r\n").getBytes());
+                        responseHeaders.set("Content-Length", "" + fileLength);
+                        dos.write((responseHeaders.toString() + "\r\n").getBytes());
                     }
                     buffer = new byte[fileLength];
                     raf.seek(0);
@@ -389,7 +389,7 @@ public abstract class HttpEventManager extends EventManager{
             LOGGER.log(Level.INFO, null, ex);
         } catch (final IOException ex) {
             //ex.printStackTrace();
-            System.out.println("Client "+client.getInetAddress().toString()+" disconnected before receiving the whole file ("+data.getName()+")");
+            System.out.println("Client "+reader.client.getInetAddress().toString()+" disconnected before receiving the whole file ("+data.getName()+")");
         }
         
         close();

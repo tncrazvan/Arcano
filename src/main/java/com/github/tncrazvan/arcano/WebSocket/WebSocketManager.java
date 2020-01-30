@@ -27,16 +27,16 @@ public abstract class WebSocketManager extends EventManager{
     protected OutputStream outputStream;
     private boolean connected = true;
     private WebSocketMessage message;
-    //private final HttpHeaders headers;
+    //private final HttpHeaders responseHeaders;
     public WebSocketManager() {}
     public void setBufferedReader(final BufferedReader br) {
         this.br = br;
     }
 
     protected void init() throws IOException {
-        this.requestId = getSha1String(System.identityHashCode(client) + "::" + System.currentTimeMillis(),
+        this.requestId = getSha1String(System.identityHashCode(reader.client) + "::" + System.currentTimeMillis(),
                 so.config.charset);
-        this.outputStream = client.getOutputStream();
+        this.outputStream = reader.client.getOutputStream();
     }
 
     /**
@@ -54,16 +54,16 @@ public abstract class WebSocketManager extends EventManager{
             public void run() {
                 try {
                     final String acceptKey = DatatypeConverter.printBase64Binary(getSha1Bytes(
-                            request.headers.get("Sec-WebSocket-Key") + so.WEBSOCKET_ACCEPT_KEY, so.config.charset));
+                            reader.request.headers.get("Sec-WebSocket-Key") + so.WEBSOCKET_ACCEPT_KEY, so.config.charset));
 
-                    headers.set("@Status", Status.STATUS_SWITCHING_PROTOCOLS);
-                    headers.set("Connection", "Upgrade");
-                    headers.set("Upgrade", "websocket");
-                    headers.set("Sec-WebSocket-Accept", acceptKey);
-                    outputStream.write((headers.toString() + "\r\n").getBytes());
+                    responseHeaders.set("@Status", Status.STATUS_SWITCHING_PROTOCOLS);
+                    responseHeaders.set("Connection", "Upgrade");
+                    responseHeaders.set("Upgrade", "websocket");
+                    responseHeaders.set("Sec-WebSocket-Accept", acceptKey);
+                    outputStream.write((responseHeaders.toString() + "\r\n").getBytes());
                     outputStream.flush();
                     manageOnOpen();
-                    final InputStream read = client.getInputStream();
+                    final InputStream read = reader.client.getInputStream();
                     while (connected) {
                         unmask((byte) read.read());
                     }
@@ -200,7 +200,7 @@ public abstract class WebSocketManager extends EventManager{
     public void close() {
         try {
             connected = false;
-            client.close();
+            reader.client.close();
             manageOnClose();
         } catch (final IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);

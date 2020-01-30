@@ -16,7 +16,7 @@ public class HttpRequest {
     /**
      * Headers of the current request.
      */
-    public final HttpHeaders headers;
+    public HttpHeaders headers;
     /**
      * Payload of the current request.
      */
