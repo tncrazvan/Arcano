@@ -5,6 +5,7 @@
  */
 package com.github.tncrazvan.arcano.Http;
 
+import com.github.tncrazvan.arcano.Tool.Encoding.Base64;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.BufferedReader;
@@ -53,26 +54,28 @@ public class ShellScript {
             headersObject.addProperty(entry.getKey(), entry.getValue());
         }
         
-        final JsonObject pargs = new JsonObject();
+        String[] tmp = new String[script.length+1];
+        for(int i=0; i< script.length; i++){
+            tmp[i] = script[i];
+        }
+        tmp[tmp.length-1] = controller.reader.request.content.length+"";
         
-        pargs.add("HEADERS", headersObject);
-        pargs.add("ARGS", argsArray);
-        pargs.add("QUERY", queryObject);
-        pargs.addProperty("BODY", new String(controller.reader.request.content,controller.config.charset));
-        
-        /*script = Regex.replace(script, "(?<!\\\\)\\$_INPUT", Base64.btoa(pargs.toString() , controller.so.config.charset));
-        script = Regex.replace(script, "\\$_INPUT", "$_INPUT");*/
-        
-        String data = pargs.toString();
-        
-        ProcessBuilder builder = new ProcessBuilder(script[0],script[1],data.length()+"");
+        ProcessBuilder builder = new ProcessBuilder(tmp);
         builder.directory(this.workspace == null?new File(controller.so.config.dir):this.workspace);
         Process process = builder.start();
-        
-        OutputStream stdin = process.getOutputStream();
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(stdin))) {
-            writer.write(data);
-            writer.flush();
+        try (OutputStream stdin = process.getOutputStream()) {
+            byte[] stdinHeaders = Base64.btoaGetBytes(headersObject.toString(),controller.config.charset);
+            byte[] stdinArgs = Base64.btoaGetBytes(argsArray.toString(),controller.config.charset);
+            byte[] stdinQuery = Base64.btoaGetBytes(queryObject.toString(),controller.config.charset);
+            stdin.write(stdinHeaders);
+            stdin.write("\n".getBytes());
+            stdin.write(stdinArgs);
+            stdin.write("\n".getBytes());
+            stdin.write(stdinQuery);
+            stdin.write("\n".getBytes());
+            stdin.write(controller.reader.request.content);
+            stdin.flush();
+            stdin.close();
         }
         
         process.waitFor(controller.so.config.timeout,TimeUnit.MILLISECONDS);

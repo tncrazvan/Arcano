@@ -272,9 +272,9 @@ public class HttpHeaders {
         } else {
             if (line.matches("^.+(?=\\s\\/).*HTTPS?\\/.*$")) {
                 final String[] parts = line.split("\\s+");
-                this.set("Method",parts[0]);
+                this.set("@Method",parts[0]);
                 this.set("@Resource",parts[1]);
-                this.set("Version",parts[2]);
+                this.set("@Version",parts[2]);
             } else {
                 this.set(line, null);
             }

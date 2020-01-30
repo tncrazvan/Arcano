@@ -22,7 +22,6 @@ import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_LOCKED;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 import com.github.tncrazvan.arcano.Tool.Regex;
 import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
-import com.github.tncrazvan.arcano.Tool.Strings;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
@@ -157,7 +156,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         String stringifiedLocation = reader.location.toString().replaceAll("/+", "/");
         stringifiedLocation = Regex.replace(stringifiedLocation, "^/", "");
         String[] location = stringifiedLocation.split("/");
-        final String httpMethod = reader.request.headers.get("Method");
+        final String httpMethod = reader.request.headers.get("@Method");
         //final boolean abusiveUrl = Regex.match(reader.location.toString(), "w3e478tgdf8723qioiuy");
         Method method = null;
         String[] args;

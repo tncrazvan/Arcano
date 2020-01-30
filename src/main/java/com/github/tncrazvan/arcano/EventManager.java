@@ -262,7 +262,7 @@ public abstract class EventManager{
      * @return the name of the method as a String.
      */
     public String getRequestMethod() {
-        return reader.request.headers.get("Method");
+        return reader.request.headers.get("@Method");
     }
 
     /**

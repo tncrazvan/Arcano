@@ -198,7 +198,7 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @param data data to be sent.
      * @param includeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
- If this value is set to false, responseHeaders must be set manually.
+     * If this value is set to false, responseHeaders must be set manually.
      */
     public void send(String data, boolean  includeHeaders) {
         try {
