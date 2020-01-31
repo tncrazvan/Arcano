@@ -54,26 +54,27 @@ public class ShellScript {
             headersObject.addProperty(entry.getKey(), entry.getValue());
         }
         
-        String[] tmp = new String[script.length+1];
+        JsonArray overheadArray = new JsonArray();
+        overheadArray.add(headersObject);
+        overheadArray.add(argsArray);
+        overheadArray.add(queryObject);
+        byte[] overhead = overheadArray.toString().getBytes();
+        
+        String[] tmp = new String[script.length+2];
         for(int i=0; i< script.length; i++){
             tmp[i] = script[i];
         }
+        tmp[tmp.length-2] = overhead.length+"";
         tmp[tmp.length-1] = controller.reader.request.content.length+"";
         
         ProcessBuilder builder = new ProcessBuilder(tmp);
         builder.directory(this.workspace == null?new File(controller.so.config.dir):this.workspace);
         Process process = builder.start();
         try (OutputStream stdin = process.getOutputStream()) {
-            byte[] stdinHeaders = Base64.btoaGetBytes(headersObject.toString(),controller.config.charset);
-            byte[] stdinArgs = Base64.btoaGetBytes(argsArray.toString(),controller.config.charset);
-            byte[] stdinQuery = Base64.btoaGetBytes(queryObject.toString(),controller.config.charset);
-            stdin.write(stdinHeaders);
-            stdin.write("\n".getBytes());
-            stdin.write(stdinArgs);
-            stdin.write("\n".getBytes());
-            stdin.write(stdinQuery);
-            stdin.write("\n".getBytes());
-            stdin.write(controller.reader.request.content);
+            if(overhead.length > 0)
+                stdin.write(overhead);
+            if(controller.reader.request.content.length > 0)
+                stdin.write(controller.reader.request.content);
             stdin.flush();
             stdin.close();
         }
