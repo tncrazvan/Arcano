@@ -5,6 +5,7 @@ import com.github.tncrazvan.arcano.Http.HttpRequest;
 import com.github.tncrazvan.arcano.Http.HttpRequestReader;
 import com.github.tncrazvan.arcano.Http.HttpSession;
 import static com.github.tncrazvan.arcano.SharedObject.NAME_SESSION_ID;
+import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1String;
 import com.github.tncrazvan.arcano.Tool.System.Time;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
@@ -23,12 +24,17 @@ import java.util.Map;
 public abstract class EventManager{
     public String[] args;
     public HttpRequestReader reader = null;
+    public String requestId;
+    
+    public void resolveRequestId(){
+        this.requestId = getSha1String(System.identityHashCode(reader.client) + "::" + System.currentTimeMillis(),reader.so.config.charset);
+    }
     
     //public HttpRequest request;
     public HashMap<String,String> queryString = new HashMap<>();
     public StringBuilder location = new StringBuilder();
     public Map<String,String> userLanguages = new HashMap<>();
-    protected HttpHeaders responseHeaders;
+    protected HttpHeaders responseHeaders = new HttpHeaders();
     //public Socket client;
     public HttpSession session = null;
     public SharedObject so;
@@ -41,14 +47,6 @@ public abstract class EventManager{
     public void setSharedObject(final SharedObject so) {
         this.so = so;
         this.config = so.config;
-    }
-
-    public void setSocket(final Socket client) {
-        this.reader.client = client;
-    }
-
-    public void setHttpRequest(final HttpRequest request) {
-        this.reader.request = request;
     }
 
     public void initEventManager() throws UnsupportedEncodingException {

@@ -60,12 +60,12 @@ public class HttpEventListener extends HttpRequestReader{
                     // default connection, assuming it's Http 1.x
 
                     // HttpHeaders headers = controller.getResponseHttpHeaders();
-                    final File f = new File(so.config.webRoot + location);
+                    final File f = new File(so.config.webRoot + locationBuilder);
                     if (f.exists()) {
                         if (!f.isDirectory()) {
-                            final HttpController controller = new HttpController().init(this, new String[] {});
+                            final HttpController controller = new HttpController().init(this);
                             
-                            controller.setResponseHeaderField("Content-Type", resolveContentType(location.toString()));
+                            controller.setResponseHeaderField("Content-Type", resolveContentType(locationBuilder.toString()));
                             controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(toLocalDateTime(londonTimezone,f.lastModified())));
                             controller.setResponseHeaderField("Last-Modified-Timestamp",f.lastModified()+"");
                             controller.send(f);

@@ -153,35 +153,30 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
     private static HttpController serveController(final HttpRequestReader reader)
             throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException,
             IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException, IOException {
-        String stringifiedLocation = reader.location.toString().replaceAll("/+", "/");
-        stringifiedLocation = Regex.replace(stringifiedLocation, "^/", "");
-        String[] location = stringifiedLocation.split("/");
         final String httpMethod = reader.request.headers.get("@Method");
         //final boolean abusiveUrl = Regex.match(reader.location.toString(), "w3e478tgdf8723qioiuy");
         Method method = null;
-        String[] args;
         Class<?> cls;
         HttpController controller = null;
         Constructor<?> constructor;
         WebObject wo;
         int classId;
-        args = new String[0];
-        if (location.length == 0 || location.length == 1 && location[0].equals("")) {
-            location = new String[] { "" };
+        if (reader.location.length == 0 || reader.location.length == 1 && reader.location[0].equals("")) {
+            reader.location = new String[] { "" };
         }else{
-            File check = new File(reader.so.config.webRoot,stringifiedLocation);
+            File check = new File(reader.so.config.webRoot,reader.stringifiedLocation);
             if(check.exists()){
                 controller = new Get();
-                controller.init(reader, location);
+                controller.init(reader);
                 method = controller.getClass().getDeclaredMethod("file");
                 controller.invoke(method);
                 return controller;
             }
         }
         try {
-            classId = getClassnameIndex(location, httpMethod);
+            classId = getClassnameIndex(reader.location, httpMethod);
             final String[] typedLocation = Stream
-                    .concat(Arrays.stream(new String[] { httpMethod }), Arrays.stream(location))
+                    .concat(Arrays.stream(new String[] { httpMethod }), Arrays.stream(reader.location))
                     .toArray(String[]::new);
             wo = resolveClassName(classId + 1, typedLocation);
             if (wo.isLocked()) {
@@ -206,9 +201,9 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             }
             controller = (HttpController) constructor.newInstance();
 
-            final String methodname = location.length > classId ? wo.getMethodName() : "main";
-            args = resolveMethodArgs(classId + 1, location);
-            controller.init(reader, args);
+            final String methodname = reader.location.length > classId ? wo.getMethodName() : "main";
+            reader.args = resolveMethodArgs(classId + 1, reader.location);
+            controller.init(reader);
             Method[] methods = controller.getClass().getDeclaredMethods();
             for(Method m : methods){
                 if(!m.getName().equals(methodname)) continue;    
@@ -216,7 +211,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 break;
             }
             if(method == null) {
-                args = resolveMethodArgs(classId, location);
+                reader.args = resolveMethodArgs(classId, reader.location);
                 for(Method m : methods){
                     if(!m.getName().equals("main")) continue;    
                     method = m;
@@ -226,7 +221,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             controller.invoke(method);
         } catch (final ClassNotFoundException ex) {
             String methodname = "main";
-            if(location.length == 1 && location[0].equals("")){
+            if(reader.location.length == 1 && reader.location[0].equals("")){
                 try {
                     cls = Class.forName(reader.so.config.http.controllerDefault.getClassName());
                     methodname = reader.so.config.http.controllerDefault.getMethodName();
@@ -254,7 +249,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     method = m;
                     break;
                 }
-                controller.init(reader, location);
+                controller.init(reader);
                 controller.setResponseStatus(STATUS_NOT_FOUND);
                 controller.invoke(method);
             } catch (final InvalidControllerConstructorException e) {
@@ -262,8 +257,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             }
         } catch (final NoSecretFoundException ex) {
             controller = new HttpController();
-            controller.init(reader, location);
-            controller.setResponseHttpHeaders(new HttpHeaders());
+            controller.init(reader);
             controller.setResponseStatus(STATUS_LOCKED);
             controller.send("");
             LOGGER.log(Level.SEVERE, null, ex);

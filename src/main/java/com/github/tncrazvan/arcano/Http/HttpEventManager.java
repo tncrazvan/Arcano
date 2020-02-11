@@ -26,17 +26,12 @@ import java.io.UnsupportedEncodingException;
  * @author Razvan
  */
 public abstract class HttpEventManager extends EventManager{
-    private DataOutputStream output;
     //private HttpHeaders responseHeaders;
     private boolean defaultHeaders=true;
     private boolean alive=true;
     protected boolean isDir = false;
     private String acceptEncoding;
     private String encodingLabel;
-    
-    public void setDataOutputStream(final DataOutputStream output) {
-        this.output = output;
-    }
 
     public void initHttpEventManager() {
         if (this.reader.request.headers.isDefined("Accept-Encoding")) {
@@ -117,8 +112,8 @@ public abstract class HttpEventManager extends EventManager{
     public void sendHeaders() {
         firstMessage = false;
         try {
-            output.write((responseHeaders.toString() + "\r\n").getBytes(so.config.charset));
-            output.flush();
+            reader.output.write((responseHeaders.toString() + "\r\n").getBytes(so.config.charset));
+            reader.output.flush();
             alive = true;
         } catch (final IOException ex) {
             ex.printStackTrace(System.out);
@@ -166,8 +161,8 @@ public abstract class HttpEventManager extends EventManager{
                 if (includeHeaders && firstMessage && defaultHeaders) {
                     sendHeaders();
                 }
-                output.write(data);
-                output.flush();
+                reader.output.write(data);
+                reader.output.flush();
                 alive = true;
             } catch (final IOException ex) {
                 ex.printStackTrace(System.out);

@@ -13,6 +13,8 @@ import javax.xml.bind.DatatypeConverter;
 
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.EventManager;
+import com.github.tncrazvan.arcano.Http.HttpHeaders;
+import com.github.tncrazvan.arcano.Http.HttpRequestReader;
 import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1Bytes;
 import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1String;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
@@ -21,24 +23,12 @@ import com.github.tncrazvan.arcano.Tool.Http.Status;
  *
  * @author Razvan
  */
-public abstract class WebSocketManager extends EventManager{
-    protected BufferedReader br;
-    protected String requestId;
-    protected OutputStream outputStream;
+public abstract class WebSocketEventManager extends EventManager{
     private boolean connected = true;
     private WebSocketMessage message;
     //private final HttpHeaders responseHeaders;
-    public WebSocketManager() {}
-    public void setBufferedReader(final BufferedReader br) {
-        this.br = br;
-    }
-
-    protected void init() throws IOException {
-        this.requestId = getSha1String(System.identityHashCode(reader.client) + "::" + System.currentTimeMillis(),
-                so.config.charset);
-        this.outputStream = reader.client.getOutputStream();
-    }
-
+    public WebSocketEventManager() {}
+    
     /**
      * Get the default language of the user agent that made the request.
      * 
@@ -60,8 +50,8 @@ public abstract class WebSocketManager extends EventManager{
                     responseHeaders.set("Connection", "Upgrade");
                     responseHeaders.set("Upgrade", "websocket");
                     responseHeaders.set("Sec-WebSocket-Accept", acceptKey);
-                    outputStream.write((responseHeaders.toString() + "\r\n").getBytes());
-                    outputStream.flush();
+                    reader.output.write((responseHeaders.toString() + "\r\n").getBytes());
+                    reader.output.flush();
                     manageOnOpen();
                     final InputStream read = reader.client.getInputStream();
                     while (connected) {
@@ -259,29 +249,29 @@ public abstract class WebSocketManager extends EventManager{
 
     private void encodeAndSendBytes(final byte[] messageBytes, final boolean binary) {
         try {
-            outputStream.flush();
+            reader.output.flush();
         } catch (final IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
         try {
             // We need to set only FIN and Opcode.
-            outputStream.write(binary ? 0x82 : 0x81);
+            reader.output.write(binary ? 0x82 : 0x81);
 
             // Prepare the payload length.
             if (messageBytes.length <= 125) {
-                outputStream.write(messageBytes.length);
+                reader.output.write(messageBytes.length);
             } else { // We assume it is 16 but length. Not more than that.
-                outputStream.write(0x7E);
+                reader.output.write(0x7E);
                 final int b1 = (messageBytes.length >> 8) & 0xff;
                 final int b2 = messageBytes.length & 0xff;
-                outputStream.write(b1);
-                outputStream.write(b2);
+                reader.output.write(b1);
+                reader.output.write(b2);
             }
 
             // Write the data.
-            outputStream.write(messageBytes);
+            reader.output.write(messageBytes);
             try {
-                outputStream.flush();
+                reader.output.flush();
             } catch (final IOException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
@@ -378,7 +368,7 @@ public abstract class WebSocketManager extends EventManager{
         
         group.getMap().keySet().forEach((key) -> {
             final WebSocketController c = group.getMap().get(key);
-            if((WebSocketManager)c != this){
+            if((WebSocketEventManager)c != this){
                 c.send(data.data,binary);
             }
         });

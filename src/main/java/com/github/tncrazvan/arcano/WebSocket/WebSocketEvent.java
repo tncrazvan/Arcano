@@ -4,6 +4,7 @@ import com.github.tncrazvan.arcano.Http.HttpHeaders;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import com.github.tncrazvan.arcano.Http.HttpRequestReader;
+import com.github.tncrazvan.arcano.Tool.Regex;
 import com.github.tncrazvan.arcano.WebObject;
 import java.io.IOException;
 import java.util.Arrays;
@@ -14,35 +15,27 @@ import java.util.stream.Stream;
  *
  * @author Razvan
  */
-public abstract class WebSocketEvent extends WebSocketManager{
+public abstract class WebSocketEvent extends WebSocketEventManager{
     
     public static void serveController(final HttpRequestReader reader)
             throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException,
             InvocationTargetException, NoSuchMethodException, IOException {
-        final String[] args = new String[0];
         WebSocketController controller;
         Class<?> cls;
-        final String[] location = reader.location.toString().split("/");
         try {
-            final int classId = getClassnameIndex(location, "WS");
-            final String[] typedLocation = Stream.concat(Arrays.stream(new String[] { "WS" }), Arrays.stream(location))
+            final int classId = getClassnameIndex(reader.location, "WS");
+            final String[] typedLocation = Stream.concat(Arrays.stream(new String[] { "WS" }), Arrays.stream(reader.location))
                     .toArray(String[]::new);
             final WebObject wo = resolveClassName(classId + 1, typedLocation);
             cls = Class.forName(wo.getClassName());
             controller = (WebSocketController) cls.getDeclaredConstructor().newInstance();
-            controller.setArgs(args);
+            reader.args = resolveMethodArgs(classId + 1, reader.location);
         } catch (final ClassNotFoundException ex) {
+            reader.args = resolveMethodArgs(0, reader.location);
             cls = Class.forName(reader.so.config.webSocket.controllerNotFound.getClassName());
             controller = (WebSocketController) cls.getDeclaredConstructor().newInstance();
-            controller.setArgs(location);
         }
-        controller.setBufferedReader(reader.bufferedReader);
-
-        controller.setResponseHttpHeaders(new HttpHeaders());
-        controller.setSharedObject(reader.so);
-        controller.setSocket(reader.client);
-        controller.setHttpRequest(reader.request);
-        controller.init();
+        controller.init(reader);
         controller.execute();
     }
 

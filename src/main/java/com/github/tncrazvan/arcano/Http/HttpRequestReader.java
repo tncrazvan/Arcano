@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import com.github.tncrazvan.arcano.Tool.Regex;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -31,8 +32,11 @@ public abstract class HttpRequestReader implements Runnable{
     public final DataInputStream input;
     public final StringBuilder outputString = new StringBuilder();
     public HttpRequest request = null;
-    public final StringBuilder location = new StringBuilder();
+    public final StringBuilder locationBuilder = new StringBuilder();
     public final SharedObject so;
+    public String[] location = new String[0];
+    public String[] args = new String[0];
+    public String stringifiedLocation;
     public HttpRequestReader(final SharedObject so, final Socket client) throws NoSuchAlgorithmException, IOException {
         this.so = so;
         this.client = client;
@@ -40,7 +44,6 @@ public abstract class HttpRequestReader implements Runnable{
         bufferedWriter = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
         output = new DataOutputStream(client.getOutputStream());
         input = new DataInputStream(client.getInputStream());
-
     }
 
     @Override
@@ -122,7 +125,11 @@ public abstract class HttpRequestReader implements Runnable{
                     return;
                 }
                 final String[] uriParts = uri.split("\\?|\\&", 2);
-                location.append(uriParts[0].replaceAll("^\\/", ""));
+                locationBuilder.append(uriParts[0].replaceAll("^\\/", ""));
+                
+                this.stringifiedLocation = this.locationBuilder.toString().replaceAll("/+", "/");
+                this.stringifiedLocation = Regex.replace(stringifiedLocation, "^/", "");
+                this.location = stringifiedLocation.split("/");
                 this.onRequest();
             }
 
