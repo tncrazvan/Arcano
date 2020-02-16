@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
@@ -49,13 +51,12 @@ public class Minifier{
             tmp.delete();
             tmp.mkdir();
         }
-        String filename = "./tmp/." + hashCode + "." + type + ".minified.input.tmp".replace("\\", "/").replace("//","/");
-        tmp = new File(config.dir,filename); 
+        String filename = "tmp/." + hashCode + "." + type + ".minified.input.tmp".replace("\\", "/").replace("//","/");
+        tmp = new File(config.dir,filename);
         //System.out.println("Creating new file: "+filename);
         //System.out.println("Content length: "+content.length);
         if (tmp.exists())
             tmp.delete();
-        tmp.mkdirs();
         tmp.createNewFile();
         FileOutputStream fos = new FileOutputStream(tmp);
         fos.write(content);
@@ -65,10 +66,12 @@ public class Minifier{
         // Script example: minify --type=@type \"@filename\"
         // Using https://github.com/tdewolff/minify
         final String script = Regex.replace(Regex.replace(config.pack.script, "\\@type", type), "\\@filename", filename);
-        //System.out.println("Executing: "+script);
+        Path wd = FileSystems.getDefault().getPath(".");
+        System.out.println("Workling Directory: "+wd);
+        System.out.println("Executing: "+script);
         process = RUNTIME.exec(script, new String[]{}, new File(config.dir));
         final byte[] result = process.getInputStream().readAllBytes();
-        //System.out.println("Read "+result.length+" bytes.");
+        System.out.println("Read "+result.length+" bytes.");
         process.destroy();
         //System.out.println("Maintaining file...");
         return result;
