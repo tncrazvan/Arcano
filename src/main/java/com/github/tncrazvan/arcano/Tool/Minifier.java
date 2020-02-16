@@ -37,11 +37,11 @@ public class Minifier{
         this.config = config;
     }
 
-    public static byte[] minify(Configuration config, final byte[] content, final String type) throws IOException {
+    public static final byte[] minify(Configuration config, final byte[] content, final String type) throws IOException {
         return minify(config, content, type, Thread.currentThread().getId() + "");
     }
 
-    public static byte[] minify(Configuration config, final byte[] content, final String type, final String hashCode) throws IOException {
+    public static final byte[] minify(Configuration config, final byte[] content, final String type, final String hashCode) throws IOException {
         File tmp = new File("tmp");
         if (!tmp.exists())
             tmp.mkdir();
@@ -55,16 +55,16 @@ public class Minifier{
         //System.out.println("Content length: "+content.length);
         if (tmp.exists())
             tmp.delete();
-        
+        tmp.mkdirs();
         tmp.createNewFile();
         FileOutputStream fos = new FileOutputStream(tmp);
         fos.write(content);
         fos.close();
         //System.out.println("Tried to write to file, file is now "+tmp.length()+" bytes in size.");
         Process process;
-        // Script example: minify --type=$_TYPE \"$_FILE\"
+        // Script example: minify --type=@type \"@filename\"
         // Using https://github.com/tdewolff/minify
-        final String script = Regex.replace(Regex.replace(config.pack.script, "\\$\\_TYPE", type), "\\$\\_FILE", filename);
+        final String script = Regex.replace(Regex.replace(config.pack.script, "\\@type", type), "\\@filename", filename);
         //System.out.println("Executing: "+script);
         process = RUNTIME.exec(script, new String[]{}, new File(config.dir));
         final byte[] result = process.getInputStream().readAllBytes();
@@ -86,11 +86,11 @@ public class Minifier{
     Pattern pattern;
     Matcher matcher;
 
-    public void minify() throws IOException {
+    public final void minify() throws IOException {
         minify(true);
     }
 
-    public void minify(final boolean min) throws IOException {
+    public final void minify(final boolean min) throws IOException {
         js = "";
         css = "";
         JsonArray arr = new JsonArray();
@@ -164,7 +164,7 @@ public class Minifier{
         save(dir, minifiedCSS, css.getBytes());
     }
 
-    private void save(final File dir, final File minified, final byte[] contents) {
+    private final void save(final File dir, final File minified, final byte[] contents) {
         try {
             if (!dir.exists())
                 dir.mkdir();

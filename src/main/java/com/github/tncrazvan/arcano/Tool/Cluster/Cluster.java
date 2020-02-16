@@ -24,15 +24,15 @@ public class Cluster {
         this.map = list;
     }
 
-    public String[] getServerHostnames() {
+    public final String[] getServerHostnames() {
         return map.keySet().toArray(new String[0]);
     }
 
-    public boolean issetServer(final String hostname) {
+    public final boolean issetServer(final String hostname) {
         return map.containsKey(hostname);
     }
 
-    public ClusterServer validateArcanoKey(final Socket client, final String key) {
+    public final ClusterServer validateArcanoKey(final Socket client, final String key) {
         ClusterServer server;
         for (final Map.Entry<String, ClusterServer> entry : map.entrySet()) {
             server = entry.getValue();
@@ -43,16 +43,16 @@ public class Cluster {
         return null;
     }
 
-    public ClusterServer getServer(final String hostname) {
+    public final ClusterServer getServer(final String hostname) {
         return map.get(hostname);
     }
 
-    public void setServer(final String hostname, final ClusterServer server) {
+    public final void setServer(final String hostname, final ClusterServer server) {
         lengthUpdated = false;
         map.put(hostname, server);
     }
 
-    public int getLength() {
+    public final int getLength() {
         if(!lengthUpdated){
             length = map.size();
             lengthUpdated = true;

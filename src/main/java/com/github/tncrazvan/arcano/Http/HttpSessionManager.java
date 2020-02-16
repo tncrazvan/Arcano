@@ -14,12 +14,12 @@ public class HttpSessionManager {
     
     public HttpSessionManager() {}
     
-    public HttpSession startSession(final EventManager e, final long sessionTtl) {
+    public final HttpSession startSession(final EventManager e, final long sessionTtl) {
         if (e.issetRequestCookie(NAME_SESSION_ID)) {// if session id is set
             final String sessionID = e.getRequestCookie(NAME_SESSION_ID);
             if (LIST.containsKey(sessionID)) {// if session exists
                 final HttpSession session = LIST.get(sessionID);
-                if (e.so.config.session.keepAlive)
+                if (e.reader.so.config.session.keepAlive)
                     session.setTime(System.currentTimeMillis());
                 return session;
             }
@@ -30,19 +30,19 @@ public class HttpSessionManager {
         return session;
     }
 
-    public HttpSession getSession(final String sessionID) {
+    public final HttpSession getSession(final String sessionID) {
         return LIST.get(sessionID);
     }
 
-    public void setSession(final HttpSession session) {
+    public final void setSession(final HttpSession session) {
         LIST.put(session.id(), session);
     }
 
-    public boolean issetSession(final String sessionID) {
+    public final boolean issetSession(final String sessionID) {
         return LIST.containsKey(sessionID);
     }
 
-    public void stopSession(final HttpSession session) {
+    public final void stopSession(final HttpSession session) {
         LIST.remove(session.id());
     }
 }

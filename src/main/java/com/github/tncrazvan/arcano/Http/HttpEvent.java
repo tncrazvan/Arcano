@@ -20,7 +20,6 @@ import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVER_ERROR;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_LOCKED;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
-import com.github.tncrazvan.arcano.Tool.Regex;
 import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
 import com.google.gson.JsonObject;
 import java.io.File;
@@ -56,7 +55,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         } else {
             final Object content = response.getContent();
             String tmp = content.toString();
-            if (so.config.responseWrapper) {
+            if (reader.so.config.responseWrapper) {
                 if(!issetResponseHeaderField("Content-Type"))
                     setResponseHeaderField("Content-Type", "application/json");
                 final JsonObject obj = new JsonObject();
@@ -133,13 +132,13 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             }
         } catch (final InvocationTargetException  e) {
             setResponseStatus(STATUS_INTERNAL_SERVER_ERROR);
-            if (so.config.sendExceptions) {
+            if (reader.so.config.sendExceptions) {
                 sendHttpResponse(e);
             } else
                 sendHttpResponse(SharedObject.EMPTY_RESPONSE);
         }catch (IllegalAccessException | IllegalArgumentException e) {
             setResponseStatus(STATUS_INTERNAL_SERVER_ERROR);
-            if (so.config.sendExceptions) {
+            if (reader.so.config.sendExceptions) {
                 sendHttpResponse(e);
             } else
                 sendHttpResponse(SharedObject.EMPTY_RESPONSE);
@@ -150,7 +149,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         }
     }
 
-    private static HttpController serveController(final HttpRequestReader reader)
+    private static final HttpController serveController(final HttpRequestReader reader)
             throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException,
             IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException, IOException {
         final String httpMethod = reader.request.headers.get("@Method");
@@ -167,7 +166,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             File check = new File(reader.so.config.webRoot,reader.stringifiedLocation);
             if(check.exists()){
                 controller = new Get();
-                controller.init(reader);
+                controller.install(reader);
                 method = controller.getClass().getDeclaredMethod("file");
                 controller.invoke(method);
                 return controller;
@@ -203,7 +202,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
 
             final String methodname = reader.location.length > classId ? wo.getMethodName() : "main";
             reader.args = resolveMethodArgs(classId + 1, reader.location);
-            controller.init(reader);
+            controller.install(reader);
             Method[] methods = controller.getClass().getDeclaredMethods();
             for(Method m : methods){
                 if(!m.getName().equals(methodname)) continue;    
@@ -249,7 +248,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     method = m;
                     break;
                 }
-                controller.init(reader);
+                controller.install(reader);
                 controller.setResponseStatus(STATUS_NOT_FOUND);
                 controller.invoke(method);
             } catch (final InvalidControllerConstructorException e) {
@@ -257,7 +256,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             }
         } catch (final NoSecretFoundException ex) {
             controller = new HttpController();
-            controller.init(reader);
+            controller.install(reader);
             controller.setResponseStatus(STATUS_LOCKED);
             controller.send("");
             LOGGER.log(Level.SEVERE, null, ex);

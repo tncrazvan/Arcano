@@ -45,7 +45,7 @@ public class HttpHeaders {
         this(map, true);
     }
 
-    public String fieldToString(final String key) {
+    public final String fieldToString(final String key) {
         final String value = headers.get(key);
 
         if (key.equals("@Resource") || key.equals("@Status") || value.equalsIgnoreCase(key)) {
@@ -54,11 +54,11 @@ public class HttpHeaders {
         return key + ": " + value + "\r\n";
     }
 
-    private static ZoneId londonTimezone = ZoneId.of("Europe/London");
-    private static DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter
+    private static final ZoneId londonTimezone = ZoneId.of("Europe/London");
+    private static final DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter
             .ofPattern("EEE, d MMM y HH:mm:ss z", Locale.US).withZone(londonTimezone);
 
-    public String cookieToString(final String key) {
+    public final String cookieToString(final String key) {
         final String[] c = cookies.get(key);
         final LocalDateTime time = (c[3] == null ? null
                 : toLocalDateTime(SharedObject.londonTimezone, Integer.parseInt(c[3])));
@@ -69,7 +69,7 @@ public class HttpHeaders {
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         String str = "";
         str = headers.keySet().stream().map((key) -> this.fieldToString(key)).reduce(str, String::concat);
 
@@ -83,7 +83,7 @@ public class HttpHeaders {
      * @param key name of the header.
      * @return true if the header exists, false otherwise.
      */
-    public boolean isDefined(final String key) {
+    public final boolean isDefined(final String key) {
         return headers.get(key) != null;
     }
 
@@ -93,7 +93,7 @@ public class HttpHeaders {
      * @param name  name of the header.
      * @param value value of the header.
      */
-    public void set(final String name, String value) {
+    public final void set(final String name, String value) {
         if (name.equals("@Status"))
             value = "HTTP/1.1 " + value;
         headers.put(name, value);
@@ -105,7 +105,7 @@ public class HttpHeaders {
      * @param name name of the header
      * @return value of the header as a String.
      */
-    public String get(final String name) {
+    public final String get(final String name) {
         if (!headers.containsKey(name)) {
             return null;
         }
@@ -118,7 +118,7 @@ public class HttpHeaders {
      * @param name name of the cookie.
      * @return true if the cookie is set, false otherwise.
      */
-    public boolean issetCookie(final String name) {
+    public final boolean issetCookie(final String name) {
         final Iterator i = cookies.entrySet().iterator();
         Map.Entry pair;
         String tmp = "";
@@ -138,11 +138,11 @@ public class HttpHeaders {
      * @param name name of the cookie.
      * @return value of the cookie as a String.
      */
-    public String getCookie(final String name) {
+    public final String getCookie(final String name) {
         return getCookie(name, "UTF-8");
     }
 
-    public String getCookie(final String key, final String charset) {
+    public final String getCookie(final String key, final String charset) {
         final String[] cookie = cookies.get(key);
         if (cookie == null)
             return null;
@@ -166,7 +166,7 @@ public class HttpHeaders {
      * @param charset charset to use when encoding the cookie.
      */
 
-    public void setCookie(final String name, final String value, String path, final String domain, final int expire,
+    public final void setCookie(final String name, final String value, String path, final String domain, final int expire,
             final String charset) {
         if (path == null)
             path = "/";
@@ -192,7 +192,7 @@ public class HttpHeaders {
      * @param domain  this is the domain the cookie will be attached to.
      * @param charset charset to use when encoding the cookie.
      */
-    public void setCookie(final String name, final String value, final String path, final String domain,
+    public final void setCookie(final String name, final String value, final String path, final String domain,
             final String charset) {
         setCookie(name, value, path, domain, 0, charset);
     }
@@ -205,7 +205,7 @@ public class HttpHeaders {
      * @param path    this is the path the cookie will be attached to.
      * @param charset charset to use when encoding the cookie.
      */
-    public void setCookie(final String name, final String value, final String path, final String charset) {
+    public final void setCookie(final String name, final String value, final String path, final String charset) {
         setCookie(name, value, path, null, charset);
     }
 
@@ -216,7 +216,7 @@ public class HttpHeaders {
      * @param value   value of the cookie.
      * @param charset charset to use when encoding the cookie.
      */
-    public void setCookie(final String name, final String value, final String charset) {
+    public final void setCookie(final String name, final String value, final String charset) {
         setCookie(name, value, "/", null, 0, charset);
     }
 
@@ -225,7 +225,7 @@ public class HttpHeaders {
      * 
      * @return headers as HashMap.
      */
-    public HashMap<String, String> getHashMap() {
+    public final HashMap<String, String> getHashMap() {
         return headers;
     }
 
@@ -235,7 +235,7 @@ public class HttpHeaders {
      * @param map the HashMap to read.
      * @return the HttpHeaders object.
      */
-    public static HttpHeaders fromHashMap(final HashMap<String, String> map) {
+    public static final HttpHeaders fromHashMap(final HashMap<String, String> map) {
         return new HttpHeaders(map, false);
     }
 
@@ -246,7 +246,7 @@ public class HttpHeaders {
      * @param line a String containing the http header.
      * @return false if the input is blank, true otherwise.
      */
-    public boolean parseLine(final String line) {
+    public final boolean parseLine(final String line) {
         if (line.trim().equals("")) {
             return false;
         }
@@ -288,7 +288,7 @@ public class HttpHeaders {
      * @param string input string.
      * @return an HttpHeaders object.
      */
-    public static HttpHeaders fromString(final String string) {
+    public static final HttpHeaders fromString(final String string) {
         final HttpHeaders headers = new HttpHeaders(false);
         final String[] lines = string.split("\\r\\n");
         for (final String line : lines) {

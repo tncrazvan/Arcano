@@ -6,7 +6,6 @@ import static com.github.tncrazvan.arcano.SharedObject.londonTimezone;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Level;
@@ -14,7 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import java.io.File;
-import java.util.logging.Logger;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import static com.github.tncrazvan.arcano.Tool.System.Time.toLocalDateTime;
@@ -35,7 +33,7 @@ public class HttpEventListener extends HttpRequestReader{
     }
 
     @Override
-    public void onRequest() {
+    public final void onRequest() {
         if (request.headers != null && request.headers.get("Connection") != null) {
             matcher = UPGRADE_PATTERN.matcher(request.headers.get("Connection"));
             if (matcher.find()) {
@@ -63,7 +61,7 @@ public class HttpEventListener extends HttpRequestReader{
                     final File f = new File(so.config.webRoot + locationBuilder);
                     if (f.exists()) {
                         if (!f.isDirectory()) {
-                            final HttpController controller = new HttpController().init(this);
+                            final HttpController controller = new HttpController().install(this);
                             
                             controller.setResponseHeaderField("Content-Type", resolveContentType(locationBuilder.toString()));
                             controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(toLocalDateTime(londonTimezone,f.lastModified())));

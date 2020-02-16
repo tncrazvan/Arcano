@@ -10,7 +10,7 @@ import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 public class Unset extends HttpController{
     @HttpService(path="/@unset/cookie")
     public void cookie(){
-        final String name = String.join("/", args);
+        final String name = String.join("/", reader.args);
         if(issetRequestCookie(name)){
             unsetResponseCookie(name, getRequestQueryString("path"), getRequestQueryString("domain"));
             send(0);

@@ -26,7 +26,7 @@ public final class WebSocketMessage {
      * @return the payload of the message as a String.
      */
     @Override
-    public String toString(){
+    public final String toString(){
         try {
             return new String(data,"UTF-8");
         } catch (final UnsupportedEncodingException ex) {
@@ -42,7 +42,7 @@ public final class WebSocketMessage {
      * @return the payload of the message as a String.
      * @throws java.io.UnsupportedEncodingException
      */
-    public String toString(final String charset) throws UnsupportedEncodingException {
+    public final String toString(final String charset) throws UnsupportedEncodingException {
         return new String(data, charset);
     }
 
@@ -59,7 +59,7 @@ public final class WebSocketMessage {
      * 
      * @param data bytes to set
      */
-    public void setBytes(final byte[] data) {
+    public final void setBytes(final byte[] data) {
         this.data = data;
     }
 
@@ -68,7 +68,7 @@ public final class WebSocketMessage {
      * 
      * @return the first byte of the payload.
      */
-    public byte toByte() {
+    public final byte toByte() {
         return data[0];
     }
 
@@ -77,7 +77,7 @@ public final class WebSocketMessage {
      * 
      * @param data payload to set.
      */
-    public void setByte(final byte data) {
+    public final void setByte(final byte data) {
         this.data = new byte[] { data };
     }
 
@@ -97,7 +97,7 @@ public final class WebSocketMessage {
      * @param charset the charset used to encode the payload.
      * @throws java.io.UnsupportedEncodingException
      */
-    public void setString(final String data, final String charset) throws UnsupportedEncodingException {
+    public final void setString(final String data, final String charset) throws UnsupportedEncodingException {
         this.data = data.getBytes(charset);
     }
 
@@ -118,7 +118,7 @@ public final class WebSocketMessage {
      * @param data the payload of the message. The payload will be encoded to
      *             charset UTF-8 by default.
      */
-    public void setString(final String data) {
+    public final void setString(final String data) {
         try {
             this.data = data.getBytes("UTF-8");
         } catch (final UnsupportedEncodingException ex) {

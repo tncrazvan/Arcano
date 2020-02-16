@@ -14,19 +14,19 @@ public class WebSocketGroupManager {
         groups.put(group.getKey(), group);
     }
 
-    public WebSocketGroup removeGroup(final WebSocketGroup group) {
+    public final WebSocketGroup removeGroup(final WebSocketGroup group) {
         return groups.remove(group.getKey());
     }
 
-    public boolean groupExists(final String key) {
+    public final boolean groupExists(final String key) {
         return groups.containsKey(key);
     }
 
-    public WebSocketGroup getGroup(final String key) {
+    public final WebSocketGroup getGroup(final String key) {
         return groups.get(key);
     }
     
-    public Map<String,WebSocketGroup> getAllGroups(){
+    public final Map<String,WebSocketGroup> getAllGroups(){
         return groups;
     }
 }

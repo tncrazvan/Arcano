@@ -19,7 +19,7 @@ public class WebSocketGroupApi extends WebSocketController{
     @Override
     public void onOpen() {
         //if "ALLOW" is true
-        if(so.config.webSocket.groups.enabled){ //ws groups are enabled
+        if(reader.so.config.webSocket.groups.enabled){ //ws groups are enabled
             //if query "?join" is present in the request URL
             if(issetRequestQueryString("join")){
                 //use that query value as the group's name

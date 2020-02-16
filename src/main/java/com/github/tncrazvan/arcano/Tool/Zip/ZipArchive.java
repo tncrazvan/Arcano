@@ -40,20 +40,20 @@ import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 
     }
 
-    public void addEntry(final String filename, final String contents, final String charset) throws IOException {
+    public final void addEntry(final String filename, final String contents, final String charset) throws IOException {
         addEntry(filename, contents.getBytes(charset));
     }
 
-    public void addEntry(final String filename, final ServerFile file) throws IOException {
+    public final void addEntry(final String filename, final ServerFile file) throws IOException {
         addEntry(filename, file.read());
     }
 
-    public void addEntry(final String filename, final byte[] data) throws IOException {
+    public final void addEntry(final String filename, final byte[] data) throws IOException {
         final ZipEntry e = new ZipEntry(filename);
         entries.add(new ZipEntryData(e, data));
     }
 
-    public void make() throws IOException {
+    public final void make() throws IOException {
         file = new ServerFile(filename);
         try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(file))) {
             entries.forEach((e) -> {
@@ -68,7 +68,7 @@ import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
         }
     }
 
-    public ServerFile getFile(){
+    public final ServerFile getFile(){
         return file;
     }
 }

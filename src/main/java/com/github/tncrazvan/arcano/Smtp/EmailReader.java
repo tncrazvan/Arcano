@@ -60,7 +60,7 @@ public class EmailReader extends SmtpMessageManager{
         this.listeners = listeners;
     }
 
-    public void parse() throws IOException {
+    public final void parse() throws IOException {
         sayReady();
         line = read();
         while (line != null && !checkQUIT) {
@@ -104,7 +104,7 @@ public class EmailReader extends SmtpMessageManager{
 
     private boolean frameHeadersDone = false;
 
-    private void readData() throws IOException {
+    private final void readData() throws IOException {
         /*
          * Since a message body can contain a line with just a period as part of the
          * text, the client sends two periods every time a line starts with a period;
@@ -138,7 +138,7 @@ public class EmailReader extends SmtpMessageManager{
         }
     }// end readData()
 
-    private void readCurrentFrameHeaders() throws IOException {
+    private final void readCurrentFrameHeaders() throws IOException {
         if (isSubject(line) && !checkSUBJECT) {
             checkSUBJECT = true;
             subject = getSubject(line);
@@ -153,7 +153,7 @@ public class EmailReader extends SmtpMessageManager{
         }
     }
 
-    private void readNewFrame() {
+    private final void readNewFrame() {
         // reading a frame right now...
         readingFrame = true;
         if (isContentType(line)) {
@@ -164,7 +164,7 @@ public class EmailReader extends SmtpMessageManager{
         }
     }
 
-    private void continueReadingBody() {
+    private final void continueReadingBody() {
         if (!frameHeadersDone) {
             if (line.trim().equals("")) {
                 frameHeadersDone = true;
@@ -177,7 +177,7 @@ public class EmailReader extends SmtpMessageManager{
         }
     }
 
-    private void closeAndNotifyListeners() throws IOException {
+    private final void closeAndNotifyListeners() throws IOException {
         // "." means end of DATA
         // (normaly this should be sent right before the last frame "QUIT"),
         // however, it seems gmail closes the socket by force
@@ -218,14 +218,14 @@ public class EmailReader extends SmtpMessageManager{
         });
     }
     
-    private void saveLastFrame(){
+    private final void saveLastFrame(){
         //I'm saving the last frame
         frames.add(new EmailFrame(currentFrameContent, bodyContentType[0], bodyContentType[1]));
         readingFrame = false;
         readingBody = false;
     }
     
-    private void saveFrame(){
+    private final void saveFrame(){
         frameHeadersDone = false;
         readingBody = true;
 

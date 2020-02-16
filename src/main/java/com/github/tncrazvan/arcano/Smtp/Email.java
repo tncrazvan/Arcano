@@ -18,15 +18,15 @@ public class Email {
         this.recipents = recipents;
     }
 
-    public int getBodyFramesCounter() {
+    public final int getBodyFramesCounter() {
         return frames.size();
     }
 
-    public boolean addRecipient(final String recipient) {
+    public final boolean addRecipient(final String recipient) {
         return this.recipents.add(recipient);
     }
 
-    public boolean removeRcipient(final String recipient) {
+    public final boolean removeRcipient(final String recipient) {
         return this.recipents.remove(recipient);
     }
 
@@ -37,7 +37,7 @@ public class Email {
      * @return the whole body of the Email.
      */
     @Override
-    public String toString() {
+    public final String toString() {
         return toString(frames.size());
     }
 
@@ -69,7 +69,7 @@ public class Email {
      *               <ul>
      * @return the body of the Email up until the specified frame.
      */
-    public String toString(int length) {
+    public final String toString(int length) {
         final StringBuilder message = new StringBuilder();
         final int tmp = length;
         if (length < 0)
@@ -87,19 +87,19 @@ public class Email {
      * Get all the frames of the body of this Email.
      * @return the ArrayList containing the whole body of the email.
      */
-    public ArrayList<EmailFrame> getAllBodyFrames(){
+    public final ArrayList<EmailFrame> getAllBodyFrames(){
         return frames;
     }
     
-    public ArrayList<String> getRecipients(){
+    public final ArrayList<String> getRecipients(){
         return recipents;
     }
     
-    public String getSubject(){
+    public final String getSubject(){
         return subject;
     }
     
-    public String getSender(){
+    public final String getSender(){
         return sender;
     }
 }

@@ -46,7 +46,7 @@ public class ServerFile extends File{
         super(parent, filename);
     }
 
-    public byte[] read() throws FileNotFoundException, IOException {
+    public final byte[] read() throws FileNotFoundException, IOException {
         byte[] result;
         try (FileInputStream fis = new FileInputStream(this)) {
             result = fis.readAllBytes();
@@ -54,21 +54,21 @@ public class ServerFile extends File{
         return result;
     }
 
-    public void write(final String contents, final String charset) throws UnsupportedEncodingException, IOException {
+    public final void write(final String contents, final String charset) throws UnsupportedEncodingException, IOException {
         write(contents.getBytes(charset));
     }
 
-    public void write(final byte[] contents) throws FileNotFoundException, IOException {
+    public final void write(final byte[] contents) throws FileNotFoundException, IOException {
         final FileOutputStream fos = new FileOutputStream(this);
         fos.write(contents);
         fos.close();
     }
 
-    public Map<String, Object> info() throws IOException {
+    public final Map<String, Object> info() throws IOException {
         return info("*");
     }
 
-    public Map<String, Object> info(final String selection) throws IOException {
+    public final Map<String, Object> info(final String selection) throws IOException {
          return Files.readAttributes(this.toPath(), selection);
     }
 }

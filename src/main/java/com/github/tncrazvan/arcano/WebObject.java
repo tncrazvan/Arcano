@@ -17,31 +17,31 @@ public class WebObject {
         this.locked = LOCKED;
     }
 
-    public boolean isLocked() {
+    public final boolean isLocked() {
         return this.locked;
     }
 
-    public void setClassName(final String classname) {
+    public final void setClassName(final String classname) {
         this.classname = classname;
     }
 
-    public void setMethodName(final String methodname) {
+    public final void setMethodName(final String methodname) {
         this.methodname = methodname;
     }
 
-    public void setType(final String httpMethod) {
+    public final void setType(final String httpMethod) {
         this.type = httpMethod;
     }
     
-    public String getClassName(){
+    public final String getClassName(){
         return this.classname;
     }
     
-    public String getMethodName(){
+    public final String getMethodName(){
         return this.methodname;
     }
     
-    public String getType(){
+    public final String getType(){
         return this.type;
     }
 }

@@ -13,31 +13,31 @@ public class FetchResult{
         this.data = data;
     }
 
-    public byte[] getBytes() {
+    public final byte[] getBytes() {
         return data;
     }
 
-    public String getString(final String charset) throws UnsupportedEncodingException {
+    public final String getString(final String charset) throws UnsupportedEncodingException {
         return new String(data,charset);
     }
 
-    public boolean isEmpty(){
+    public final boolean isEmpty(){
         return data == null;
     }
 
-    public boolean isNull(){
+    public final boolean isNull(){
         return data == null;
     }
 
-    public boolean isNullOrEmpty(){
+    public final boolean isNullOrEmpty(){
         return data == null || data.length == 0;
     }
 
-    public boolean isBlank(){
+    public final boolean isBlank(){
         return new String(data).trim().equals("");
     }
 
-    public boolean isNullOrBLank(){
+    public final boolean isNullOrBLank(){
         return data == null || new String(data).trim().equals("");
     }
 

@@ -9,13 +9,13 @@ import java.io.File;
  *
  * @author Administrator
  */
-public class App extends HttpController {
+public class FileService extends HttpController {
     @HttpDefault
     public File main() throws IOException, ClassNotFoundException {
-        if(args.length == 0) 
-            args = new String[]{so.config.entryPoint};
-        else if(args.length == 1 && args[0].equals("")) 
-            args[0] = so.config.entryPoint;
+        if(reader.args.length == 0) 
+            reader.args = new String[]{reader.so.config.entryPoint};
+        else if(reader.args.length == 1 && reader.args[0].equals("")) 
+            reader.args[0] = reader.so.config.entryPoint;
         return new Delegate<Get>(){}.start().file();
     }
 }

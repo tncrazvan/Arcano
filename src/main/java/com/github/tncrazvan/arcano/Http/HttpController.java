@@ -15,13 +15,11 @@ import java.util.logging.Level;
  */
 public class HttpController extends HttpEvent implements HttpControllerFeatures{
     
-    public final HttpController init(final HttpRequestReader reader) {
+    public final HttpController install(final HttpRequestReader reader) {
         try {
             this.setResponseHttpHeaders(new HttpHeaders());
             this.reader = reader;
-            this.args = reader.args;
             this.resolveRequestId();
-            this.setSharedObject(reader.so);
             this.initEventManager();
             this.initHttpEventManager();
             this.findRequestLanguages();
@@ -33,7 +31,7 @@ public class HttpController extends HttpEvent implements HttpControllerFeatures{
     }
 
     protected HttpController init(final HttpController controller) {
-        return this.init(controller.reader);
+        return this.install(controller.reader);
     }
 
     HttpController self = this;

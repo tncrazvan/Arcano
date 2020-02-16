@@ -21,19 +21,19 @@ public class ClusterServer {
         this.weight = weight;
     }
 
-    public int getWeight() {
+    public final int getWeight() {
         return weight;
     }
 
-    public void setWeight(final int weight) {
+    public final void setWeight(final int weight) {
         this.weight = weight;
     }
 
-    public String getArcanoSecret() {
+    public final String getArcanoSecret() {
         return arcanoSecret;
     }
 
-    public void getData(final String arcanoSecret) {
+    public final void getData(final String arcanoSecret) {
         final HttpHeaders headers = new HttpHeaders(false);
         headers.setCookie("ArcanoSecret", arcanoSecret, "UTF-8");
         final FetchResult result = Fetch.get("http://" + hostname + "/@get/memory", new HashMap<String, String>() {

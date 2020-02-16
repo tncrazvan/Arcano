@@ -12,14 +12,14 @@ public class EmailFrame {
         this.contentType=new String[]{contentType,charset};
     }
     
-    public String getContentTye(){
+    public final String getContentTye(){
         return contentType[0];
     }
-    public String getCharset(){
+    public final String getCharset(){
         return contentType[1];
     }
     @Override
-    public String toString(){
+    public final String toString(){
         return message;
     }
 }

@@ -33,7 +33,7 @@ public abstract class HttpEventManager extends EventManager{
     private String acceptEncoding;
     private String encodingLabel;
 
-    public void initHttpEventManager() {
+    public final void initHttpEventManager() {
         if (this.reader.request.headers.isDefined("Accept-Encoding")) {
             acceptEncoding = this.reader.request.headers.get("Accept-Encoding");
             encodingLabel = "Content-Encoding";
@@ -49,7 +49,7 @@ public abstract class HttpEventManager extends EventManager{
     /**
      * Note that this method WILL NOT invoke interaface method onClose
      */
-    public void close() {
+    public final void close() {
         try {
             reader.client.close();
         } catch (final IOException ex) {
@@ -63,7 +63,7 @@ public abstract class HttpEventManager extends EventManager{
      * @param name  name of your header.
      * @param value value of your header.
      */
-    public void setResponseHeaderField(final String name, final String value) {
+    public final void setResponseHeaderField(final String name, final String value) {
         responseHeaders.set(name, value);
     }
 
@@ -73,7 +73,7 @@ public abstract class HttpEventManager extends EventManager{
      * @param name name of the header.
      * @return value of the header as a String.
      */
-    public String getResponseHeaderField(final String name) {
+    public final String getResponseHeaderField(final String name) {
         return responseHeaders.get(name);
     }
 
@@ -83,7 +83,7 @@ public abstract class HttpEventManager extends EventManager{
      * @param name name of the header.
      * @return true if the header exists, false otherwise.
      */
-    public boolean issetResponseHeaderField(final String name) {
+    public final boolean issetResponseHeaderField(final String name) {
         return responseHeaders.isDefined(name);
     }
 
@@ -94,7 +94,7 @@ public abstract class HttpEventManager extends EventManager{
      *               status strings inside the
      *               com.github.tncrazvan.arcano.Tool.Status class.
      */
-    public void setResponseStatus(final String status) {
+    public final void setResponseStatus(final String status) {
         setResponseHeaderField("@Status", status);
     }
 
@@ -103,16 +103,16 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @return responseHeaders of the response.
      */
-    public HttpHeaders getResponseHttpHeaders() {
+    public final HttpHeaders getResponseHttpHeaders() {
         return responseHeaders;
     }
 
     private boolean firstMessage = true;
 
-    public void sendHeaders() {
+    public final void sendHeaders() {
         firstMessage = false;
         try {
-            reader.output.write((responseHeaders.toString() + "\r\n").getBytes(so.config.charset));
+            reader.output.write((responseHeaders.toString() + "\r\n").getBytes(reader.so.config.charset));
             reader.output.flush();
             alive = true;
         } catch (final IOException ex) {
@@ -122,7 +122,7 @@ public abstract class HttpEventManager extends EventManager{
         }
     }
 
-    public void send(byte[] data) {
+    public final void send(byte[] data) {
         send(data,true);
     }
     /**
@@ -135,12 +135,12 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @param data data to be sent.
      * @param includeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
- If this value is set to false, responseHeaders must be set manually.
+     * If this value is set to false, responseHeaders must be set manually.
      */
-    public void send(byte[] data, boolean includeHeaders) {
+    public final void send(byte[] data, boolean includeHeaders) {
         if (alive) {
             try {
-                for (final String cmpr : so.config.compression) {
+                for (final String cmpr : reader.so.config.compression) {
                     switch (cmpr) {
                     case DEFLATE:
                         if (acceptEncoding.matches(".+" + cmpr + ".*")) {
@@ -172,15 +172,24 @@ public abstract class HttpEventManager extends EventManager{
         }
     }
 
-    public void flushHeaders() {
+    public final void flushHeaders() {
         flush();
     }
 
-    public void flush() {
+    public final void flush() {
         sendHeaders();
     }
-
-    public void send(String data) {
+    /**
+     * Send data to the client. The first time this method is called within an
+     * HttpEvent, it will also call the sendHEaders() method, to make sure the
+     * headers. This means that whatever http headers are being set after the first
+     * time this method is called are completely ignored. Calling this method is the
+     * same as returning a Object from your HttpController method. There is really
+     * no good reason to call this method from within your HttpController.
+     * 
+     * @param data data to be sent.
+     */
+    public final void send(String data) {
         send(data,true);
     }
     /**
@@ -195,21 +204,26 @@ public abstract class HttpEventManager extends EventManager{
      * @param includeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
      * If this value is set to false, responseHeaders must be set manually.
      */
-    public void send(String data, boolean  includeHeaders) {
+    public final void send(String data, boolean  includeHeaders) {
         try {
             if (data == null)
                 data = "";
 
-            this.send(data.getBytes(so.config.charset),includeHeaders);
+            this.send(data.getBytes(reader.so.config.charset),includeHeaders);
         } catch (final UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
     
+    /**
+     * Grant a JavaArcanoKey to the request by setting a cookie named "JavaArcanoKey".<br />
+     * This cookie will unlock HttpServices that specify the "lock" parameter as true.<br />
+     * 
+     */
     public final void grantKey(){
         final JsonObject obj = new JsonObject();
         obj.addProperty("token", Strings.uuid());
-        final JwtMessage message = new JwtMessage(obj,so.config.key,so.config.charset);
+        final JwtMessage message = new JwtMessage(obj,reader.so.config.key,reader.so.config.charset);
         setResponseCookie("JavaArcanoKey", message.toString());
     }
     
@@ -223,7 +237,7 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @param data data to be sent.
      */
-    public void send(final int data) {
+    public final void send(final int data) {
         HttpEventManager.this.send("" + data);
     }
 
@@ -232,7 +246,7 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @param type Content-Type string.
      */
-    public void setResponseContentType(final String type) {
+    public final void setResponseContentType(final String type) {
         responseHeaders.set("Content-Type", type);
     }
 
@@ -241,7 +255,7 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @return Content-Type of the response.
      */
-    public String getResponseContentType() {
+    public final String getResponseContentType() {
         return responseHeaders.get("Content-Type");
     }
 
@@ -250,7 +264,7 @@ public abstract class HttpEventManager extends EventManager{
  "@Status" of the response as "200 OK", "Cache-Control" to "no-store", "Date"
  to the current Greenwich date.
      */
-    public void disableDefaultResponseHeaders() {
+    public final void disableDefaultResponseHeaders() {
         defaultHeaders = false;
     }
 
@@ -259,7 +273,7 @@ public abstract class HttpEventManager extends EventManager{
  "@Status" of the response as "200 OK", "Cache-Control" to "no-store", "Date"
  to the current Greenwich date.
      */
-    public void enableDefaultResponseHeaders() {
+    public final void enableDefaultResponseHeaders() {
         defaultHeaders = true;
     }
 
@@ -273,7 +287,7 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @param data data to be sent.
      */
-    public void send(final File data) {
+    public final void send(final File data) {
         try {
             if (!data.exists() || data.isDirectory()) {
                 setResponseStatus(Status.STATUS_NOT_FOUND);
@@ -323,20 +337,20 @@ public abstract class HttpEventManager extends EventManager{
                             dos.writeUTF("--" + boundary + "\r\n");
                             dos.writeUTF("Content-Type: " + ctype + "\r\n");
                             dos.writeUTF("Content-Range: bytes " + start + "-" + end + "/" + fileLength + "\r\n\r\n");
-                            if (end - start + 1 > so.config.http.mtu) {
+                            if (end - start + 1 > reader.so.config.http.mtu) {
                                 int remainingBytes = end - start + 1;
-                                buffer = new byte[so.config.http.mtu];
+                                buffer = new byte[reader.so.config.http.mtu];
                                 raf.seek(start);
                                 while (remainingBytes > 0) {
                                     raf.read(buffer);
                                     dos.write(buffer);
-                                    remainingBytes -= so.config.http.mtu;
+                                    remainingBytes -= reader.so.config.http.mtu;
                                     if (remainingBytes < 0) {
-                                        buffer = new byte[remainingBytes + so.config.http.mtu];
+                                        buffer = new byte[remainingBytes + reader.so.config.http.mtu];
                                         dos.write(buffer);
                                         remainingBytes = 0;
                                     } else {
-                                        buffer = new byte[so.config.http.mtu];
+                                        buffer = new byte[reader.so.config.http.mtu];
                                     }
                                 }
 

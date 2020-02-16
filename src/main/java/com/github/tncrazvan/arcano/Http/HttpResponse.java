@@ -28,7 +28,7 @@ public class HttpResponse {
      * @param action the action to execute.
      * @return the current HttpResponse.
      */
-    public HttpResponse then(final VoidAction action) {
+    public final HttpResponse then(final VoidAction action) {
         this.action = action;
         return this;
     }
@@ -36,7 +36,7 @@ public class HttpResponse {
     /**
      * Executes the specified action.
      */
-    public void todo() {
+    public final void todo() {
         if (action != null)
             action.callback();
     }
@@ -64,7 +64,7 @@ public class HttpResponse {
         this.content = content;
     }
 
-    public HttpResponse resolve() {
+    public final HttpResponse resolve() {
         try {
             if (type == JsonArray.class) {
                 if (headers != null && !headers.isDefined("Content-Type")) {
@@ -115,7 +115,7 @@ public class HttpResponse {
      * 
      * @return
      */
-    public HashMap<String, String> getHashMapHeaders() {
+    public final HashMap<String, String> getHashMapHeaders() {
         return headers.getHashMap();
     }
 
@@ -124,7 +124,7 @@ public class HttpResponse {
      * 
      * @return
      */
-    public HttpHeaders getHttpHeaders() {
+    public final HttpHeaders getHttpHeaders() {
         return headers;
     }
 
@@ -137,7 +137,7 @@ public class HttpResponse {
      *             executed.
      * @return the payload of the response.
      */
-    public Object getContent(final boolean todo) {
+    public final Object getContent(final boolean todo) {
         if (todo)
             this.todo();
         return content;
@@ -148,7 +148,7 @@ public class HttpResponse {
      * 
      * @return the payload of the response.
      */
-    public Object getContent() {
+    public final Object getContent() {
         return getContent(false);
     }
 
@@ -159,7 +159,7 @@ public class HttpResponse {
      * @param value if true the payload will be treated as raw binary data,
      *              otherwise it will be treated as a String.
      */
-    public void setRaw(final boolean value) {
+    public final void setRaw(final boolean value) {
         raw = value;
     }
     
@@ -167,7 +167,7 @@ public class HttpResponse {
      * Check is the payload is meant to be treated as raw binary data or not.
      * @return true if the content is meant to be raw, false otherwise.
      */
-    public boolean isRaw(){
+    public final boolean isRaw(){
         return raw;
     }
     
@@ -177,7 +177,7 @@ public class HttpResponse {
      * It helps converting JSON objects, arrays, Strings and other objects accordingly.
      * @return the Class<?> of the payload.
      */
-    public Class<?> getType(){
+    public final Class<?> getType(){
         return type;
     }
 }

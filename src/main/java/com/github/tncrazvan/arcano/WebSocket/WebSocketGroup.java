@@ -25,63 +25,63 @@ public class WebSocketGroup {
         this.key = getBCryptString(session.id());
     }
 
-    public void setGroupName(final String name) {
+    public final void setGroupName(final String name) {
         this.name = name;
     }
 
-    public String getGroupName() {
+    public final String getGroupName() {
         return name;
     }
 
-    public void setVisibility(final int v) {
+    public final void setVisibility(final int v) {
         visibility = v;
     }
 
-    public int getVisibility() {
+    public final int getVisibility() {
         return visibility;
     }
 
-    public void addClient(final WebSocketController e) throws UnsupportedEncodingException {
+    public final void addClient(final WebSocketController e) throws UnsupportedEncodingException {
         e.startSession();
         events.put(e.session.id(), e);
     }
 
-    public WebSocketController removeClient(final WebSocketController e) {
+    public final WebSocketController removeClient(final WebSocketController e) {
         if (matchCreator(e)) {
             master = null;
         }
         return events.remove(e.session.id());
     }
 
-    public boolean clientExists(final WebSocketController e) {
+    public final boolean clientExists(final WebSocketController e) {
         return events.containsKey(e.session.id());
     }
 
-    public Map<String, WebSocketController> getMap() {
+    public final Map<String, WebSocketController> getMap() {
         return events;
     }
 
-    public String getKey() {
+    public final String getKey() {
         return key;
     }
 
-    public WebSocketController getGroupMaster() {
+    public final WebSocketController getGroupMaster() {
         return master;
     }
 
-    public boolean groupMasterIsset() {
+    public final boolean groupMasterIsset() {
         return master != null;
     }
 
-    public void setGroupMaster(final WebSocketController e) {
+    public final void setGroupMaster(final WebSocketController e) {
         master = e;
     }
 
-    public void unsetGroupMaster() {
+    public final void unsetGroupMaster() {
         master = null;
     }
 
-    public boolean matchCreator(final WebSocketController e) {
+    public final boolean matchCreator(final WebSocketController e) {
         return validateBCryptString(e.session.id(), key);
     }
 }

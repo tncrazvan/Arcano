@@ -27,15 +27,15 @@ public class JwtMessage implements JsonTools{
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return contents;
     }
 
-    public JsonObject getHeader() {
+    public final JsonObject getHeader() {
         return header;
     }
 
-    public JsonObject getBody() {
+    public final JsonObject getBody() {
         return body;
     }
 

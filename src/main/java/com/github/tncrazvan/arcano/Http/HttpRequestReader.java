@@ -47,7 +47,7 @@ public abstract class HttpRequestReader implements Runnable{
     }
 
     @Override
-    public void run() {
+    public final void run() {
         try {
             byte[] chain = new byte[] { 0, 0, 0, 0 };
             boolean keepReading = true, EOFException = false;
@@ -144,5 +144,4 @@ public abstract class HttpRequestReader implements Runnable{
     
     
     public abstract void onRequest();
-    
 }

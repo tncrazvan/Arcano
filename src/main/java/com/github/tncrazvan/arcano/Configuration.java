@@ -171,7 +171,7 @@ public class Configuration {
      * @param args
      * @throws IOException 
      */
-    public void parse(final File json, final SharedObject so, final String[] args) throws IOException{
+    public final void parse(final File json, final SharedObject so, final String[] args) throws IOException{
         if(!json.exists()){
             System.out.println("Configuration file "+json.getPath()+" does not seem to exist.");
             return;
@@ -530,5 +530,4 @@ public class Configuration {
         }
         System.out.println(configurationTable.toString());
     }
-    
 }

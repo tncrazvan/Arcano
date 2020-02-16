@@ -5,17 +5,12 @@
  */
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.Tool.Encoding.Base64;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
@@ -39,9 +34,9 @@ public class ShellScript {
         this.script = script;
     }
     
-    public void execute(HttpEvent controller) throws IOException, InterruptedException{
+    public final void execute(HttpEvent controller) throws IOException, InterruptedException{
         final JsonArray argsArray = new JsonArray();
-        for (String arg : controller.args) {
+        for (String arg : controller.reader.args) {
             argsArray.add(arg);
         }
         final JsonObject queryObject = new JsonObject();
@@ -68,7 +63,7 @@ public class ShellScript {
         tmp[tmp.length-1] = controller.reader.request.content.length+"";
         
         ProcessBuilder builder = new ProcessBuilder(tmp);
-        builder.directory(this.workspace == null?new File(controller.so.config.dir):this.workspace);
+        builder.directory(this.workspace == null?new File(controller.reader.so.config.dir):this.workspace);
         Process process = builder.start();
         try (OutputStream stdin = process.getOutputStream()) {
             if(overhead.length > 0)
@@ -79,7 +74,7 @@ public class ShellScript {
             stdin.close();
         }
         
-        process.waitFor(controller.so.config.timeout,TimeUnit.MILLISECONDS);
+        process.waitFor(controller.reader.so.config.timeout,TimeUnit.MILLISECONDS);
         process.destroyForcibly();
         InputStream error = process.getErrorStream();
         final byte[] errors = error.readAllBytes();

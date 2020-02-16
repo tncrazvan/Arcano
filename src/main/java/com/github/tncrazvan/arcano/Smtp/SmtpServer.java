@@ -28,12 +28,12 @@ public class SmtpServer extends SharedObject implements Runnable{
         this.hostname = hostname;
     }
 
-    public String getHostname() {
+    public final String getHostname() {
         return hostname;
     }
 
     @Override
-    public void run() {
+    public final void run() {
         while (config.listen) {
             try {
                 final EmailReader emailReader = new EmailReader(this, ss.accept(), listeners);
@@ -44,11 +44,11 @@ public class SmtpServer extends SharedObject implements Runnable{
         }
     }
 
-    public void addEventListener(final SmtpListener listener) {
+    public final void addEventListener(final SmtpListener listener) {
         listeners.add(listener);
     }
 
-    public void removeEventListener(final SmtpListener listener) {
+    public final void removeEventListener(final SmtpListener listener) {
         listeners.remove(listener);
     }
 }

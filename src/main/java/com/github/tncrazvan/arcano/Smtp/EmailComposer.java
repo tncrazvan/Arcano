@@ -26,7 +26,7 @@ public class EmailComposer extends SmtpMessageManager{
         this.email = email;
     }
 
-    public boolean submit() throws IOException {
+    public final boolean submit() throws IOException {
         String error, eodLine;
         if (!isReady(read()))
             return false;

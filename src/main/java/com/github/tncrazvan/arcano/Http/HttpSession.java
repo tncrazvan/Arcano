@@ -22,24 +22,24 @@ public class HttpSession{
         id = getSha1String(
                 e.getClient().getInetAddress().toString() + "," + e.getClient().getPort() + "," + Math.random(),
                 "UTF-8");
-        final int expire = (int) Time.now(SharedObject.londonTimezone) + (int) e.so.config.session.ttl;
+        final int expire = (int) Time.now(SharedObject.londonTimezone) + (int) e.reader.so.config.session.ttl;
         e.setResponseCookie(NAME_SESSION_ID, id, "/", null, expire);
         this.time = System.currentTimeMillis();
     }
 
-    protected long getTime() {
+    protected final long getTime() {
         return time;
     }
 
-    protected void setTime(final long time) {
+    protected final void setTime(final long time) {
         this.time = time;
     }
 
-    public String id() {
+    public final String id() {
         return id;
     }
 
-    public Map<String, Object> storage() {
+    public final Map<String, Object> storage() {
         return STORAGE;
     }
 
@@ -49,7 +49,7 @@ public class HttpSession{
      * @param key    the key of your session object.
      * @param object the object itself.
      */
-    public void set(final String key, final Object object) {
+    public final void set(final String key, final Object object) {
         STORAGE.put(key, object);
     }
 
@@ -58,7 +58,7 @@ public class HttpSession{
      * 
      * @param key the key of the session object.
      */
-    public void unset(final String key) {
+    public final void unset(final String key) {
         STORAGE.remove(key);
     }
 
@@ -68,7 +68,7 @@ public class HttpSession{
      * @param key the key of the object.
      * @return true if the session storage contains the object, false otherwise.
      */
-    public boolean isset(final String key) {
+    public final boolean isset(final String key) {
         return STORAGE.containsKey(key);
     }
 
@@ -80,7 +80,7 @@ public class HttpSession{
      * @param key the key of the object.
      * @return the object itself.
      */
-    public Object get(final String key) {
+    public final Object get(final String key) {
         return STORAGE.get(key);
     }
 }

@@ -1,7 +1,6 @@
 package com.github.tncrazvan.arcano;
 
 import com.github.tncrazvan.arcano.Http.HttpHeaders;
-import com.github.tncrazvan.arcano.Http.HttpRequest;
 import com.github.tncrazvan.arcano.Http.HttpRequestReader;
 import com.github.tncrazvan.arcano.Http.HttpSession;
 import static com.github.tncrazvan.arcano.SharedObject.NAME_SESSION_ID;
@@ -22,11 +21,10 @@ import java.util.Map;
  * @author razvan
  */
 public abstract class EventManager{
-    public String[] args;
     public HttpRequestReader reader = null;
     public String requestId;
     
-    public void resolveRequestId(){
+    public final void resolveRequestId(){
         this.requestId = getSha1String(System.identityHashCode(reader.client) + "::" + System.currentTimeMillis(),reader.so.config.charset);
     }
     
@@ -37,22 +35,15 @@ public abstract class EventManager{
     protected HttpHeaders responseHeaders = new HttpHeaders();
     //public Socket client;
     public HttpSession session = null;
-    public SharedObject so;
-    public Configuration config;
     
-    public void setResponseHttpHeaders(final HttpHeaders headers) {
+    public final void setResponseHttpHeaders(final HttpHeaders headers) {
         this.responseHeaders = headers;
     }
 
-    public void setSharedObject(final SharedObject so) {
-        this.so = so;
-        this.config = so.config;
-    }
-
-    public void initEventManager() throws UnsupportedEncodingException {
+    public final void initEventManager() throws UnsupportedEncodingException {
         String uri = reader.request.headers.get("@Resource");
         try {
-            uri = URLDecoder.decode(uri, so.config.charset);
+            uri = URLDecoder.decode(uri, reader.so.config.charset);
         } catch (final IllegalArgumentException ex) {
         }
 
@@ -74,12 +65,12 @@ public abstract class EventManager{
         }
     }
 
-    public StringBuilder getLocation() {
+    public final StringBuilder getLocation() {
         return location;
     }
 
-    public boolean issetSession() {
-        return (issetRequestCookie(NAME_SESSION_ID) && so.sessions.issetSession(getRequestCookie(NAME_SESSION_ID)));
+    public final boolean issetSession() {
+        return (issetRequestCookie(NAME_SESSION_ID) && reader.so.sessions.issetSession(getRequestCookie(NAME_SESSION_ID)));
     }
 
     /**
@@ -101,8 +92,8 @@ public abstract class EventManager{
      *         HttpSession object if the client provides a valid and existing
      *         SharedObject.NAME_SESSION_ID.
      */
-    public HttpSession startSession() {
-        session = so.sessions.startSession(this, so.config.session.ttl);
+    public final HttpSession startSession() {
+        session = reader.so.sessions.startSession(this, reader.so.config.session.ttl);
         return session;
     }
 
@@ -110,11 +101,11 @@ public abstract class EventManager{
      * Stops the current HttpSession of the client if it has one. This will also
      * delete the client's SharedObject.NAME_SESSION_ID cookie.
      */
-    public void stopSession() {
+    public final void stopSession() {
         if (session == null)
             session = startSession();
         if (issetSession())
-            so.sessions.stopSession(session);
+            reader.so.sessions.stopSession(session);
     }
 
     /**
@@ -122,12 +113,12 @@ public abstract class EventManager{
      * 
      * @return
      */
-    public Socket getClient() {
+    public final Socket getClient() {
         return reader.client;
     }
 
     // FOR HTTP
-    protected static int getClassnameIndex(final String[] location, final String httpMethod)
+    protected static final int getClassnameIndex(final String[] location, final String httpMethod)
             throws ClassNotFoundException {
         String tmp;
         for (int i = location.length; i > 0; i--) {
@@ -139,7 +130,7 @@ public abstract class EventManager{
         throw new ClassNotFoundException();
     }
 
-    protected static WebObject resolveClassName(final int classId, final String[] location) {
+    protected static final WebObject resolveClassName(final int classId, final String[] location) {
         String classname = "";
         for (int i = 0; i <= classId; i++) {
             if (i > 0) {
@@ -151,7 +142,7 @@ public abstract class EventManager{
         return SharedObject.ROUTES.get(classname);
     }
 
-    protected static String[] resolveMethodArgs(final int offset, final String[] location) {
+    protected static final String[] resolveMethodArgs(final int offset, final String[] location) {
         String[] args = new String[0];
         if (location.length - 1 > offset - 1) {
             final int length = location.length - offset;
@@ -160,7 +151,7 @@ public abstract class EventManager{
         return args;
     }
 
-    public HashMap<String,String> getRequestQueryStringHashMap(){
+    public final HashMap<String,String> getRequestQueryStringHashMap(){
         return queryString;
     }
     
@@ -170,7 +161,7 @@ public abstract class EventManager{
      * @param key name of the query.
      * @return
      */
-    public boolean issetRequestQueryString(final String key) {
+    public final boolean issetRequestQueryString(final String key) {
         return queryString.containsKey(key);
     }
 
@@ -183,7 +174,7 @@ public abstract class EventManager{
      * @param key name of the query.
      * @return the value of the query.
      */
-    public String getRequestQueryString(final String key) {
+    public final String getRequestQueryString(final String key) {
         return queryString.get(key);
     }
     
@@ -200,7 +191,7 @@ public abstract class EventManager{
      * @param key name of the query.
      * @return the value of the query.
      */
-    public Object getRequestQueryStringAsObject(final String key) {
+    public final Object getRequestQueryStringAsObject(final String key) {
         String value = queryString.get(key);
         try{
             return Integer.parseInt(value);
@@ -213,7 +204,7 @@ public abstract class EventManager{
      * Finds the languages of the client application. The value is stored in
      * EventManager#userLanguages.
      */
-    public void findRequestLanguages() {
+    public final void findRequestLanguages() {
         if (reader.request.headers.get("Accept-Language") == null) {
             userLanguages.put("unknown", "unknown");
         } else {
@@ -227,11 +218,11 @@ public abstract class EventManager{
         }
     }
 
-    public String getRequestDefaultLanguage() {
+    public final String getRequestDefaultLanguage() {
         return userLanguages.get("DEFAULT-LANGUAGE");
     }
 
-    public Map<String, String> getUserLanguages() {
+    public final Map<String, String> getUserLanguages() {
         return userLanguages;
     }
 
@@ -240,7 +231,7 @@ public abstract class EventManager{
      * 
      * @return the HttpHeaders object.
      */
-    public HttpHeaders getRequestHttpHeaders() {
+    public final HttpHeaders getRequestHttpHeaders() {
         return reader.request.headers;
     }
 
@@ -250,7 +241,7 @@ public abstract class EventManager{
      * @param name name of the header.
      * @return the value of the header as a String.
      */
-    public String getRequestHeaderField(final String name) {
+    public final String getRequestHeaderField(final String name) {
         return reader.request.headers.get(name);
     }
 
@@ -259,7 +250,7 @@ public abstract class EventManager{
      * 
      * @return the name of the method as a String.
      */
-    public String getRequestMethod() {
+    public final String getRequestMethod() {
         return reader.request.headers.get("@Method");
     }
 
@@ -268,7 +259,7 @@ public abstract class EventManager{
      * 
      * @return name of the user agent.
      */
-    public String getRequestUserAgent() {
+    public final String getRequestUserAgent() {
         return reader.request.headers.get("User-Agent");
     }
 
@@ -277,7 +268,7 @@ public abstract class EventManager{
      * 
      * @return the remote IP address that identifies the client.
      */
-    public String getRequestAddress() {
+    public final String getRequestAddress() {
         return reader.client.getInetAddress().toString();
     }
 
@@ -287,7 +278,7 @@ public abstract class EventManager{
      * @return the remote port number that's sending the request or 0 if the
      *         connection is not alive.
      */
-    public int getRequestPort() {
+    public final int getRequestPort() {
         return reader.client.getPort();
     }
 
@@ -298,8 +289,8 @@ public abstract class EventManager{
      * @param path   path of the cookie
      * @param domain domain of the cookie
      */
-    public void unsetResponseCookie(final String key, final String path, final String domain) {
-        responseHeaders.setCookie(key, "deleted", path, domain, 0, so.config.charset);
+    public final void unsetResponseCookie(final String key, final String path, final String domain) {
+        responseHeaders.setCookie(key, "deleted", path, domain, 0, reader.so.config.charset);
     }
 
     /**
@@ -308,7 +299,7 @@ public abstract class EventManager{
      * @param key  name of the cookie
      * @param path path of the cookie
      */
-    public void unsetResponseCookie(final String key, final String path) {
+    public final void unsetResponseCookie(final String key, final String path) {
         EventManager.this.unsetResponseCookie(key, path, reader.request.headers.get("Host"));
     }
 
@@ -317,7 +308,7 @@ public abstract class EventManager{
      * 
      * @param key name of the cookie
      */
-    public void unsetResponseCookie(final String key) {
+    public final void unsetResponseCookie(final String key) {
         EventManager.this.unsetResponseCookie(key, "/", reader.request.headers.get("Host"));
     }
 
@@ -330,9 +321,9 @@ public abstract class EventManager{
      * @param domain domain of the cooke.
      * @param expire time to live of the cookie.
      */
-    public void setResponseCookie(final String name, final String value, final String path, final String domain,
+    public final void setResponseCookie(final String name, final String value, final String path, final String domain,
             final int expire) {
-        responseHeaders.setCookie(name, value, path, domain, expire, so.config.charset);
+        responseHeaders.setCookie(name, value, path, domain, expire, reader.so.config.charset);
     }
 
     /**
@@ -343,9 +334,9 @@ public abstract class EventManager{
      * @param path   path of the cookie.
      * @param domain domain of the cooke.
      */
-    public void setResponseCookie(final String name, final String value, final String path, final String domain) {
+    public final void setResponseCookie(final String name, final String value, final String path, final String domain) {
         responseHeaders.setCookie(name, value, path, domain,
-                (int) (Time.now(SharedObject.londonTimezone) + so.config.cookie.ttl), so.config.charset);
+                (int) (Time.now(SharedObject.londonTimezone) + reader.so.config.cookie.ttl), reader.so.config.charset);
     }
 
     /**
@@ -355,9 +346,9 @@ public abstract class EventManager{
      * @param value value of the cookie.
      * @param path  path of the cookie.
      */
-    public void setResponseCookie(final String name, final String value, final String path) {
-        responseHeaders.setCookie(name, value, path, null, (int) (Time.now(SharedObject.londonTimezone) + so.config.cookie.ttl),
-                so.config.charset);
+    public final void setResponseCookie(final String name, final String value, final String path) {
+        responseHeaders.setCookie(name, value, path, null, (int) (Time.now(SharedObject.londonTimezone) + reader.so.config.cookie.ttl),
+                reader.so.config.charset);
     }
 
     /**
@@ -366,9 +357,9 @@ public abstract class EventManager{
      * @param name  name of the cookie.
      * @param value value of the cookie.
      */
-    public void setResponseCookie(final String name, final String value) {
-        responseHeaders.setCookie(name, value, "/", null, (int) (Time.now(SharedObject.londonTimezone) + so.config.cookie.ttl),
-                so.config.charset);
+    public final void setResponseCookie(final String name, final String value) {
+        responseHeaders.setCookie(name, value, "/", null, (int) (Time.now(SharedObject.londonTimezone) + reader.so.config.cookie.ttl),
+                reader.so.config.charset);
     }
 
     /**
@@ -377,8 +368,8 @@ public abstract class EventManager{
      * @param name name of the cookie.
      * @return value of the cookie.
      */
-    public String getRequestCookie(final String name) {
-        return reader.request.headers.getCookie(name, so.config.charset);
+    public final String getRequestCookie(final String name) {
+        return reader.request.headers.getCookie(name, reader.so.config.charset);
     }
 
     /**
@@ -387,7 +378,7 @@ public abstract class EventManager{
      * @param key name of the cookie.
      * @return true if cookie is set, otherwise false.
      */
-    public boolean issetRequestCookie(final String key) {
+    public final boolean issetRequestCookie(final String key) {
         return reader.request.headers.issetCookie(key);
     }
 }

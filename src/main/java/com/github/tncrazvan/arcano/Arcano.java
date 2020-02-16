@@ -46,7 +46,7 @@ public class Arcano extends SharedObject {
      */
     public Arcano(final String[] args, final Class<?>... classes) {
         try {
-            expose(com.github.tncrazvan.arcano.Controller.Http.App.class,
+            expose(com.github.tncrazvan.arcano.Controller.Http.FileService.class,
                     com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound.class,
                     com.github.tncrazvan.arcano.Controller.Http.Get.class,
                     com.github.tncrazvan.arcano.Controller.Http.Isset.class,

@@ -30,7 +30,7 @@ public class Get extends HttpController{
 
     @HttpService(path = "/@get/file")
     public File file() throws IOException {
-        return new File(so.config.webRoot, String.join("/", args));
+        return new File(reader.so.config.webRoot, String.join("/", reader.args));
     }
 
     class Cookie {
@@ -62,7 +62,7 @@ public class Get extends HttpController{
 
     @HttpService(path = "/@get/cookie")
     public String cookie() {
-        final String name = String.join("/", args);
+        final String name = String.join("/", reader.args);
         if (issetRequestCookie(name)) {
             setResponseContentType("application/json");
             final String jsonCookie = jsonStringify(new Cookie("Cookie", getRequestCookie(name)));

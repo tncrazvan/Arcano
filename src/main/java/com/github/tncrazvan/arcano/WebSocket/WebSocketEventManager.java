@@ -1,9 +1,7 @@
 package com.github.tncrazvan.arcano.WebSocket;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -13,10 +11,7 @@ import javax.xml.bind.DatatypeConverter;
 
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.EventManager;
-import com.github.tncrazvan.arcano.Http.HttpHeaders;
-import com.github.tncrazvan.arcano.Http.HttpRequestReader;
 import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1Bytes;
-import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1String;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
 
 /**
@@ -34,17 +29,17 @@ public abstract class WebSocketEventManager extends EventManager{
      * 
      * @return a String that identifies the language.
      */
-    public String getUserDefaultLanguage() {
+    public final String getUserDefaultLanguage() {
         return userLanguages.get("DEFAULT-LANGUAGE");
     }
 
-    public void execute() {
+    public final void execute() {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     final String acceptKey = DatatypeConverter.printBase64Binary(getSha1Bytes(
-                            reader.request.headers.get("Sec-WebSocket-Key") + so.WEBSOCKET_ACCEPT_KEY, so.config.charset));
+                            reader.request.headers.get("Sec-WebSocket-Key") + reader.so.WEBSOCKET_ACCEPT_KEY, reader.so.config.charset));
 
                     responseHeaders.set("@Status", Status.STATUS_SWITCHING_PROTOCOLS);
                     responseHeaders.set("Connection", "Upgrade");
@@ -204,7 +199,7 @@ public abstract class WebSocketEventManager extends EventManager{
      */
     public void send(final String data) {
         try {
-            send(data.getBytes(so.config.charset), false);
+            send(data.getBytes(reader.so.config.charset), false);
         } catch (final UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -231,7 +226,7 @@ public abstract class WebSocketEventManager extends EventManager{
      */
     public void send(final byte[] data, final boolean binary) {
         int offset = 0;
-        final int maxLength = so.config.webSocket.mtu - 1;
+        final int maxLength = reader.so.config.webSocket.mtu - 1;
         if (data.length > maxLength) {
             while (offset < data.length) {
                 if (offset + maxLength > data.length) {
@@ -299,7 +294,7 @@ public abstract class WebSocketEventManager extends EventManager{
      */
     public void broadcast(final String data, final WebSocketController[] ignores) {
         try {
-            broadcast(data.getBytes(so.config.charset), ignores, false);
+            broadcast(data.getBytes(reader.so.config.charset), ignores, false);
         } catch (final UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -330,7 +325,7 @@ public abstract class WebSocketEventManager extends EventManager{
      */
     public void broadcast(final byte[] data, final WebSocketController[] ignores, final boolean binary) {
         boolean skip;
-        for (final WebSocketEvent e : so.WEB_SOCKET_EVENTS.get(ignores.getClass().getCanonicalName())) {
+        for (final WebSocketEvent e : reader.so.WEB_SOCKET_EVENTS.get(ignores.getClass().getCanonicalName())) {
             skip = false;
             for (final Object ignore : ignores) {
                 if (ignore == this) {
