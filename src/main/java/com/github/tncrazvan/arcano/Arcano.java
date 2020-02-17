@@ -23,6 +23,8 @@ import javax.net.ssl.TrustManagerFactory;
 
 import com.github.tncrazvan.arcano.Http.HttpEventListener;
 import com.github.tncrazvan.arcano.Smtp.SmtpServer;
+import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
+import com.github.tncrazvan.arcano.Tool.Actions.TypedAction;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -31,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.logging.Logger;
 import javax.net.ssl.SSLServerSocket;
 
 /**
@@ -41,7 +42,10 @@ import javax.net.ssl.SSLServerSocket;
 public class Arcano extends SharedObject {
     private static SmtpServer smtpServer;
     public static void main (final String[] args) throws IOException, ClassNotFoundException, NoSuchAlgorithmException, URISyntaxException{
-        new Arcano(Arcano.class.getPackage()).listen(args);
+        new Arcano(Arcano.class.getPackage()).listen(args,(so) -> {
+            so.config.pack("imports.json");
+            return 1000L;
+        });
     }
 
     
@@ -135,12 +139,13 @@ public class Arcano extends SharedObject {
      * 
      * @param args First argument must be the settings file. Check documentation to
      *             learn how to create a settings files.
+     * @param action Action to be run before each connection.
      * @throws IOException
      * @throws NoSuchAlgorithmException
      * @throws java.lang.ClassNotFoundException
      * @throws java.net.URISyntaxException
      */
-    public final void listen(String[] args)
+    public final void listen(String[] args, CompleteAction<Long,SharedObject> action)
             throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
         System.out.println("ARGS: " + Arrays.toString(args));
 
@@ -173,7 +178,20 @@ public class Arcano extends SharedObject {
             } else {
                 System.err.println("\n[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
             }
-
+        
+        if(action != null)
+        new Thread(() -> {
+            System.out.println("Public imports will be packed in background at @webRoot/pack.");
+            for(;;){
+                try {
+                    action.callback(this);
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                    LOGGER.log(Level.SEVERE, null, ex);
+                }
+            }
+        }).start();
+        
         if (!config.certificate.name.equals("")) try {
             final char[] password = config.certificate.password.toCharArray();
             final KeyStore keyStore = KeyStore.getInstance(new File(config.dir + "/" + config.certificate.name),
@@ -192,6 +210,7 @@ public class Arcano extends SharedObject {
                 HttpEventListener listener;
                 System.out.println("Server started (using TLSv1.2).");
                 while (config.listen) {
+                    
                     listener = new HttpEventListener(this, ss.accept());
                     if(executor == null)
                         service.submit(listener);

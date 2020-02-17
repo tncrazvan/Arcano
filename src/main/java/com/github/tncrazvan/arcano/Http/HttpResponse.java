@@ -158,7 +158,7 @@ public class HttpResponse {
      * @return the payload of the response.
      */
     public final Object getContent() {
-        return getContent(false);
+        return getContent(true);
     }
 
     /**

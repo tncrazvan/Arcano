@@ -4,12 +4,9 @@ import com.github.tncrazvan.arcano.Http.HttpController;
 import java.io.IOException;
 import com.github.tncrazvan.arcano.Bean.Http.HttpDefault;
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
-import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
-import com.github.tncrazvan.arcano.Tool.System.ServerFile;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import java.io.File;
+import jdk.internal.joptsimple.internal.Strings;
 
 /**
  *
@@ -36,38 +33,7 @@ public class FileService extends HttpController {
             return;
         }
         
-        ServerFile f = new ServerFile(reader.so.config.webRoot,reader.args[0]);
-        if(!f.exists()){
+        if(!reader.so.config.pack(Strings.join(reader.args, "/")))
             this.setResponseStatus(Status.STATUS_BAD_REQUEST);
-            return;
-        }
-            
-        JsonArray arr = JsonTools.jsonArray(f.readString(reader.so.config.charset));
-        String item;
-        String js = "";
-        String css = "";
-        System.out.println("================================");
-        for(JsonElement e : arr){
-            item = e.getAsString();
-            ServerFile current = new ServerFile(reader.so.config.webRoot,item);
-            if(!current.exists()) continue;
-            if(item.trim().endsWith(".css")){
-                css += current.readString(reader.so.config.charset)+"\n";
-                System.out.println(item);
-            }else if(item.trim().endsWith(".js")){
-                js += current.readString(reader.so.config.charset)+"\n";
-                System.out.println(item);
-            }
-        }
-        ServerFile mainCSS = new ServerFile(reader.so.config.webRoot,"pack/main.css");
-        ServerFile mainJS = new ServerFile(reader.so.config.webRoot,"pack/main.js");
-        mainCSS.getParentFile().mkdirs();
-        mainJS.getParentFile().mkdirs();
-        if(!mainCSS.exists())
-            mainCSS.createNewFile();
-        if(!mainJS.exists())
-            mainJS.createNewFile();
-        mainCSS.write(css, reader.so.config.charset);
-        mainJS.write(js, reader.so.config.charset);
     }
 }

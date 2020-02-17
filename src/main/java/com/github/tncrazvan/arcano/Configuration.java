@@ -5,10 +5,13 @@ import static com.github.tncrazvan.arcano.SharedObject.ROUTES;
 import com.github.tncrazvan.arcano.Tool.Cluster.Cluster;
 import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
 import com.github.tncrazvan.arcano.Tool.Cluster.InvalidClusterEntryException;
+import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonObject;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonParse;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
+import com.github.tncrazvan.arcano.Tool.System.ServerFile;
 import com.github.tncrazvan.asciitable.AsciiTable;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import java.io.File;
@@ -22,6 +25,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.logging.Level;
+import jdk.internal.joptsimple.internal.Strings;
 
 /**
  * Containst the configuration file objects.
@@ -491,5 +495,44 @@ public class Configuration {
             configurationTable.add("certificate",this.certificate.table.toString());
         }
         System.out.println(configurationTable.toString());
+    }
+    
+    public boolean pack(String imports){
+        try {
+            ServerFile f = new ServerFile(webRoot,imports);
+            if(!f.exists())
+                return false;
+            
+            JsonArray arr = JsonTools.jsonArray(f.readString(charset));
+            String item;
+            String js = "";
+            String css = "";
+            for(JsonElement e : arr){
+                item = e.getAsString();
+                ServerFile current = new ServerFile(webRoot,item);
+                if(!current.exists()) continue;
+                if(item.trim().endsWith(".css")){
+                    css += current.readString(charset)+"\n";
+                    //System.out.println(item);
+                }else if(item.trim().endsWith(".js")){
+                    js += current.readString(charset)+"\n";
+                    //System.out.println(item);
+                }
+            }
+            ServerFile mainCSS = new ServerFile(webRoot,"pack/main.css");
+            ServerFile mainJS = new ServerFile(webRoot,"pack/main.js");
+            mainCSS.getParentFile().mkdirs();
+            mainJS.getParentFile().mkdirs();
+            if(!mainCSS.exists())
+                mainCSS.createNewFile();
+            if(!mainJS.exists())
+                mainJS.createNewFile();
+            mainCSS.write(css, charset);
+            mainJS.write(js, charset);
+            return true;
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+            return false;
+        }
     }
 }
