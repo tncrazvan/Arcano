@@ -119,6 +119,14 @@ public abstract class HttpRequestReader implements Runnable{
                 }
                 this.request = new HttpRequest(clientHeader, inputBytes);
                 String uri = request.headers.get("@Resource");
+                if(uri == null) {
+                    output.write(SharedObject.RESPONSE_NOT_FOUND.toString().getBytes(so.config.charset));
+                    System.out.println("Invalid resource requsted: "+request.headers.toString());
+                    output.close();
+                    input.close();
+                    client.close();
+                    return;
+                }
                 try {
                     uri = URLDecoder.decode(uri, so.config.charset);
                 } catch (final IllegalArgumentException ex) {

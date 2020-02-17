@@ -114,7 +114,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 script.execute(this);
             }else if (type == void.class || type == Void.class) {
                 method.invoke(this,params);
-                sendHttpResponse(SharedObject.EMPTY_RESPONSE);
+                sendHttpResponse(SharedObject.RESPONSE_EMPTY);
             } else if (type == HttpResponse.class) {
                 final HttpResponse response = (HttpResponse) method.invoke(this,params);
                 response.resolve();
@@ -135,13 +135,13 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             if (reader.so.config.sendExceptions) {
                 sendHttpResponse(e);
             } else
-                sendHttpResponse(SharedObject.EMPTY_RESPONSE);
+                sendHttpResponse(SharedObject.RESPONSE_EMPTY);
         }catch (IllegalAccessException | IllegalArgumentException e) {
             setResponseStatus(STATUS_INTERNAL_SERVER_ERROR);
             if (reader.so.config.sendExceptions) {
                 sendHttpResponse(e);
             } else
-                sendHttpResponse(SharedObject.EMPTY_RESPONSE);
+                sendHttpResponse(SharedObject.RESPONSE_EMPTY);
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         } catch (InterruptedException ex) {

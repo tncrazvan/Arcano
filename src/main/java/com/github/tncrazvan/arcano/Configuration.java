@@ -8,7 +8,6 @@ import com.github.tncrazvan.arcano.Tool.Cluster.InvalidClusterEntryException;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonObject;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonParse;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
-import com.github.tncrazvan.arcano.Tool.Strings;
 import com.github.tncrazvan.asciitable.AsciiTable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -60,16 +59,6 @@ public class Configuration {
         }
     }
     public Threads threads = new Threads();
-    public static class Pack{
-        public String script = "";
-        public int interval = 0;
-        public boolean minify = false;
-        public AsciiTable table = new AsciiTable();
-        public Pack() {
-            table.add("KEY","VALUE");
-        }
-    }
-    public Pack pack = new Pack();
     public static class WebSocket{
         public static class Groups{
             public static class Connections{
@@ -138,7 +127,6 @@ public class Configuration {
     public String key;
     public String dir;
     public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
-    public String assets = "/www/assets.json";
     public String webRoot = "www";
     public String serverRoot = "server";
     public String charset = "UTF-8";
@@ -176,17 +164,21 @@ public class Configuration {
             System.out.println("Configuration file "+json.getPath()+" does not seem to exist.");
             return;
         }
-        this.dir = json.getAbsoluteFile().getParent();
+        this.dir = json.getAbsoluteFile().getParent().replace("\\", "/").replace("//","/");
         
         if(this.dir == null)
-            this.dir = ".";
+            this.dir = "";
+        
+        char endchar = this.dir.charAt(this.dir.length() - 1);
+        
+        if(endchar != '/')
+            this.dir +="/";
         
         final byte[] configBytes;
         try (FileInputStream fis = new FileInputStream(json)) {
             configBytes = fis.readAllBytes();
         }
         config = jsonObject(new String(configBytes));
-        char endchar;
         JsonElement el;
         JsonObject obj;
         if(config.has("compress")){
@@ -235,23 +227,6 @@ public class Configuration {
 
         if (config.has("sendExceptions"))
             this.sendExceptions = config.get("sendExceptions").getAsBoolean();
-
-        if (config.has("pack")){
-            el = config.get("pack");
-            if(el.isJsonObject()){
-                obj = el.getAsJsonObject();
-                if(obj.has("minify"))
-                    this.pack.minify = obj.get("minify").getAsBoolean();
-                if(obj.has("interval"))
-                    this.pack.interval = obj.get("interval").getAsInt();
-                if(obj.has("script"))
-                    this.pack.script = obj.get("script").getAsString();
-            }else 
-                System.out.println("minify is not an object.");
-        }
-        this.pack.table.add("interval",this.pack.interval == 0?"Once when the server starts": "Once every "+this.pack.interval+" milliseconds");
-        this.pack.table.add("script",this.pack.script);
-        
         
         if (config.has("threads")){
             el = config.get("threads");
@@ -337,18 +312,6 @@ public class Configuration {
         }
         this.webRoot = this.webRoot.replaceAll("/+", "/");
         
-        if (config.has("assets"))
-            this.assets = this.dir.replaceAll("\\\\", "/") + "/"
-                    + config.get("assets").getAsString();
-        else
-            this.assets = this.dir.replaceAll("\\\\", "/") + "/" + this.assets;
-
-        endchar = this.assets.charAt(this.assets.length() - 1);
-
-        if (endchar != '/') {
-            this.assets += "/";
-        }
-
         if (config.has("charset"))
             this.charset = config.get("charset").getAsString();
 
@@ -444,7 +407,6 @@ public class Configuration {
         configurationTable.add("cookie", this.cookie.table.toString());
         configurationTable.add("webSocket", this.webSocket.table.toString());
         configurationTable.add("http", "" + this.http.table.toString());
-        configurationTable.add("pack", this.pack.table.toString());
         configurationTable.add("threads", this.threads.table.toString());
         configurationTable.add("sendExceptions", this.sendExceptions ? "True" : "False");
         configurationTable.add("responseWrapper", this.responseWrapper ? "True" : "False");

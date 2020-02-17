@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano;
 
 import com.github.tncrazvan.arcano.Configuration.Threads;
+import com.github.tncrazvan.arcano.Http.HttpController;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -22,8 +23,15 @@ import javax.net.ssl.TrustManagerFactory;
 
 import com.github.tncrazvan.arcano.Http.HttpEventListener;
 import com.github.tncrazvan.arcano.Smtp.SmtpServer;
-import com.github.tncrazvan.arcano.Tool.Minifier;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.nio.file.FileSystems;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.logging.Logger;
 import javax.net.ssl.SSLServerSocket;
 
 /**
@@ -32,19 +40,69 @@ import javax.net.ssl.SSLServerSocket;
  */
 public class Arcano extends SharedObject {
     private static SmtpServer smtpServer;
-    public static void main (final String[] args)
-            throws NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException, IOException {
-        new Arcano(args);
+    public static void main (final String[] args) throws IOException, ClassNotFoundException, NoSuchAlgorithmException, URISyntaxException{
+        new Arcano(Arcano.class.getPackage()).listen(args);
     }
 
+    
+    /**
+     * Recursive method used to find all classes in a given directory and subdirs.
+     * Source: https://stackoverflow.com/questions/520328/can-you-find-all-classes-in-a-package-using-reflection#answer-520344
+     * @param directory   The base directory
+     * @param packageName The package name for classes found inside the base directory
+     * @return The classes
+     * @throws ClassNotFoundException
+     */
+    private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
+        List<Class> classes = new ArrayList<>();
+        if (!directory.exists()) {
+            return classes;
+        }
+        File[] files = directory.listFiles();
+        for (File file : files) {
+            if (file.isDirectory()) {
+                assert !file.getName().contains(".");
+                classes.addAll(findClasses(file, packageName + "." + file.getName()));
+            } else if (file.getName().endsWith(".class")) {
+                classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
+            }
+        }
+        return classes;
+    }
+    
+    /**
+    * Scans all classes accessible from the context class loader which belong to the given package and subpackages.
+    * Source: https://stackoverflow.com/questions/520328/can-you-find-all-classes-in-a-package-using-reflection#answer-520344
+    * @param packageName The base package
+    * @return The classes
+    * @throws ClassNotFoundException
+    * @throws IOException
+    */
+   private static Class[] getClasses(Package pckg) throws ClassNotFoundException, IOException {
+       String packageName = pckg.getName();
+       ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+       assert classLoader != null;
+       String path = packageName.replace('.', '/');
+       Enumeration<URL> resources = classLoader.getResources(path);
+       List<File> dirs = new ArrayList<>();
+       while (resources.hasMoreElements()) {
+           URL resource = resources.nextElement();
+           dirs.add(new File(resource.getFile()));
+       }
+       ArrayList<Class> classes = new ArrayList<>();
+       for (File directory : dirs) {
+           classes.addAll(findClasses(directory, packageName));
+       }
+       return classes.toArray(new Class[classes.size()]);
+   }
+    
+    
     /**
      * Make a new Arcano Server
      * 
-     * @param args Arguments for the creation of the server. The first argument
-     *             should be the configuration file, usually called "http.json".
-     * @param classes Classes to expose as controllers.
+     * @param pckg The package that contains your services.
      */
-    public Arcano(final String[] args, final Class<?>... classes) {
+    public Arcano(Package pckg) {
         try {
             expose(com.github.tncrazvan.arcano.Controller.Http.FileService.class,
                     com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound.class,
@@ -52,12 +110,22 @@ public class Arcano extends SharedObject {
                     com.github.tncrazvan.arcano.Controller.Http.Isset.class,
                     com.github.tncrazvan.arcano.Controller.Http.Set.class,
                     com.github.tncrazvan.arcano.Controller.Http.Unset.class,
-
+                    
                     com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class,
                     com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi.class);
-            expose(classes);
-            listen(args);
-        } catch (IOException | NoSuchAlgorithmException | ClassNotFoundException | URISyntaxException ex) {
+            
+            Class[] clss = getClasses(pckg);
+            for(Class cls : clss){
+                try{
+                    Object o = cls.getDeclaredConstructor().newInstance();
+                    boolean a = o instanceof HttpController;
+                    boolean b = o instanceof WebSocketController;
+                     if(a || b) expose(cls);
+                }catch(NoSuchMethodException e){
+                    System.out.println("Class "+cls.getName()+" skipped while looking for services because it does not have a valid constructor.");
+                }
+            }
+        } catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException  ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
@@ -72,7 +140,7 @@ public class Arcano extends SharedObject {
      * @throws java.lang.ClassNotFoundException
      * @throws java.net.URISyntaxException
      */
-    public final void listen(final String[] args)
+    public final void listen(String[] args)
             throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
         System.out.println("ARGS: " + Arrays.toString(args));
 
@@ -94,10 +162,9 @@ public class Arcano extends SharedObject {
                 break;
         }
 
-        final File assetsFile = new File(config.assets);
-        if (assetsFile.exists())
-            minifier = new Minifier(config, assetsFile, config.webRoot, "minified");
-
+        
+        System.out.println("Absolute Workling Directory: "+FileSystems.getDefault().getPath(".").toAbsolutePath());
+        
         if(config.smtp.enabled)
             if (!config.smtp.hostname.equals("")) {
                 smtpServer = new SmtpServer(new ServerSocket(), config.smtp.bindAddress, config.smtp.port,
@@ -108,7 +175,6 @@ public class Arcano extends SharedObject {
             }
 
         if (!config.certificate.name.equals("")) try {
-            minify();
             final char[] password = config.certificate.password.toCharArray();
             final KeyStore keyStore = KeyStore.getInstance(new File(config.dir + "/" + config.certificate.name),
                     password);
@@ -138,8 +204,7 @@ public class Arcano extends SharedObject {
         }
         else try (ServerSocket ss = new ServerSocket()) {
             ss.bind(new InetSocketAddress(config.bindAddress, config.port));
-
-            minify();
+            
             HttpEventListener listener;
             System.out.println("Server started.");
             while (config.listen) {
@@ -150,39 +215,6 @@ public class Arcano extends SharedObject {
                     executor.submit(listener);
             }
             ss.close();
-        }
-    }
-
-    private void minify() throws IOException {
-        if(config.pack.interval > 0 && !config.pack.script.isBlank()) {
-            minifier.minify(config.pack.minify);
-            System.out.println("Files minified.");
-        }
-        if((config.pack.interval > 0 || config.pack.interval < 0) && minifier != null && !config.pack.script.isBlank()) {
-            System.out.println("Server will minify files in background once every "+config.pack.interval+" ms.");
-            new Thread(() -> {
-                while(true){
-                    try{
-                        try {
-                            if(config.pack.script.isBlank()){
-                                Thread.sleep(config.pack.interval);
-                                continue;
-                            }
-                            if(config.pack.interval > 0){
-                                minifier.minify(config.pack.minify);
-                                Thread.sleep(config.pack.interval);
-                            }else
-                                Thread.sleep(5000);
-                        } catch (IOException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                            Thread.sleep(5000);
-                        }
-                    }catch(InterruptedException ex){
-                        LOGGER.log(Level.SEVERE, null, ex);
-                        break;
-                    }
-                }
-            }).start();
         }
     }
 }

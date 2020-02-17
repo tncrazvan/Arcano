@@ -64,6 +64,15 @@ public class HttpResponse {
         this.content = content;
     }
 
+    /**
+     * Resolve the output result of this http response.
+     * This response may contain different types of objects such as Strings ints,<br />
+     * JsonArrays, JsonObjects, custom Objects and so on.<br />
+     * This method resolves that result into something that the http standard can understand,
+     * For example custom objects are converted into JsonObjects and File objects in particular
+     * are converted into raw byte arrays.
+     * @return 
+     */
     public final HttpResponse resolve() {
         try {
             if (type == JsonArray.class) {

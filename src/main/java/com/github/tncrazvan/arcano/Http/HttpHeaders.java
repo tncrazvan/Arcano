@@ -246,11 +246,11 @@ public class HttpHeaders {
      * @param line a String containing the http header.
      * @return false if the input is blank, true otherwise.
      */
-    public final boolean parseLine(final String line) {
+    public final boolean parseLine(final String line,int i) {
         if (line.trim().equals("")) {
             return false;
         }
-        final String[] item = line.split(":\\s*", 2);
+        final String[] item = i == 0?new String[0]:line.split(":\\s*", 2);
         if (item.length > 1) {
             if (item[0].equals("Cookie")) {
                 final String[] c = item[1].split(";");
@@ -291,8 +291,9 @@ public class HttpHeaders {
     public static final HttpHeaders fromString(final String string) {
         final HttpHeaders headers = new HttpHeaders(false);
         final String[] lines = string.split("\\r\\n");
-        for (final String line : lines) {
-            headers.parseLine(line);
+        
+        for (int i = 0;i < lines.length;i++) {
+            headers.parseLine(lines[i],i);
         }
         return headers;
     }

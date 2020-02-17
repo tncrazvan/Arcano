@@ -12,7 +12,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 /**
@@ -70,5 +72,8 @@ public class ServerFile extends File{
 
     public final Map<String, Object> info(final String selection) throws IOException {
          return Files.readAttributes(this.toPath(), selection);
+    }
+    public final String readString(String charset) throws IOException{
+        return Files.readString(this.toPath(),Charset.forName(charset));
     }
 }

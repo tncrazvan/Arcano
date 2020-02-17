@@ -49,7 +49,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.github.tncrazvan.arcano.Server</mainClass>
+                            <mainClass>com.github.tncrazvan.arcano.Arcano</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -59,7 +59,7 @@
                 <configuration>
                     <archive>
                       <manifest>
-                          <mainClass>com.github.tncrazvan.arcano.Server</mainClass>
+                          <mainClass>com.github.tncrazvan.arcano.Arcano</mainClass>
                       </manifest>
                     </archive>
                     <descriptorRefs>
@@ -72,7 +72,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <configuration>
-                    <mainClass>com.github.tncrazvan.arcano.Server</mainClass>
+                    <mainClass>com.github.tncrazvan.arcano.Arcano</mainClass>
                 </configuration>
             </plugin>
         </plugins>

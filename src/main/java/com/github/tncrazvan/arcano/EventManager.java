@@ -2,6 +2,7 @@ package com.github.tncrazvan.arcano;
 
 import com.github.tncrazvan.arcano.Http.HttpHeaders;
 import com.github.tncrazvan.arcano.Http.HttpRequestReader;
+import com.github.tncrazvan.arcano.Http.HttpResponse;
 import com.github.tncrazvan.arcano.Http.HttpSession;
 import static com.github.tncrazvan.arcano.SharedObject.NAME_SESSION_ID;
 import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1String;

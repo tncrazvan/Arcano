@@ -1,7 +1,6 @@
 package com.github.tncrazvan.arcano;
 
 import com.github.tncrazvan.arcano.Bean.Email.SmtpService;
-import com.github.tncrazvan.arcano.Tool.Minifier;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -26,6 +25,8 @@ import com.github.tncrazvan.arcano.Bean.Http.HttpDefault;
 import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketNotFound;
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketService;
+import com.github.tncrazvan.arcano.Http.HttpHeaders;
+import com.github.tncrazvan.arcano.Tool.Http.Status;
 import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
 
 /**
@@ -40,7 +41,6 @@ public class SharedObject implements Strings{
     public ExecutorService service = null;
     //CONFIGURATION OBJECTS
     public final Configuration config = new Configuration();
-    public Minifier minifier = null;
     public static final String NO_COMPRESSION="",DEFLATE="deflate",GZIP="gzip";
     //SYSTEM RUNTIME & PROCESS BUILDERS
     public static final Runtime RUNTIME = Runtime.getRuntime();
@@ -62,7 +62,11 @@ public class SharedObject implements Strings{
     public static final Base64.Encoder BASE64_ENCODER = Base64.getEncoder();
     public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
     //DEFAULT RESPONSES
-    public static final HttpResponse EMPTY_RESPONSE = new HttpResponse("").resolve();
+    public static final HttpResponse RESPONSE_EMPTY = new HttpResponse("").resolve();
+    public static final HttpResponse RESPONSE_NOT_FOUND = new HttpResponse(new HttpHeaders(){{
+        set("@Status", Status.STATUS_NOT_FOUND);
+        set("Content-Length", "0");
+    }},"").resolve();
     //DEFAULT PROJECT NAMES
     public static final String NAME_SESSION_ID = "JavaSessionID";
     private static final String HTTP_SERVICE_METHOD_404 = "HTTP 404";
