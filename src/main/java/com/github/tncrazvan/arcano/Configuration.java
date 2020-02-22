@@ -2,6 +2,7 @@ package com.github.tncrazvan.arcano;
 
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import static com.github.tncrazvan.arcano.SharedObject.ROUTES;
+import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 import com.github.tncrazvan.arcano.Tool.Cluster.Cluster;
 import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
 import com.github.tncrazvan.arcano.Tool.Cluster.InvalidClusterEntryException;
@@ -461,7 +462,7 @@ public class Configuration {
             final WebObject wo = ROUTES.get(key);
             final String type = wo.getType();
             final String name = key.substring(type.length());
-            final String methodName = wo.getMethodName()==null?"<?>":wo.getMethodName();
+            final String methodName = wo.getMethodName()==null?"{?}":wo.getMethodName();
             controllersTable.add(type, name, wo.getClassName()+"."+methodName);
         }
         /*ROUTES.entrySet().forEach((entry) -> {
@@ -497,9 +498,53 @@ public class Configuration {
         System.out.println(configurationTable.toString());
     }
     
-    public boolean pack(String imports){
+    /**
+     * Read JavaScript and CSS filename entries from a json array inside a json file and pack them together.<br />
+     * The output packed files are named "main.js" and "main.css" and they will be located
+     * inside a "pack" directory that is relative to the location of the input <b>.json</b> file.<br /><br />
+     * 
+     * For example, if the input file is "<b>www/imports.json</b>" the output packed files will be saved as
+     * "<b>www/pack/main.js</b>" and "<b>www/pack/main.css</b>".
+     * @param directory The directory in which to look for the input json file.
+     * @param imports The name of the input file (<b>www/imports.json</b>).<br />
+     * This input file is relative to the json configuration file.<br />
+     * The input file should also be a json file, although it should only contain a json array
+     * and its entries must contain the filenames (CSS and JavaScript files) of the files you want to
+     * pack together.<br />
+     * These filenames are relative to the imports file (<b>www/imports.json</b>) itself.
+     * @return true if the files have been minified correctly, false otherwise.
+     */
+    public boolean pack(String directory, String imports){
+        return pack(directory,imports, null);
+    }
+    
+    /**
+     * Read JavaScript and CSS filename entries from a json array inside a json file and pack them together.<br />
+     * The output packed files are named "main.js" and "main.css" and they will be located
+     * inside a "pack" directory that is relative to the location of the input <b>.json</b> file.<br /><br />
+     * 
+     * For example, if the input file is "<b>www/imports.json</b>" the output packed files will be saved as
+     * "<b>www/pack/main.js</b>" and "<b>www/pack/main.css</b>".
+     * @param directory The directory in which to look for the input json file.
+     * @param imports The name of the input file (<b>www/imports.json</b>).<br />
+     * This input file is relative to the json configuration file.<br />
+     * The input file should also be a json file, although it should only contain a json array
+     * and its entries must contain the filenames (CSS and JavaScript files) of the files you want to
+     * pack together.<br />
+     * These filenames are relative to the imports file (<b>www/imports.json</b>) itself.
+     * @param forEachFile an action to be run everytime an existing file is encountered.<br />
+     * The action has a ServerFile as an input argument and should return a String as output.<br /><br />
+     * 
+     * The ServerFile class extends the File class and it simply offers a few methods to quickly read the file and write to it.<br/>
+     * The returned String will be appended to the final packed file.<br />
+     * It is recommended you add a new line to the returned String for JavaScript files as 
+     * JavaScript instructions are allowed to ommit the ";" character, which could result 
+     * in collisions between the scripts when they are packed together.
+     * @return true if the files have been minified correctly, false otherwise.
+     */
+    public boolean pack(String directory, String imports, CompleteAction<String,ServerFile> forEachFile){
         try {
-            ServerFile f = new ServerFile(webRoot,imports);
+            ServerFile f = new ServerFile(directory,imports);
             if(!f.exists())
                 return false;
             
@@ -511,12 +556,18 @@ public class Configuration {
                 item = e.getAsString();
                 ServerFile current = new ServerFile(webRoot,item);
                 if(!current.exists()) continue;
-                if(item.trim().endsWith(".css")){
-                    css += current.readString(charset)+"\n";
-                    //System.out.println(item);
-                }else if(item.trim().endsWith(".js")){
-                    js += current.readString(charset)+"\n";
-                    //System.out.println(item);
+                if(forEachFile != null){
+                    if(item.endsWith(".css")){
+                        css += forEachFile.callback(current);
+                    }else if(item.trim().endsWith(".js")){
+                        js += forEachFile.callback(current);
+                    }
+                }else{
+                    if(item.endsWith(".css")){
+                        css += current.readString(charset)+"\n";
+                    }else if(item.endsWith(".js")){
+                        js += current.readString(charset)+"\n";
+                    }
                 }
             }
             ServerFile mainCSS = new ServerFile(webRoot,"pack/main.css");

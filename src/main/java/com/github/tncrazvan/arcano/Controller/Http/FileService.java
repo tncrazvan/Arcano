@@ -33,7 +33,7 @@ public class FileService extends HttpController {
             return;
         }
         
-        if(!reader.so.config.pack(Strings.join(reader.args, "/")))
+        if(!reader.so.config.pack(reader.so.config.webRoot,Strings.join(reader.args, "/")))
             this.setResponseStatus(Status.STATUS_BAD_REQUEST);
     }
 }

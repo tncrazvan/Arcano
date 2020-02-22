@@ -24,7 +24,6 @@ import javax.net.ssl.TrustManagerFactory;
 import com.github.tncrazvan.arcano.Http.HttpEventListener;
 import com.github.tncrazvan.arcano.Smtp.SmtpServer;
 import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
-import com.github.tncrazvan.arcano.Tool.Actions.TypedAction;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
@@ -43,7 +42,7 @@ public class Arcano extends SharedObject {
     private static SmtpServer smtpServer;
     public static void main (final String[] args) throws IOException, ClassNotFoundException, NoSuchAlgorithmException, URISyntaxException{
         new Arcano(Arcano.class.getPackage()).listen(args,(so) -> {
-            so.config.pack("imports.json");
+            so.config.pack(so.config.webRoot,"imports.json");
             return 1000L;
         });
     }
@@ -133,7 +132,10 @@ public class Arcano extends SharedObject {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
-
+    public final void listen(String[] args)
+            throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
+        listen(args, null);
+    }
     /**
      * Starts the server listening.
      * 
