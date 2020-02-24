@@ -1,16 +1,22 @@
 package com.github.tncrazvan.arcano;
 
+import com.github.tncrazvan.arcano.Http.HttpController;
+import com.github.tncrazvan.arcano.Http.HttpRequestReader;
+import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
+
 /**
  *
  * @author Administrator
  */
 public class WebObject {
-    private boolean locked;
-    private String classname=null;
-    private String methodname=null;
-    private String type="GET";
+    private final boolean locked;
+    private final CompleteAction<Object,HttpRequestReader> action;
+    private final String classname;
+    private final String methodname;
+    private final String type;
     
-    public WebObject(final String CLASSNAME, final String METRHOD_NAME, final String TYPE, final boolean LOCKED) {
+    public WebObject(final CompleteAction<Object,HttpRequestReader> action, final String CLASSNAME, final String METRHOD_NAME, final String TYPE, final boolean LOCKED) {
+        this.action = action;
         this.classname = CLASSNAME;
         this.methodname = METRHOD_NAME;
         this.type = TYPE;
@@ -20,17 +26,9 @@ public class WebObject {
     public final boolean isLocked() {
         return this.locked;
     }
-
-    public final void setClassName(final String classname) {
-        this.classname = classname;
-    }
-
-    public final void setMethodName(final String methodname) {
-        this.methodname = methodname;
-    }
-
-    public final void setType(final String httpMethod) {
-        this.type = httpMethod;
+    
+    public final CompleteAction<Object,HttpRequestReader> getAction(){
+        return this.action;
     }
     
     public final String getClassName(){

@@ -5,6 +5,7 @@ import com.github.tncrazvan.arcano.Controller.Http.Get;
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 import com.github.tncrazvan.arcano.Tool.Cluster.NoSecretFoundException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -102,13 +103,46 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         return methodInput;
     }
     
-    public final void invoke(final Method method) throws IllegalAccessException,
-            IllegalArgumentException, InvocationTargetException, InvocationTargetException {
+    public final void invokeCompleteAction(final CompleteAction<Object,HttpRequestReader> action){
+        try {
+            Object result = action.callback(reader);
+
+            //try to invokeMethod method
+            if (result instanceof ShellScript) {
+                final ShellScript script = (ShellScript) result;
+                script.execute(this);
+            }else if (result instanceof Void) {
+                sendHttpResponse(SharedObject.RESPONSE_EMPTY);
+            } else if (result instanceof HttpResponse) {
+                final HttpResponse response = (HttpResponse) result;
+                response.resolve();
+                final HashMap<String, String> localHeaders = response.getHashMapHeaders();
+                if (localHeaders != null) {
+                    localHeaders.forEach((key, header) -> {
+                        setResponseHeaderField(key, header);
+                    });
+                }
+                sendHttpResponse(response);
+            } else {
+                // if it's some other type of object...
+                sendHttpResponse(new HttpResponse(result == null ? "" : result).resolve());
+            }
+        } catch (final Exception  e) {
+            setResponseStatus(STATUS_INTERNAL_SERVER_ERROR);
+            if (reader.so.config.sendExceptions) {
+                sendHttpResponse(e);
+            } else
+                sendHttpResponse(SharedObject.RESPONSE_EMPTY);
+        }
+    }
+    
+    public final void invokeMethod(final Method method) throws IllegalAccessException,
+        IllegalArgumentException, InvocationTargetException, InvocationTargetException {
         try {
             Class<?> type = method.getReturnType();
             Object[] params = getMethodParameters(this, method);
-            
-            //try to invoke method
+
+            //try to invokeMethod method
             if (type == ShellScript.class) {
                 final ShellScript script = (ShellScript) method.invoke(this,params);
                 script.execute(this);
@@ -149,35 +183,35 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         }
     }
 
-    private static final HttpController serveController(final HttpRequestReader reader)
+    private static HttpController serveController(final HttpRequestReader reader)
             throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException,
             IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException, IOException {
         final String httpMethod = reader.request.headers.get("@Method");
         //final boolean abusiveUrl = Regex.match(reader.location.toString(), "w3e478tgdf8723qioiuy");
         Method method = null;
-        Class<?> cls;
-        HttpController controller = null;
-        Constructor<?> constructor;
-        WebObject wo;
-        int classId;
-        if (reader.location.length == 0 || reader.location.length == 1 && reader.location[0].equals("")) {
+        Class<?> cls = null;
+        Constructor<?> constructor = null;
+        if (reader.location.length == 0) {
             reader.location = new String[] { "" };
-        }else{
+        }else {
             File check = new File(reader.so.config.webRoot,reader.stringifiedLocation);
-            if(check.exists()){
-                controller = new Get();
+            if(check.exists() && !check.isDirectory()){
+                HttpController controller = new Get();
                 controller.install(reader);
                 method = controller.getClass().getDeclaredMethod("file");
-                controller.invoke(method);
+                controller.invokeMethod(method);
                 return controller;
             }
         }
         try {
-            classId = getClassnameIndex(reader.location, httpMethod);
+            int classId = getClassnameIndex(reader.location, httpMethod);
             final String[] typedLocation = Stream
                     .concat(Arrays.stream(new String[] { httpMethod }), Arrays.stream(reader.location))
                     .toArray(String[]::new);
-            wo = resolveClassName(classId + 1, typedLocation);
+            WebObject wo = resolveClassName(classId + 1, typedLocation);
+            
+            CompleteAction<Object,HttpRequestReader> action = wo.getAction();
+            
             if (wo.isLocked()) {
                 if (!reader.request.headers.issetCookie("JavaArcanoKey")) {
                     throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. No key specified.");
@@ -187,6 +221,13 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                         throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. The specified key is invalid.");
                     }
                 }
+            }
+            
+            if(action != null){
+                HttpController controller = new HttpController();
+                controller.install(reader);
+                controller.invokeCompleteAction(action);
+                return controller;
             }
 
             cls = Class.forName(wo.getClassName());
@@ -198,7 +239,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                                 + "Perhaps your class is an inner class and it's not public or static? Try make it a \"public static class\"!",
                         wo.getClassName()));
             }
-            controller = (HttpController) constructor.newInstance();
+            HttpController controller = (HttpController) constructor.newInstance();
 
             final String methodname = reader.location.length > classId ? wo.getMethodName() : "main";
             reader.args = resolveMethodArgs(classId + 1, reader.location);
@@ -217,31 +258,70 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     break;
                 }
             }
-            controller.invoke(method);
+            controller.invokeMethod(method);
+            return controller;
         } catch (final ClassNotFoundException ex) {
+            /*if(reader.so.ROUTES.containsKey(reader.so.HTTP_SERVICE_TYPE_404)){
+                CompleteAction<Object,HttpRequestReader> action = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_404).getAction();
+                if(action != null){
+                    HttpController controller = new HttpController();
+                    controller.install(reader);
+                    controller.invokeCompleteAction(action);
+                    return controller;
+                }
+            }*/
             String methodname = "main";
-            if(reader.location.length == 1 && reader.location[0].equals("")){
-                try {
-                    cls = Class.forName(reader.so.config.http.controllerDefault.getClassName());
-                    methodname = reader.so.config.http.controllerDefault.getMethodName();
+            if(reader.location.length == 1 && reader.location[0].equals("")
+                    && reader.so.ROUTES.containsKey(reader.so.HTTP_SERVICE_TYPE_DEFAULT)){
+                WebObject o = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_DEFAULT);
+                if(o.getAction() != null){
+                    CompleteAction<Object,HttpRequestReader> action = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_DEFAULT).getAction();
+                    HttpController controller = new HttpController();
+                    controller.install(reader);
+                    controller.invokeCompleteAction(action);
+                        return controller;
+                }else try {
+                    cls = Class.forName(o.getClassName());
+                    methodname = o.getMethodName();
                 } catch (final ClassNotFoundException ex2) {
-                    cls = Class.forName(reader.so.config.http.controllerNotFound.getClassName());
-                    methodname = reader.so.config.http.controllerNotFound.getMethodName();
+                    LOGGER.log(Level.SEVERE, null, ex2);
+                    return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
                 }
-            }else {
-                cls = Class.forName(reader.so.config.http.controllerNotFound.getClassName());
-                methodname = reader.so.config.http.controllerNotFound.getMethodName();
+            }else if(reader.so.ROUTES.containsKey(reader.so.HTTP_SERVICE_TYPE_404)) {
+                WebObject o = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_404);
+                if(o.getAction() != null){
+                    CompleteAction<Object,HttpRequestReader> action = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_404).getAction();
+                    HttpController controller = new HttpController();
+                    controller.install(reader);
+                    controller.invokeCompleteAction(action);
+                        return controller;
+                }else try {
+                    cls = Class.forName(o.getClassName());
+                    methodname = o.getMethodName();
+                } catch (final ClassNotFoundException ex2) {
+                    LOGGER.log(Level.SEVERE, null, ex2);
+                    return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
+                }
             }
-            try {
-                constructor = ConstructorFinder.getNoParametersConstructor(cls);
-                if (constructor == null) {
-                    throw new InvalidControllerConstructorException(String.format(
-                            "\nController %s does not contain a valid constructor.\n"
-                                    + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                                    + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
-                            cls.getName()));
-                }
-                controller = (HttpController) constructor.newInstance();
+            
+            if(cls == null){
+                LOGGER.log(Level.SEVERE, "Class Name not set.");
+                return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
+            }else if(methodname == null){
+                LOGGER.log(Level.SEVERE, "Method Name not set.");
+                return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
+            }
+            constructor = cls.getDeclaredConstructor();
+            if (constructor == null){
+                
+                LOGGER.log(Level.SEVERE, String.format(
+                        "\nController %s does not contain a valid constructor.\n"
+                                + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
+                        cls.getName()));
+                return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
+            }else{
+                HttpController controller = (HttpController) constructor.newInstance();
                 Method[] methods = controller.getClass().getDeclaredMethods();
                 for(Method m : methods){
                     if(!m.getName().equals(methodname)) continue;    
@@ -250,20 +330,25 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 }
                 controller.install(reader);
                 controller.setResponseStatus(STATUS_NOT_FOUND);
-                controller.invoke(method);
-            } catch (final InvalidControllerConstructorException e) {
-                LOGGER.log(Level.SEVERE, null, ex);
+                controller.invokeMethod(method);
+                return controller;
             }
+            
         } catch (final NoSecretFoundException ex) {
-            controller = new HttpController();
-            controller.install(reader);
-            controller.setResponseStatus(STATUS_LOCKED);
-            controller.send("");
             LOGGER.log(Level.SEVERE, null, ex);
-        } catch (final InvalidControllerConstructorException ex) {
+            return instantPackStatus(reader,STATUS_LOCKED);
+        } catch (InvalidControllerConstructorException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
         }
-        return (HttpController) controller;
+    }
+    
+    private static HttpController instantPackStatus(HttpRequestReader reader,String status){
+        HttpController controller = new HttpController();
+        controller.install(reader);
+        controller.setResponseStatus(status);
+        controller.send("");
+        return controller;
     }
 
     // public static void onControllerRequest(final StringBuilder url,String

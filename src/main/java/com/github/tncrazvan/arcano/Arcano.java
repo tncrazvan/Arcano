@@ -103,20 +103,11 @@ public class Arcano extends SharedObject {
     /**
      * Make a new Arcano Server
      * 
-     * @param pckg The package that contains your services.
+     * @param pckg The package that contains your services.<br />
+     * The package must be contained inside the current project's directory layout.
      */
     public Arcano(Package pckg) {
         try {
-            expose(com.github.tncrazvan.arcano.Controller.Http.FileService.class,
-                    com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound.class,
-                    com.github.tncrazvan.arcano.Controller.Http.Get.class,
-                    com.github.tncrazvan.arcano.Controller.Http.Isset.class,
-                    com.github.tncrazvan.arcano.Controller.Http.Set.class,
-                    com.github.tncrazvan.arcano.Controller.Http.Unset.class,
-                    
-                    com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class,
-                    com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi.class);
-            
             Class[] clss = getClasses(pckg);
             for(Class cls : clss){
                 try{
@@ -131,6 +122,20 @@ public class Arcano extends SharedObject {
         } catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException  ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
+    }
+    public Arcano(){}
+    public final void exposeDefaults(){
+        expose(
+            com.github.tncrazvan.arcano.Controller.Http.FileService.class,
+            com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound.class,
+            com.github.tncrazvan.arcano.Controller.Http.Get.class,
+            com.github.tncrazvan.arcano.Controller.Http.Isset.class,
+            com.github.tncrazvan.arcano.Controller.Http.Set.class,
+            com.github.tncrazvan.arcano.Controller.Http.Unset.class,
+
+            com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class,
+            com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi.class
+        );
     }
     public final void listen(String[] args)
             throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
