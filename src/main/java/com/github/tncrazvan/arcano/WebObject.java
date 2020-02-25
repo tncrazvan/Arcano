@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano;
 
 import com.github.tncrazvan.arcano.Http.HttpController;
+import com.github.tncrazvan.arcano.Http.HttpEvent;
 import com.github.tncrazvan.arcano.Http.HttpRequestReader;
 import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 
@@ -10,12 +11,12 @@ import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
  */
 public class WebObject {
     private final boolean locked;
-    private final CompleteAction<Object,HttpRequestReader> action;
+    private final CompleteAction<Object,HttpEvent> action;
     private final String classname;
     private final String methodname;
     private final String type;
     
-    public WebObject(final CompleteAction<Object,HttpRequestReader> action, final String CLASSNAME, final String METRHOD_NAME, final String TYPE, final boolean LOCKED) {
+    public WebObject(final CompleteAction<Object,HttpEvent> action, final String CLASSNAME, final String METRHOD_NAME, final String TYPE, final boolean LOCKED) {
         this.action = action;
         this.classname = CLASSNAME;
         this.methodname = METRHOD_NAME;
@@ -27,7 +28,7 @@ public class WebObject {
         return this.locked;
     }
     
-    public final CompleteAction<Object,HttpRequestReader> getAction(){
+    public final CompleteAction<Object,HttpEvent> getAction(){
         return this.action;
     }
     

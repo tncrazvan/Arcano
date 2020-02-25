@@ -25,6 +25,7 @@ import com.github.tncrazvan.arcano.Bean.Http.HttpDefault;
 import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketNotFound;
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketService;
+import com.github.tncrazvan.arcano.Http.HttpEvent;
 import com.github.tncrazvan.arcano.Http.HttpHeaders;
 import com.github.tncrazvan.arcano.Http.HttpRequestReader;
 import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
@@ -73,13 +74,13 @@ public class SharedObject implements Strings{
     public static final String NAME_SESSION_ID = "JavaSessionID";
     public static final String HTTP_SERVICE_TYPE_404 = "HTTP 404";
     public static final String HTTP_SERVICE_TYPE_DEFAULT = "HTTP DEFAULT";
-    public final void expose(String type,CompleteAction<Object,HttpRequestReader>  action){
+    public final void expose(String type,CompleteAction<Object,HttpEvent>  action){
         expose(type, null, false, action);
     }
-    public final void expose(String type, String path,CompleteAction<Object,HttpRequestReader>  action){
+    public final void expose(String type, String path,CompleteAction<Object,HttpEvent>  action){
         expose(type, path, false, action);
     }
-    public final void expose(String type, String path, boolean locked,CompleteAction<Object,HttpRequestReader>  action){
+    public final void expose(String type, String path, boolean locked,CompleteAction<Object,HttpEvent>  action){
         final WebObject wo = new WebObject(
             action,
             null, 

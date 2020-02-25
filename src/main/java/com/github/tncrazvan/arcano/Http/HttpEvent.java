@@ -20,7 +20,6 @@ import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVER_ERROR;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_LOCKED;
-import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
 import com.google.gson.JsonObject;
 import java.io.File;
@@ -103,9 +102,9 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         return methodInput;
     }
     
-    public final void invokeCompleteAction(final CompleteAction<Object,HttpRequestReader> action){
+    public final void invokeCompleteAction(final CompleteAction<Object,HttpEvent> action){
         try {
-            Object result = action.callback(reader);
+            Object result = action.callback(this);
 
             //try to invokeMethod method
             if (result instanceof ShellScript) {
@@ -210,7 +209,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     .toArray(String[]::new);
             WebObject wo = resolveClassName(classId + 1, typedLocation);
             
-            CompleteAction<Object,HttpRequestReader> action = wo.getAction();
+            CompleteAction<Object,HttpEvent> action = wo.getAction();
             
             if (wo.isLocked()) {
                 if (!reader.request.headers.issetCookie("JavaArcanoKey")) {
@@ -270,7 +269,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     && reader.so.ROUTES.containsKey(reader.so.HTTP_SERVICE_TYPE_DEFAULT)){
                 WebObject o = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_DEFAULT);
                 if(o.getAction() != null){
-                    CompleteAction<Object,HttpRequestReader> action = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_DEFAULT).getAction();
+                    CompleteAction<Object,HttpEvent> action = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_DEFAULT).getAction();
                     HttpController controller = new HttpController();
                     controller.install(reader);
                     controller.invokeCompleteAction(action);
@@ -285,7 +284,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             }else if(reader.so.ROUTES.containsKey(reader.so.HTTP_SERVICE_TYPE_404)) {
                 WebObject o = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_404);
                 if(o.getAction() != null){
-                    CompleteAction<Object,HttpRequestReader> action = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_404).getAction();
+                    CompleteAction<Object,HttpEvent> action = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_404).getAction();
                     HttpController controller = new HttpController();
                     controller.install(reader);
                     controller.invokeCompleteAction(action);
@@ -297,6 +296,8 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     LOGGER.log(Level.SEVERE, null, ex2);
                     return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
                 }
+            }else{
+                LOGGER.log(Level.SEVERE, "The ROUTES map does not specify any \"HTTP 404\" route type.\nWill reply with status 500.");
             }
             
             if(cls == null){

@@ -166,7 +166,7 @@ public class Configuration {
      */
     public final void parse(final File json, final SharedObject so, final String[] args) throws IOException{
         if(!json.exists()){
-            System.out.println("Configuration file "+json.getPath()+" does not seem to exist.");
+            System.out.println("Configuration file "+json.getAbsolutePath()+" does not seem to exist.");
             return;
         }
         this.dir = json.getAbsoluteFile().getParent().replace("\\", "/").replace("//","/");
