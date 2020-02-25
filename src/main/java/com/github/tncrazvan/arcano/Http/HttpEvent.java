@@ -258,18 +258,13 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     break;
                 }
             }
+            if(method == null){
+                LOGGER.log(Level.SEVERE, "Method Name not set.");
+                return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
+            }
             controller.invokeMethod(method);
             return controller;
         } catch (final ClassNotFoundException ex) {
-            /*if(reader.so.ROUTES.containsKey(reader.so.HTTP_SERVICE_TYPE_404)){
-                CompleteAction<Object,HttpRequestReader> action = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_404).getAction();
-                if(action != null){
-                    HttpController controller = new HttpController();
-                    controller.install(reader);
-                    controller.invokeCompleteAction(action);
-                    return controller;
-                }
-            }*/
             String methodname = "main";
             if(reader.location.length == 1 && reader.location[0].equals("")
                     && reader.so.ROUTES.containsKey(reader.so.HTTP_SERVICE_TYPE_DEFAULT)){
@@ -329,7 +324,6 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     break;
                 }
                 controller.install(reader);
-                controller.setResponseStatus(STATUS_NOT_FOUND);
                 controller.invokeMethod(method);
                 return controller;
             }
