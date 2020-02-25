@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.net.ssl.SSLServerSocket;
 
 /**
@@ -137,8 +138,7 @@ public class Arcano extends SharedObject {
             com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi.class
         );
     }
-    public final void listen(String[] args)
-            throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
+    public final void listen(String[] args) {
         listen(args, null);
     }
     /**
@@ -147,100 +147,104 @@ public class Arcano extends SharedObject {
      * @param args First argument must be the settings file. Check documentation to
      *             learn how to create a settings files.
      * @param action Action to be run before each connection.
-     * @throws IOException
-     * @throws NoSuchAlgorithmException
-     * @throws java.lang.ClassNotFoundException
-     * @throws java.net.URISyntaxException
      */
-    public final void listen(String[] args, CompleteAction<Long,SharedObject> action)
-            throws IOException, NoSuchAlgorithmException, ClassNotFoundException, URISyntaxException {
+    public final void listen(String[] args, CompleteAction<Long,SharedObject> action) {
         System.out.println("ARGS: " + Arrays.toString(args));
 
-        config.parse(args[0], this, args);
+        try {
+            config.parse(args[0], this, args);
 
-        switch(config.threads.policy){
-            case Threads.POLICY_FIX:
-                executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(config.threads.pool);
-                break;
-            case Threads.POLICY_CACHE:
-                executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-                break;
-            case Threads.POLICY_STEAL:
-            default:
-                if(config.threads.pool == 0)
-                    service = Executors.newWorkStealingPool();
-                else
-                    service = Executors.newWorkStealingPool(config.threads.pool);
-                break;
-        }
-
-        
-        System.out.println("Absolute Workling Directory: "+FileSystems.getDefault().getPath(".").toAbsolutePath());
-        
-        if(config.smtp.enabled)
-            if (!config.smtp.hostname.equals("")) {
-                smtpServer = new SmtpServer(new ServerSocket(), config.smtp.bindAddress, config.smtp.port,
-                        config.smtp.hostname);
-                new Thread(smtpServer).start();
-            } else {
-                System.err.println("\n[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
+            switch(config.threads.policy){
+                case Threads.POLICY_FIX:
+                    executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(config.threads.pool);
+                    break;
+                case Threads.POLICY_CACHE:
+                    executor = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+                    break;
+                case Threads.POLICY_STEAL:
+                default:
+                    if(config.threads.pool == 0)
+                        service = Executors.newWorkStealingPool();
+                    else
+                        service = Executors.newWorkStealingPool(config.threads.pool);
+                    break;
             }
-        
-        if(action != null)
-        new Thread(() -> {
-            System.out.println("Public imports will be packed in background at @webRoot/pack.");
-            for(;;){
-                try {
-                    action.callback(this);
-                    Thread.sleep(100);
-                } catch (InterruptedException ex) {
-                    LOGGER.log(Level.SEVERE, null, ex);
+
+
+            System.out.println("Absolute Workling Directory: "+FileSystems.getDefault().getPath(".").toAbsolutePath());
+
+            if(config.smtp.enabled)
+                if (!config.smtp.hostname.equals("")) {
+                    smtpServer = new SmtpServer(new ServerSocket(), config.smtp.bindAddress, config.smtp.port,
+                            config.smtp.hostname);
+                    new Thread(smtpServer).start();
+                } else {
+                    System.err.println("\n[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
                 }
-            }
-        }).start();
-        
-        if (!config.certificate.name.equals("")) try {
-            final char[] password = config.certificate.password.toCharArray();
-            final KeyStore keyStore = KeyStore.getInstance(new File(config.dir + "/" + config.certificate.name),
-                    password);
-            final TrustManagerFactory trustManagerFactory = TrustManagerFactory
-                    .getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            trustManagerFactory.init(keyStore);
-            final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("NewSunX509");
-            keyManagerFactory.init(keyStore, password);
-            final SSLContext context = SSLContext.getInstance("TLSv1.2");// "SSL" "TLS"
-            context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
-            final SSLServerSocketFactory factory = context.getServerSocketFactory();
-            try (SSLServerSocket ss = ((SSLServerSocket) factory.createServerSocket())) {
+            if(action != null)
+            new Thread(() -> {
+                System.out.println("Public imports will be packed in background at @webRoot/pack.");
+                for(;;){
+                    try {
+                        action.callback(this);
+                        Thread.sleep(100);
+                    } catch (InterruptedException ex) {
+                        LOGGER.log(Level.SEVERE, null, ex);
+                    }
+                }
+            }).start();
+
+            if (!config.certificate.name.equals("")) try {
+                final char[] password = config.certificate.password.toCharArray();
+                final KeyStore keyStore = KeyStore.getInstance(new File(config.dir + "/" + config.certificate.name),
+                        password);
+                final TrustManagerFactory trustManagerFactory = TrustManagerFactory
+                        .getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                trustManagerFactory.init(keyStore);
+                final KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("NewSunX509");
+                keyManagerFactory.init(keyStore, password);
+                final SSLContext context = SSLContext.getInstance("TLSv1.2");// "SSL" "TLS"
+                context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+
+                final SSLServerSocketFactory factory = context.getServerSocketFactory();
+                try (SSLServerSocket ss = ((SSLServerSocket) factory.createServerSocket())) {
+                    ss.bind(new InetSocketAddress(config.bindAddress, config.port));
+                    HttpEventListener listener;
+                    System.out.println("Server started (using TLSv1.2).");
+                    while (config.listen) {
+
+                        listener = new HttpEventListener(this, ss.accept());
+                        if(executor == null)
+                            service.submit(listener);
+                        else
+                            executor.submit(listener);
+                    }
+                }
+            } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger(Arcano.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            else try (ServerSocket ss = new ServerSocket()) {
                 ss.bind(new InetSocketAddress(config.bindAddress, config.port));
+
                 HttpEventListener listener;
-                System.out.println("Server started (using TLSv1.2).");
+                System.out.println("Server started.");
                 while (config.listen) {
-                    
                     listener = new HttpEventListener(this, ss.accept());
                     if(executor == null)
                         service.submit(listener);
                     else
                         executor.submit(listener);
                 }
+                ss.close();
+            } catch (NoSuchAlgorithmException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
             }
-        } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex) {
+        
+        } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
-        }
-        else try (ServerSocket ss = new ServerSocket()) {
-            ss.bind(new InetSocketAddress(config.bindAddress, config.port));
-            
-            HttpEventListener listener;
-            System.out.println("Server started.");
-            while (config.listen) {
-                listener = new HttpEventListener(this, ss.accept());
-                if(executor == null)
-                    service.submit(listener);
-                else
-                    executor.submit(listener);
-            }
-            ss.close();
         }
     }
 }
