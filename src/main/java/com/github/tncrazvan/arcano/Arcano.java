@@ -171,7 +171,8 @@ public class Arcano extends SharedObject {
             }
 
 
-            System.out.println("Absolute Workling Directory: "+FileSystems.getDefault().getPath(".").toAbsolutePath());
+            System.out.println("Caller Working Directory: "+config.callerDir);
+            System.out.println("Config Working Directory: "+config.dir);
 
             if(config.smtp.enabled)
                 if (!config.smtp.hostname.equals("")) {

@@ -85,8 +85,7 @@ public class SharedObject implements Strings{
             action,
             null, 
             null, 
-            type, 
-            locked
+            type
         );
         ROUTES.put(type.toUpperCase() + (path != null?normalizePathSlashes(path):""), wo);
     }
@@ -103,8 +102,7 @@ public class SharedObject implements Strings{
                                 null,
                                 cls.getName(), 
                                 method.getName(), 
-                                service.method(), 
-                                service.locked()
+                                service.method()
                             );
                             ROUTES.put(service.method() + normalizePathSlashes((classService != null?classService.path():"")+"/"+service.path()), wo);
                         }
@@ -113,8 +111,7 @@ public class SharedObject implements Strings{
                                 null,
                                 cls.getName(), 
                                 method.getName(), 
-                                HTTP_SERVICE_TYPE_404, 
-                                service != null && service.locked()
+                                HTTP_SERVICE_TYPE_404
                             );
                             ROUTES.put(HTTP_SERVICE_TYPE_404, wo);
                             this.config.http.controllerNotFound = wo;
@@ -124,8 +121,7 @@ public class SharedObject implements Strings{
                                 null,
                                 cls.getName(), 
                                 method.getName(), 
-                                HTTP_SERVICE_TYPE_DEFAULT, 
-                                service != null && service.locked()
+                                HTTP_SERVICE_TYPE_DEFAULT
                             );
                             ROUTES.put(HTTP_SERVICE_TYPE_DEFAULT, wo);
                             this.config.http.controllerDefault = wo;
@@ -135,19 +131,19 @@ public class SharedObject implements Strings{
                     WebSocketService service = (WebSocketService) cls.getAnnotation(WebSocketService.class);
                     if (service != null) {
                         String type = "WS";
-                        WebObject wo = new WebObject(null,cls.getName(), null, type, service.locked());
+                        WebObject wo = new WebObject(null,cls.getName(), null, type);
                         ROUTES.put(type + service.path().replaceAll("/+", "/"), wo);
                     }
                     if (cls.getAnnotation(WebSocketNotFound.class) != null){
                         String type = "WS 404";
-                        WebObject wo = new WebObject(null,cls.getName(), null, type, service != null && service.locked());
+                        WebObject wo = new WebObject(null,cls.getName(), null, type);
                         ROUTES.put(type, wo);
                         this.config.webSocket.controllerNotFound = wo;
                     }
                 } else if (SmtpController.class.isAssignableFrom(cls)) {
                     SmtpService service = (SmtpService) cls.getAnnotation(SmtpService.class);
                     String type = "SMTP";
-                    WebObject wo = new WebObject(null,cls.getName(), null, type, service != null && service.locked());
+                    WebObject wo = new WebObject(null,cls.getName(), null, type);
                     ROUTES.put(type, wo);
                 }
             } catch (SecurityException | IllegalArgumentException  ex) {

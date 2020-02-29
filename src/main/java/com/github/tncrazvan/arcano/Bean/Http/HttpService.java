@@ -18,5 +18,4 @@ import java.lang.annotation.Target;
 public @interface HttpService {
     public String path();
     public String method() default "GET";
-    public boolean locked() default false;
 }

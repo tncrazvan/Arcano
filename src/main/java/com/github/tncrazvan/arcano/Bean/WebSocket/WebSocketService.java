@@ -17,5 +17,4 @@ import java.lang.annotation.Target;
 @Documented
 public @interface WebSocketService {
     public String path();
-    public boolean locked() default false;
 }

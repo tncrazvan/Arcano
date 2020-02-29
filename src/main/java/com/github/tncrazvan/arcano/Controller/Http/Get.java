@@ -19,7 +19,7 @@ import com.github.tncrazvan.arcano.Bean.Http.HttpService;
  */
 public class Get extends HttpController{
     
-    @HttpService(path="/@get/memory",locked = true)
+    @HttpService(path="/@get/memory")
     public JsonObject memory(){
         final JsonObject result = new JsonObject();
         result.addProperty("free", getFreeMemory());

@@ -10,6 +10,7 @@ import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonObject;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonParse;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
+import com.github.tncrazvan.arcano.Tool.Regex;
 import com.github.tncrazvan.arcano.Tool.System.ServerFile;
 import com.github.tncrazvan.asciitable.AsciiTable;
 import com.google.gson.JsonArray;
@@ -18,6 +19,7 @@ import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -131,6 +133,7 @@ public class Configuration {
 
     public String key;
     public String dir;
+    public String callerDir;
     public String jwtSecret = "eswtrweqtr3w25trwes4tyw456t";
     public String webRoot = "www";
     public String serverRoot = "server";
@@ -169,15 +172,27 @@ public class Configuration {
             System.out.println("Configuration file "+json.getAbsolutePath()+" does not seem to exist.");
             return;
         }
-        this.dir = json.getAbsoluteFile().getParent().replace("\\", "/").replace("//","/");
-        
+        this.dir = json.getAbsoluteFile().getParent();
         if(this.dir == null)
             this.dir = "";
-        
         char endchar = this.dir.charAt(this.dir.length() - 1);
-        
         if(endchar != '/')
             this.dir +="/";
+        this.dir = Regex.replace(this.dir, "\\\\", "/");
+        this.dir = Regex.replace(this.dir, "/+", "/");
+        this.dir = Regex.replace(this.dir, "\\/\\.\\/", "/");
+        this.dir = Regex.replace(this.dir, "\\/\\.$", "/");
+        
+        this.callerDir = FileSystems.getDefault().getPath(".").toAbsolutePath().toString();
+        if(this.callerDir == null)
+            this.callerDir = "";
+        endchar = this.callerDir.charAt(this.callerDir.length() - 1);
+        if(endchar != '/')
+            this.callerDir +="/";
+        this.callerDir = Regex.replace(this.callerDir, "\\\\", "/");
+        this.callerDir = Regex.replace(this.callerDir, "/+", "/");
+        this.callerDir = Regex.replace(this.callerDir, "\\/\\.\\/", "/");
+        this.callerDir = Regex.replace(this.callerDir, "\\/\\.$", "/");
         
         final byte[] configBytes;
         try (FileInputStream fis = new FileInputStream(json)) {
@@ -303,7 +318,10 @@ public class Configuration {
         if (endchar != '/') {
             this.serverRoot += "/";
         }
-        this.serverRoot = this.serverRoot.replaceAll("/+", "/");
+        this.serverRoot = Regex.replace(this.serverRoot, "\\\\", "/");
+        this.serverRoot = Regex.replace(this.serverRoot, "/+", "/");
+        this.serverRoot = Regex.replace(this.serverRoot, "\\/\\.\\/", "/");
+        this.serverRoot = Regex.replace(this.serverRoot, "\\/\\.$", "/");
 
         if (config.has("webRoot"))
             this.webRoot = this.dir + "/" + config.get("webRoot").getAsString();
@@ -311,12 +329,14 @@ public class Configuration {
             this.webRoot = this.dir + "/" + this.webRoot;
 
         endchar = this.webRoot.charAt(this.webRoot.length() - 1);
-
+        
         if (endchar != '/') {
             this.webRoot += "/";
         }
-        this.webRoot = this.webRoot.replaceAll("/+", "/");
-        
+        this.webRoot = Regex.replace(this.webRoot,"\\\\", "/");
+        this.webRoot = Regex.replace(this.webRoot,"/+", "/");
+        this.webRoot = Regex.replace(this.webRoot, "\\/\\.\\/", "/");
+        this.webRoot = Regex.replace(this.webRoot, "\\/\\.$", "/");
         if (config.has("charset"))
             this.charset = config.get("charset").getAsString();
 
@@ -403,8 +423,8 @@ public class Configuration {
         configurationTable.add("timezone", timezone.toString()+" (Http cookies by default use GMT aka UTC±00:00)");
         configurationTable.add("port", "" + this.port);
         configurationTable.add("bindAddress", this.bindAddress);
-        configurationTable.add("serverRoot", this.serverRoot+" (Relative to the JSON configuration file)");
-        configurationTable.add("webRoot", this.webRoot+" (Relative to the JSON configuration file)");
+        configurationTable.add("serverRoot", this.serverRoot);
+        configurationTable.add("webRoot", this.webRoot);
         configurationTable.add("entryPoint", this.entryPoint+" (Relative to the webRoot)");
         configurationTable.add("charset", this.charset);
         configurationTable.add("timeout", "After " + this.timeout + " milliseconds");

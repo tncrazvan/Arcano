@@ -6,7 +6,6 @@ import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
-import com.github.tncrazvan.arcano.Tool.Cluster.NoSecretFoundException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,13 +18,12 @@ import com.github.tncrazvan.arcano.WebObject;
 import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVER_ERROR;
-import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_LOCKED;
-import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
+import java.util.logging.Logger;
 
 
 /**
@@ -181,191 +179,165 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
+    
 
-    private static HttpController serveController(final HttpRequestReader reader)
-            throws InstantiationException, IllegalAccessException, NoSuchMethodException, ClassNotFoundException,
-            IllegalArgumentException, InvocationTargetException, UnsupportedEncodingException, IOException {
-        final String httpMethod = reader.request.headers.get("@Method");
-        //final boolean abusiveUrl = Regex.match(reader.location.toString(), "w3e478tgdf8723qioiuy");
-        Method method = null;
-        Class<?> cls = null;
-        Constructor<?> constructor = null;
-        if (reader.location.length == 0) {
-            reader.location = new String[] { "" };
-        }else {
-            File check = new File(reader.so.config.webRoot,reader.stringifiedLocation);
-            if(check.exists() && !check.isDirectory()){
-                HttpController controller = new Get();
-                controller.install(reader);
-                method = controller.getClass().getDeclaredMethod("file");
-                controller.invokeMethod(method);
-                return controller;
-            }
-        }
+    private static HttpController factory(HttpRequestReader reader) {
         try {
-            int classId = getClassnameIndex(reader.location, httpMethod);
-            final String[] typedLocation = Stream
-                    .concat(Arrays.stream(new String[] { httpMethod }), Arrays.stream(reader.location))
-                    .toArray(String[]::new);
-            WebObject wo = resolveClassName(classId + 1, typedLocation);
+            if(reader.location.length == 0 || "".equals(reader.location[0]))
+                reader.location = new String[]{"/"};
+            else {
+                File check = new File(reader.so.config.webRoot,reader.stringifiedLocation);
+                if(check.exists() && !check.isDirectory()){
+                    HttpController controller = new Get();
+                    controller.install(reader);
+                    Method m = controller.getClass().getDeclaredMethod("file");
+                    controller.invokeMethod(m);
+                    return controller;
+                }
+            }
+            String type = reader.request.headers.get("@Method");
+            int classId = -1;
+            String tmp;
             
-            CompleteAction<Object,HttpEvent> action = wo.getAction();
-            
-            if (wo.isLocked()) {
-                if (!reader.request.headers.issetCookie("JavaArcanoKey")) {
-                    throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. No key specified.");
-                } else {
-                    final String key = reader.request.headers.getCookie("JavaArcanoKey");
-                    if (!JwtMessage.verify(key,reader.so.config.key,reader.so.config.charset)) {
-                        throw new NoSecretFoundException("An unauthorized client attempted to access a locked HttpController. The specified key is invalid.");
+            for (int i = reader.location.length; i > 0; i--) {
+                tmp = type + "/" + String.join("/", Arrays.copyOf(reader.location, i)).toLowerCase();
+                //RESOURCE FOUND
+                if (SharedObject.ROUTES.containsKey(tmp) && SharedObject.ROUTES.get(tmp).getType().equals(type)) {
+                    classId = i - 1;
+                    String[] key = Stream
+                        .concat(Arrays.stream(new String[] { type }), Arrays.stream(reader.location))
+                        .toArray(String[]::new);
+                    WebObject wo = resolveClassName(classId + 1, key);
+                    CompleteAction<Object,HttpEvent> action = wo.getAction();
+                    if(action != null){
+                        HttpController controller = new HttpController();
+                        controller.install(reader);
+                        controller.invokeCompleteAction(action);
+                        return controller;
                     }
+                    Class<?> cls = Class.forName(wo.getClassName());
+                    String methodname = reader.location.length > classId ? wo.getMethodName() : "main";
+                    Constructor<?> constructor = ConstructorFinder.getNoParametersConstructor(cls);
+                    if (constructor == null) throw new InvalidControllerConstructorException(
+                        String.format(
+                            "\nController %s does not contain a valid constructor.\n"
+                            + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                            + "Perhaps your class is an inner class and it's not public or static? Try make it a \"public static class\"!",
+                            wo.getClassName()
+                        )
+                    );
+                    HttpController controller = (HttpController) constructor.newInstance();
+                    reader.args = resolveMethodArgs(classId + 1, reader.location);
+                    controller.install(reader);
+                    Method[] methods = controller.getClass().getDeclaredMethods();
+                    for(Method m : methods){
+                        if(!m.getName().equals(methodname)) continue;
+                        controller.invokeMethod(m);
+                        return controller;
+                    }
+                    reader.args = resolveMethodArgs(classId, reader.location);
+                    for(Method m : methods){
+                        if(!m.getName().equals("main")) continue;
+                        controller.invokeMethod(m);
+                        return controller;
+                    }
+                    throw new NoSuchMethodException("Method Name not set.");
                 }
             }
-            
-            if(action != null){
-                HttpController controller = new HttpController();
-                controller.install(reader);
-                controller.invokeCompleteAction(action);
-                return controller;
-            }
-
-            cls = Class.forName(wo.getClassName());
-            constructor = ConstructorFinder.getNoParametersConstructor(cls);
-            if (constructor == null) {
-                throw new InvalidControllerConstructorException(String.format(
-                        "\nController %s does not contain a valid constructor.\n"
-                                + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                                + "Perhaps your class is an inner class and it's not public or static? Try make it a \"public static class\"!",
-                        wo.getClassName()));
-            }
-            HttpController controller = (HttpController) constructor.newInstance();
-
-            final String methodname = reader.location.length > classId ? wo.getMethodName() : "main";
-            reader.args = resolveMethodArgs(classId + 1, reader.location);
-            controller.install(reader);
-            Method[] methods = controller.getClass().getDeclaredMethods();
-            for(Method m : methods){
-                if(!m.getName().equals(methodname)) continue;    
-                method = m;
-                break;
-            }
-            if(method == null) {
-                reader.args = resolveMethodArgs(classId, reader.location);
-                for(Method m : methods){
-                    if(!m.getName().equals("main")) continue;    
-                    method = m;
-                    break;
-                }
-            }
-            if(method == null){
-                LOGGER.log(Level.SEVERE, "Method Name not set.");
-                return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
-            }
-            controller.invokeMethod(method);
-            return controller;
-        } catch (final ClassNotFoundException ex) {
-            String methodname = "main";
-            if(reader.location.length == 1 && reader.location[0].equals("")
-                    && reader.so.ROUTES.containsKey(reader.so.HTTP_SERVICE_TYPE_DEFAULT)){
-                WebObject o = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_DEFAULT);
-                if(o.getAction() != null){
-                    CompleteAction<Object,HttpEvent> action = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_DEFAULT).getAction();
+            //TRY SERVE THE DEFAULT RESOURCE
+            if(reader.location[0].equals("/") && reader.so.ROUTES.containsKey(SharedObject.HTTP_SERVICE_TYPE_DEFAULT)){
+                WebObject wo = reader.so.ROUTES.get(SharedObject.HTTP_SERVICE_TYPE_DEFAULT);
+                if(wo.getAction() != null){
+                    CompleteAction<Object,HttpEvent> action = wo.getAction();
                     HttpController controller = new HttpController();
                     controller.install(reader);
                     controller.invokeCompleteAction(action);
                         return controller;
-                }else try {
-                    cls = Class.forName(o.getClassName());
-                    methodname = o.getMethodName();
-                } catch (final ClassNotFoundException ex2) {
-                    LOGGER.log(Level.SEVERE, null, ex2);
-                    return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
+                }else {
+                    Class<?> cls = Class.forName(wo.getClassName());
+                    Constructor<?> constructor = cls.getDeclaredConstructor();
+                    String methodname = wo.getMethodName();
+                    HttpController controller = (HttpController) constructor.newInstance();
+                    Method[] methods = controller.getClass().getDeclaredMethods();
+                    for(Method m : methods){
+                        if(!m.getName().equals(methodname)) continue;    
+                        controller.install(reader);
+                        controller.invokeMethod(m);
+                        return controller;
+                    }
+                    return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
                 }
-            }else if(reader.so.ROUTES.containsKey(reader.so.HTTP_SERVICE_TYPE_404)) {
-                WebObject o = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_404);
+            }else if(reader.so.ROUTES.containsKey(SharedObject.HTTP_SERVICE_TYPE_404)){
+                WebObject o = reader.so.ROUTES.get(SharedObject.HTTP_SERVICE_TYPE_404);
                 if(o.getAction() != null){
-                    CompleteAction<Object,HttpEvent> action = reader.so.ROUTES.get(reader.so.HTTP_SERVICE_TYPE_404).getAction();
+                    CompleteAction<Object,HttpEvent> action = o.getAction();
                     HttpController controller = new HttpController();
                     controller.install(reader);
                     controller.invokeCompleteAction(action);
                         return controller;
-                }else try {
-                    cls = Class.forName(o.getClassName());
-                    methodname = o.getMethodName();
-                } catch (final ClassNotFoundException ex2) {
-                    LOGGER.log(Level.SEVERE, null, ex2);
-                    return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
+                }else {
+                    Class<?> cls = Class.forName(o.getClassName());
+                    Constructor<?> constructor = cls.getDeclaredConstructor();
+                    String methodname = o.getMethodName();
+                    if (constructor == null) throw new InvalidControllerConstructorException(
+                        String.format(
+                            "\nController %s does not contain a valid constructor.\n"
+                            + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                            + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
+                            cls.getName()
+                        )
+                    );
+                    HttpController controller = (HttpController) constructor.newInstance();
+                    Method[] methods = controller.getClass().getDeclaredMethods();
+                    for(Method m : methods){
+                        if(!m.getName().equals(methodname)) continue;    
+                        controller.install(reader);
+                        controller.invokeMethod(m);
+                        return controller;
+                    }
+                    return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
                 }
-            }else{
-                LOGGER.log(Level.SEVERE, "The ROUTES map does not specify any \"HTTP 404\" route type.\nWill reply with status 500.");
             }
-            
-            if(cls == null){
-                LOGGER.log(Level.SEVERE, "Class Name not set.");
-                return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
-            }else if(methodname == null){
-                LOGGER.log(Level.SEVERE, "Method Name not set.");
-                return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
-            }
-            constructor = cls.getDeclaredConstructor();
-            if (constructor == null){
-                
-                LOGGER.log(Level.SEVERE, String.format(
-                        "\nController %s does not contain a valid constructor.\n"
-                                + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                                + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
-                        cls.getName()));
-                return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
-            }else{
-                HttpController controller = (HttpController) constructor.newInstance();
-                Method[] methods = controller.getClass().getDeclaredMethods();
-                for(Method m : methods){
-                    if(!m.getName().equals(methodname)) continue;    
-                    method = m;
-                    break;
-                }
-                controller.install(reader);
-                controller.invokeMethod(method);
-                return controller;
-            }
-            
-        } catch (final NoSecretFoundException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-            return instantPackStatus(reader,STATUS_LOCKED);
-        } catch (InvalidControllerConstructorException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR);
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+        }catch(InvalidControllerConstructorException e){
+            LOGGER.log(Level.SEVERE, null, e);
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+        }catch (InstantiationException e){
+            LOGGER.log(Level.SEVERE, null, e);
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+        }catch (ClassNotFoundException e){
+            LOGGER.log(Level.SEVERE, null, e);
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+        } catch (NoSuchMethodException e) {
+            LOGGER.log(Level.SEVERE, null, e);
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+        } catch (SecurityException e) {
+            LOGGER.log(Level.SEVERE, null, e);
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+        } catch (IllegalAccessException e) {
+            LOGGER.log(Level.SEVERE, null, e);
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+        } catch (IllegalArgumentException e) {
+            LOGGER.log(Level.SEVERE, null, e);
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+        } catch (InvocationTargetException e) {
+            LOGGER.log(Level.SEVERE, null, e);
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
         }
     }
     
-    private static HttpController instantPackStatus(HttpRequestReader reader,String status){
+    private static HttpController instantPackStatus(HttpRequestReader reader,String status,String message){
         HttpController controller = new HttpController();
         controller.install(reader);
         controller.setResponseStatus(status);
-        controller.send("");
+        controller.send(message);
         return controller;
     }
 
     // public static void onControllerRequest(final StringBuilder url,String
     // httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName) {
     public static final void onControllerRequest(final HttpRequestReader reader) {
-        try {
-            final HttpController controller = serveController(reader);
-            if(controller != null ) controller.close();
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | IllegalArgumentException | InvocationTargetException | UnsupportedEncodingException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-            try {
-                reader.client.close();
-            } catch (IOException ex1) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-        } catch (IOException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-            try {
-                reader.client.close();
-            } catch (IOException ex1) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-        }
+        final HttpController controller = factory(reader);
+        if(controller != null ) controller.close();
     } 
 }
