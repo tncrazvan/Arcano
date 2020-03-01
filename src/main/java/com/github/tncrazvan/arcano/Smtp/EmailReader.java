@@ -1,9 +1,10 @@
 package com.github.tncrazvan.arcano.Smtp;
 
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
+import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import static com.github.tncrazvan.arcano.SharedObject.ROUTES;
 import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
+import com.github.tncrazvan.arcano.WebObject;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -191,31 +192,27 @@ public class EmailReader extends SmtpMessageManager{
         listeners.forEach((listener) -> {
             listener.onEmailReceived(email);
         });
-
-        ROUTES.forEach((key, wo) -> {
-            if (wo.getType().equals("SMTP")) {
-                try {
-                    final Class<?> cls = Class.forName(wo.getClassName());
-                    final Constructor<?> constructor = ConstructorFinder.getNoParametersConstructor(cls);
-                    if (constructor == null) {
-                        throw new InvalidControllerConstructorException(String.format(
-                                "\nController %s does not contain a valid constructor.\n"
-                                        + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                                        + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
-                                wo.getClassName()));
-                    }
-                    try {
-                        final SmtpController controller = (SmtpController) constructor.newInstance();
-                        final Method method = controller.getClass().getDeclaredMethod("onEmailReceived", Email.class);
-                        method.invoke(controller,email);
-                    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | InstantiationException ex) {
-                        LOGGER.log(Level.SEVERE, null, ex);
-                    }
-                } catch (ClassNotFoundException | InvalidControllerConstructorException | IllegalArgumentException | SecurityException ex) {
-                    LOGGER.log(Level.SEVERE, null, ex);
-                }
+        try {
+            WebObject wo = server.so.SMTP_ROUTE;
+            final Class<?> cls = Class.forName(wo.getClassName());
+            final Constructor<?> constructor = ConstructorFinder.getNoParametersConstructor(cls);
+            if (constructor == null) {
+                throw new InvalidControllerConstructorException(String.format(
+                        "\nController %s does not contain a valid constructor.\n"
+                                + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
+                        wo.getClassName()));
             }
-        });
+            try {
+                final SmtpController controller = (SmtpController) constructor.newInstance();
+                final Method method = controller.getClass().getDeclaredMethod("onEmailReceived", Email.class);
+                method.invoke(controller,email);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | InstantiationException ex) {
+                LOGGER.log(Level.SEVERE, null, ex);
+            }
+        } catch (ClassNotFoundException | InvalidControllerConstructorException | IllegalArgumentException | SecurityException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
     }
     
     private final void saveLastFrame(){

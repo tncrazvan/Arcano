@@ -1,7 +1,6 @@
 package com.github.tncrazvan.arcano;
 
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import static com.github.tncrazvan.arcano.SharedObject.ROUTES;
 import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 import com.github.tncrazvan.arcano.Tool.Cluster.Cluster;
 import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
@@ -26,10 +25,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.logging.Level;
-import jdk.internal.joptsimple.internal.Strings;
-
 /**
  * Containst the configuration file objects.
  * @author Razvan
@@ -469,22 +467,30 @@ public class Configuration {
         final AsciiTable controllersTable = new AsciiTable();
         controllersTable.add("TYPE", "PATH", "CLASS");
         
-        ArrayList<String> sortedKeys = new ArrayList<>(ROUTES.keySet());
-        Collections.sort(sortedKeys, new Comparator<String>() {
-            @Override
-            public int compare(String a, String b) {
-              return a.compareTo(b);
+        ArrayList<String> httpTypeKeys = new ArrayList<>(so.HTTP_ROUTES.keySet());
+        Collections.sort(httpTypeKeys, (String a, String b) -> a.compareTo(b));
+        for (String type : httpTypeKeys){
+            HashMap<String, WebObject> routes = so.HTTP_ROUTES.get(type);
+            ArrayList<String> httpRouteKeys = new ArrayList<>(routes.keySet());
+            Collections.sort(httpRouteKeys, (String a, String b) -> a.compareTo(b));
+            
+            for(String route : httpRouteKeys){
+                WebObject wo = routes.get(route);
+                String className = wo.getClassName() == null?"{UNKNOWN CLASS}":wo.getClassName();
+                String methodName = wo.getMethodName() == null?"{UNKNOWN METHOD}":wo.getMethodName();
+                controllersTable.add("HTTP "+type, route, className+"."+methodName);
             }
-        });
-        
-        
-        for(String key : sortedKeys){
-            final WebObject wo = ROUTES.get(key);
-            final String type = wo.getType();
-            final String name = key.substring(type.length());
-            final String methodName = wo.getMethodName()==null?"{?}":wo.getMethodName();
-            controllersTable.add(type, name, wo.getClassName()+"."+methodName);
         }
+        
+        ArrayList<String> webSocketTypeKeys = new ArrayList<>(so.WEB_SOCKET_ROUTES.keySet());
+        Collections.sort(webSocketTypeKeys, (String a, String b) -> a.compareTo(b));
+        for(String route : webSocketTypeKeys){
+            WebObject wo = so.WEB_SOCKET_ROUTES.get(route);
+            //Collections.sort(webSocketTypeKeys, (String a, String b) -> a.compareTo(b));
+            String className = wo.getClassName() == null?"{UNKNOWN CLASS}":wo.getClassName();
+            controllersTable.add("WEB SOCKET", route, className);
+        }
+        
         /*ROUTES.entrySet().forEach((entry) -> {
             final WebObject wo = entry.getValue();
             final String type = wo.getType();

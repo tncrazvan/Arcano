@@ -22,8 +22,10 @@ public abstract class SmtpMessageManager {
     protected final BufferedReader sockin;
     protected final String hostname;
     protected final Socket client;
+    protected final SmtpServer server;
     private String boundary;
     public SmtpMessageManager(final SmtpServer server, final Socket client) throws IOException {
+        this.server = server;
         this.sockout = new PrintWriter(client.getOutputStream(), true);
         this.sockin = new BufferedReader(new InputStreamReader(client.getInputStream()));
         hostname = server.getHostname();

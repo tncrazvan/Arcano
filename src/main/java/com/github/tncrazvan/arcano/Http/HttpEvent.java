@@ -1,12 +1,10 @@
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.Bean.Http.HttpParam;
 import com.github.tncrazvan.arcano.Controller.Http.Get;
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -23,7 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
-import java.util.logging.Logger;
+import com.github.tncrazvan.arcano.Bean.Http.HttpServiceParam;
 
 
 /**
@@ -71,8 +69,8 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         Object[] methodInput = new Object[params.length];
         String paramName;
         for(short i = 0; i < methodInput.length; i++){
-            HttpParam annotation = (HttpParam) params[i].getAnnotation(HttpParam.class);
-            //if the parameter is not defined as an HttpParam...
+            HttpServiceParam annotation = (HttpServiceParam) params[i].getAnnotation(HttpServiceParam.class);
+            //if the parameter is not defined as an HttpServiceParam...
             if(annotation == null){
                 //set it to null.
                 methodInput[i] = null;
@@ -80,13 +78,13 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             }
 
             paramName = 
-                    //if the name of HttpParam is blank...
+                    //if the name of HttpServiceParam is blank...
                     annotation.name().isBlank()?
                     //use the name of the parameter itself
                     params[i].getName()
                     :
                     annotation.name();
-            //NOTE: The name oh HttpParam is blank by default.
+            //NOTE: The name oh HttpServiceParam is blank by default.
 
             //if the query string exists...
             if(controller.issetRequestQueryString(paramName)){
@@ -195,58 +193,55 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     return controller;
                 }
             }
-            String type = reader.request.headers.get("@Method");
-            int classId = -1;
-            String tmp;
             
+            String type = reader.request.headers.get("@Method");
             for (int i = reader.location.length; i > 0; i--) {
-                tmp = type + "/" + String.join("/", Arrays.copyOf(reader.location, i)).toLowerCase();
-                //RESOURCE FOUND
-                if (SharedObject.ROUTES.containsKey(tmp) && SharedObject.ROUTES.get(tmp).getType().equals(type)) {
-                    classId = i - 1;
-                    String[] key = Stream
-                        .concat(Arrays.stream(new String[] { type }), Arrays.stream(reader.location))
-                        .toArray(String[]::new);
-                    WebObject wo = resolveClassName(classId + 1, key);
-                    CompleteAction<Object,HttpEvent> action = wo.getAction();
-                    if(action != null){
-                        HttpController controller = new HttpController();
+                String path = "/" + String.join("/", Arrays.copyOf(reader.location, i)).toLowerCase();
+                HashMap<String, WebObject> method = reader.so.HTTP_ROUTES.get(type);
+                if(method != null){
+                    WebObject route = method.get(path);
+                    //If resource has been found...
+                    if(route != null){
+                        //..try to serve it
+                        CompleteAction<Object,HttpEvent> action = route.getAction();
+                        if(action != null){
+                            HttpController controller = new HttpController();
+                            controller.install(reader);
+                            controller.invokeCompleteAction(action);
+                            return controller;
+                        }
+                        Class<?> cls = Class.forName(route.getClassName());
+                        String methodname = reader.location.length > i - 1 ? route.getMethodName() : "main";
+                        Constructor<?> constructor = ConstructorFinder.getNoParametersConstructor(cls);
+                        if (constructor == null) throw new InvalidControllerConstructorException(
+                            String.format(
+                                "\nController %s does not contain a valid constructor.\n"
+                                + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                                + "Perhaps your class is an inner class and it's not public or static? Try make it a \"public static class\"!",
+                                route.getClassName()
+                            )
+                        );
+                        HttpController controller = (HttpController) constructor.newInstance();
+                        reader.args = resolveMethodArgs(i, reader.location);
                         controller.install(reader);
-                        controller.invokeCompleteAction(action);
-                        return controller;
+                        Method[] methods = controller.getClass().getDeclaredMethods();
+                        for(Method m : methods){
+                            if(!m.getName().equals(methodname)) continue;
+                            controller.invokeMethod(m);
+                            return controller;
+                        }
+                        reader.args = resolveMethodArgs(i - 1, reader.location);
+                        for(Method m : methods){
+                            if(!m.getName().equals("main")) continue;
+                            controller.invokeMethod(m);
+                            return controller;
+                        }
+                        throw new NoSuchMethodException("Method Name not set.");
                     }
-                    Class<?> cls = Class.forName(wo.getClassName());
-                    String methodname = reader.location.length > classId ? wo.getMethodName() : "main";
-                    Constructor<?> constructor = ConstructorFinder.getNoParametersConstructor(cls);
-                    if (constructor == null) throw new InvalidControllerConstructorException(
-                        String.format(
-                            "\nController %s does not contain a valid constructor.\n"
-                            + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                            + "Perhaps your class is an inner class and it's not public or static? Try make it a \"public static class\"!",
-                            wo.getClassName()
-                        )
-                    );
-                    HttpController controller = (HttpController) constructor.newInstance();
-                    reader.args = resolveMethodArgs(classId + 1, reader.location);
-                    controller.install(reader);
-                    Method[] methods = controller.getClass().getDeclaredMethods();
-                    for(Method m : methods){
-                        if(!m.getName().equals(methodname)) continue;
-                        controller.invokeMethod(m);
-                        return controller;
-                    }
-                    reader.args = resolveMethodArgs(classId, reader.location);
-                    for(Method m : methods){
-                        if(!m.getName().equals("main")) continue;
-                        controller.invokeMethod(m);
-                        return controller;
-                    }
-                    throw new NoSuchMethodException("Method Name not set.");
                 }
             }
-            //TRY SERVE THE DEFAULT RESOURCE
-            if(reader.location[0].equals("/") && reader.so.ROUTES.containsKey(SharedObject.HTTP_SERVICE_TYPE_DEFAULT)){
-                WebObject wo = reader.so.ROUTES.get(SharedObject.HTTP_SERVICE_TYPE_DEFAULT);
+            WebObject wo = reader.so.HTTP_SPECIAL_ROUTES_DEFAULT.get(type);
+            if(wo != null){
                 if(wo.getAction() != null){
                     CompleteAction<Object,HttpEvent> action = wo.getAction();
                     HttpController controller = new HttpController();
@@ -267,18 +262,19 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     }
                     return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
                 }
-            }else if(reader.so.ROUTES.containsKey(SharedObject.HTTP_SERVICE_TYPE_404)){
-                WebObject o = reader.so.ROUTES.get(SharedObject.HTTP_SERVICE_TYPE_404);
-                if(o.getAction() != null){
-                    CompleteAction<Object,HttpEvent> action = o.getAction();
+            }
+            wo = reader.so.HTTP_SPECIAL_ROUTES_404.get(type);
+            if(wo != null){
+                CompleteAction<Object,HttpEvent> action = wo.getAction();
+                if(action != null){
                     HttpController controller = new HttpController();
                     controller.install(reader);
                     controller.invokeCompleteAction(action);
                         return controller;
                 }else {
-                    Class<?> cls = Class.forName(o.getClassName());
+                    Class<?> cls = Class.forName(wo.getClassName());
                     Constructor<?> constructor = cls.getDeclaredConstructor();
-                    String methodname = o.getMethodName();
+                    String methodname = wo.getMethodName();
                     if (constructor == null) throw new InvalidControllerConstructorException(
                         String.format(
                             "\nController %s does not contain a valid constructor.\n"
@@ -334,9 +330,9 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         return controller;
     }
 
-    // public static void onControllerRequest(final StringBuilder url,String
+    // public static void serve(final StringBuilder url,String
     // httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName) {
-    public static final void onControllerRequest(final HttpRequestReader reader) {
+    public static final void serve(final HttpRequestReader reader) {
         final HttpController controller = factory(reader);
         if(controller != null ) controller.close();
     } 

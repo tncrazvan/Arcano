@@ -1,11 +1,20 @@
 package com.github.tncrazvan.arcano.WebSocket;
 
+import com.github.tncrazvan.arcano.Http.HttpController;
+import com.github.tncrazvan.arcano.Http.HttpEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import com.github.tncrazvan.arcano.Http.HttpRequestReader;
+import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
+import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
 import com.github.tncrazvan.arcano.WebObject;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 
@@ -15,26 +24,37 @@ import java.util.stream.Stream;
  */
 public abstract class WebSocketEvent extends WebSocketEventManager{
     
-    public static final void serveController(final HttpRequestReader reader)
-            throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException,
-            InvocationTargetException, NoSuchMethodException, IOException {
-        WebSocketController controller;
-        Class<?> cls;
-        try {
-            final int classId = getClassnameIndex(reader.location, "WS");
-            final String[] typedLocation = Stream.concat(Arrays.stream(new String[] { "WS" }), Arrays.stream(reader.location))
-                    .toArray(String[]::new);
-            final WebObject wo = resolveClassName(classId + 1, typedLocation);
-            cls = Class.forName(wo.getClassName());
-            controller = (WebSocketController) cls.getDeclaredConstructor().newInstance();
-            reader.args = resolveMethodArgs(classId + 1, reader.location);
-        } catch (final ClassNotFoundException ex) {
-            reader.args = resolveMethodArgs(0, reader.location);
-            cls = Class.forName(reader.so.config.webSocket.controllerNotFound.getClassName());
-            controller = (WebSocketController) cls.getDeclaredConstructor().newInstance();
+    public static final void serve(HttpRequestReader reader){
+        if(reader.location.length == 0 || "".equals(reader.location[0]))
+            reader.location = new String[]{"/"};
+        for (int i = reader.location.length; i > 0; i--) {
+            String path = "/" + String.join("/", Arrays.copyOf(reader.location, i)).toLowerCase();
+            instantPack(reader, reader.so.WEB_SOCKET_ROUTES.get(path));
         }
-        controller.install(reader);
-        controller.execute();
+    }
+    
+    private static void instantPack(HttpRequestReader reader,WebObject wo) {
+        if(wo != null){
+            try{
+                Class<?> cls = Class.forName(wo.getClassName());
+                Constructor<?> constructor = cls.getDeclaredConstructor();
+                if (constructor == null) throw new InvalidControllerConstructorException(
+                    String.format(
+                        "\nController %s does not contain a valid constructor.\n"
+                        + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                        + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
+                        cls.getName()
+                    )
+                );
+                WebSocketController controller = (WebSocketController) constructor.newInstance();
+                controller.install(reader);
+                controller.execute();
+            }catch(ClassNotFoundException e){
+                instantPack(reader, reader.so.WEB_SOCKET_ROUTES_NOT_FOUND);
+            }catch(InvalidControllerConstructorException | NoSuchMethodException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e){
+                LOGGER.log(Level.SEVERE, null, e);
+            }
+        }
     }
 
     protected abstract void onOpen();

@@ -11,13 +11,11 @@ public class WebObject {
     private final CompleteAction<Object,HttpEvent> action;
     private final String classname;
     private final String methodname;
-    private final String type;
     
-    public WebObject(final CompleteAction<Object,HttpEvent> action, final String CLASSNAME, final String METRHOD_NAME, final String TYPE) {
+    public WebObject(final CompleteAction<Object,HttpEvent> action, final String CLASSNAME, final String METRHOD_NAME) {
         this.action = action;
         this.classname = CLASSNAME;
         this.methodname = METRHOD_NAME;
-        this.type = TYPE;
     }
     
     public final CompleteAction<Object,HttpEvent> getAction(){
@@ -30,9 +28,5 @@ public class WebObject {
     
     public final String getMethodName(){
         return this.methodname;
-    }
-    
-    public final String getType(){
-        return this.type;
     }
 }

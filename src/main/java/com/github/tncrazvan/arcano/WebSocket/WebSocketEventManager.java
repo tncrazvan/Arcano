@@ -38,14 +38,35 @@ public abstract class WebSocketEventManager extends EventManager{
             @Override
             public void run() {
                 try {
-                    final String acceptKey = DatatypeConverter.printBase64Binary(getSha1Bytes(
-                            reader.request.headers.get("Sec-WebSocket-Key") + reader.so.WEBSOCKET_ACCEPT_KEY, reader.so.config.charset));
+                    final String acceptKey = 
+                            DatatypeConverter
+                                .printBase64Binary(
+                                    getSha1Bytes(
+                                        reader
+                                            .request
+                                                .headers
+                                                    .get("Sec-WebSocket-Key") + 
+                                        reader
+                                            .so
+                                                .WEBSOCKET_ACCEPT_KEY, 
+                                        reader
+                                            .so
+                                                .config
+                                                    .charset
+                                    )
+                                );
 
                     responseHeaders.set("@Status", Status.STATUS_SWITCHING_PROTOCOLS);
                     responseHeaders.set("Connection", "Upgrade");
                     responseHeaders.set("Upgrade", "websocket");
                     responseHeaders.set("Sec-WebSocket-Accept", acceptKey);
-                    reader.output.write((responseHeaders.toString() + "\r\n").getBytes());
+                    reader.output.write(
+                            (
+                                    responseHeaders.toString()
+                                    + "\r\n"
+                            )
+                                    .getBytes()
+                    );
                     reader.output.flush();
                     manageOnOpen();
                     final InputStream read = reader.client.getInputStream();

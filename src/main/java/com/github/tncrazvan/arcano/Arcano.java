@@ -27,7 +27,6 @@ import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -176,7 +175,7 @@ public class Arcano extends SharedObject {
 
             if(config.smtp.enabled)
                 if (!config.smtp.hostname.equals("")) {
-                    smtpServer = new SmtpServer(new ServerSocket(), config.smtp.bindAddress, config.smtp.port,
+                    smtpServer = new SmtpServer(new ServerSocket(), this,config.smtp.bindAddress, config.smtp.port,
                             config.smtp.hostname);
                     new Thread(smtpServer).start();
                 } else {

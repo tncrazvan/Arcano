@@ -2,18 +2,18 @@ package com.github.tncrazvan.arcano.Controller.Http;
 
 import com.github.tncrazvan.arcano.Http.HttpController;
 import java.io.IOException;
-import com.github.tncrazvan.arcano.Bean.Http.HttpDefault;
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
 import java.io.File;
 import jdk.internal.joptsimple.internal.Strings;
+import com.github.tncrazvan.arcano.Bean.Http.HttpServiceDefault;
 
 /**
  *
  * @author Administrator
  */
 public class FileService extends HttpController {
-    @HttpDefault
+    @HttpServiceDefault
     public File main() throws IOException, ClassNotFoundException {
         if(reader.args.length == 0) 
             reader.args = new String[]{reader.so.config.entryPoint};

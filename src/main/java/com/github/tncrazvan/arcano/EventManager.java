@@ -119,30 +119,34 @@ public abstract class EventManager{
     }
 
     // FOR HTTP
-    protected static final int getClassnameIndex(final String[] location, final String httpMethod)
+    protected static final WebObject getHttpWebObject(HttpRequestReader reader, final String[] location, final String httpMethod)
             throws ClassNotFoundException {
-        String tmp;
         for (int i = location.length; i > 0; i--) {
-            tmp = httpMethod + "/" + String.join("/", Arrays.copyOf(location, i)).toLowerCase();
-            if (SharedObject.ROUTES.containsKey(tmp) && SharedObject.ROUTES.get(tmp).getType().equals(httpMethod)) {
-                return i - 1;
+            String tmp = "/" + String.join("/", Arrays.copyOf(location, i)).toLowerCase();
+            HashMap<String, WebObject> method = reader.so.HTTP_ROUTES.get(httpMethod);
+            if(method != null){
+                WebObject route = method.get(tmp);
+                if(route != null){
+                    return route;
+                }
             }
         }
         throw new ClassNotFoundException();
     }
 
-    protected static final WebObject resolveClassName(final int classId, final String[] location) {
-        String classname = "";
-        for (int i = 0; i <= classId; i++) {
-            if (i > 0) {
-                classname += "/" + location[i].toLowerCase();
-            } else
-                classname += location[i];
+    // FOR WEBSOCKET
+    protected static final WebObject getWebSocketWebObject(HttpRequestReader reader, final String[] location, final String httpMethod)
+            throws ClassNotFoundException {
+        for (int i = location.length; i > 0; i--) {
+            String path = "/" + String.join("/", Arrays.copyOf(location, i)).toLowerCase();
+            WebObject route = reader.so.WEB_SOCKET_ROUTES.get(httpMethod);
+            if(route != null){
+                return route;
+            }
         }
-
-        return SharedObject.ROUTES.get(classname);
+        throw new ClassNotFoundException();
     }
-
+    
     protected static final String[] resolveMethodArgs(final int offset, final String[] location) {
         String[] args = new String[0];
         if (location.length - 1 > offset - 1) {

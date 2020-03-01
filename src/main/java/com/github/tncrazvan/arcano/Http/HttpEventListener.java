@@ -16,6 +16,7 @@ import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import static com.github.tncrazvan.arcano.Tool.System.Time.toLocalDateTime;
+import java.net.SocketException;
 /**
  *
  * @author Razvan
@@ -32,52 +33,62 @@ public class HttpEventListener extends HttpRequestReader{
         super(so, client);
     }
 
+    
     @Override
     public final void onRequest() {
         if (request.headers != null && request.headers.get("Connection") != null) {
             matcher = UPGRADE_PATTERN.matcher(request.headers.get("Connection"));
             if (matcher.find()) {
                 matcher = WEB_SOCKET_PATTERN.matcher(request.headers.get("Upgrade"));
-                // WebSocket connection
-                if (matcher.find()) {
-                        try{
-                            WebSocketController.serveController(this);
-                        }catch(Exception e){
-                            LOGGER.log(Level.SEVERE, null, e);
-                        }
-                } else {
-                    matcher = HTTP2_PATTERN.matcher(request.headers.get("Upgrade"));
-                    // Http 2.x connection
-                    if (matcher.find()) {
-                        System.out.println("Http 2.0 connection detected. Not yet implemented.");
-                    }
-                }
+                // Upgrade connection
+                upgrade();
             } else {
-                try {
-                    client.setSoTimeout(so.config.timeout);
-                    // default connection, assuming it's Http 1.x
-
-                    // HttpHeaders headers = controller.getResponseHttpHeaders();
-                    final File f = new File(so.config.webRoot + locationBuilder);
-                    if (f.exists()) {
-                        if (!f.isDirectory()) {
-                            final HttpController controller = new HttpController().install(this);
-                            
-                            controller.setResponseHeaderField("Content-Type", resolveContentType(locationBuilder.toString()));
-                            controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(toLocalDateTime(londonTimezone,f.lastModified())));
-                            controller.setResponseHeaderField("Last-Modified-Timestamp",f.lastModified()+"");
-                            controller.send(f);
-                        }else{
-                            //String httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName
-                            HttpController.onControllerRequest(this);
-                        }
-                    }else{
-                        //controller.setResponseHeaderField("Content-Type", "text/html");
-                        HttpController.onControllerRequest(this);
-                    }
-                } catch (final IOException ex) {
-                    LOGGER.log(Level.SEVERE,null,ex);
+                http();
+            }
+        }
+    }
+    
+    
+    private void http(){
+        try {
+            client.setSoTimeout(so.config.timeout);
+            // default connection, assuming it's Http 1.x
+            
+            // HttpHeaders headers = controller.getResponseHttpHeaders();
+            final File f = new File(so.config.webRoot + locationBuilder);
+            if (f.exists()) {
+                if (!f.isDirectory()) {
+                    final HttpController controller = new HttpController().install(this);
+                    
+                    controller.setResponseHeaderField("Content-Type", resolveContentType(locationBuilder.toString()));
+                    controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(toLocalDateTime(londonTimezone,f.lastModified())));
+                    controller.setResponseHeaderField("Last-Modified-Timestamp",f.lastModified()+"");
+                    controller.send(f);
+                }else{
+                    //String httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName
+                    HttpController.serve(this);
                 }
+            }else{
+                //controller.setResponseHeaderField("Content-Type", "text/html");
+                HttpController.serve(this);
+            }
+        } catch (SocketException ex) {
+            LOGGER.log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private void upgrade(){
+        if (matcher.find()) {
+                try{
+                    WebSocketController.serve(this);
+                }catch(Exception e){
+                    LOGGER.log(Level.SEVERE, null, e);
+                }
+        } else {
+            matcher = HTTP2_PATTERN.matcher(request.headers.get("Upgrade"));
+            // Http 2.x connection
+            if (matcher.find()) {
+                System.out.println("Http 2.0 connection detected. Not yet implemented.");
             }
         }
     }

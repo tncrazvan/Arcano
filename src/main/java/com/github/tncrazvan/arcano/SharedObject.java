@@ -20,17 +20,17 @@ import com.github.tncrazvan.arcano.Smtp.SmtpController;
 import com.github.tncrazvan.arcano.Tool.Strings;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.util.concurrent.ExecutorService;
-import com.github.tncrazvan.arcano.Bean.Http.HttpNotFound;
-import com.github.tncrazvan.arcano.Bean.Http.HttpDefault;
 import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketNotFound;
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketService;
 import com.github.tncrazvan.arcano.Http.HttpEvent;
 import com.github.tncrazvan.arcano.Http.HttpHeaders;
-import com.github.tncrazvan.arcano.Http.HttpRequestReader;
 import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
 import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
+import com.github.tncrazvan.arcano.Bean.Http.HttpServiceNotFound;
+import com.github.tncrazvan.arcano.Bean.Http.HttpServiceDefault;
+import java.util.Arrays;
 
 /**
  * 
@@ -49,7 +49,46 @@ public class SharedObject implements Strings{
     public static final Runtime RUNTIME = Runtime.getRuntime();
     public static final ProcessBuilder PROCESS_BUILDER = new ProcessBuilder();
     //ROUTING
-    public static final HashMap<String, WebObject> ROUTES = new HashMap<>();
+    //public static final HashMap<String, WebObject> ROUTES = new HashMap<>();
+    
+    //HTTP ROUTES
+    public final HashMap<String, HashMap<String,WebObject>> HTTP_ROUTES = new HashMap<String, HashMap<String,WebObject>>(){{
+        put("GET", new HashMap<String,WebObject>(){{}});
+        put("HEAD", new HashMap<String,WebObject>(){{}});
+        put("POST", new HashMap<String,WebObject>(){{}});
+        put("PUT", new HashMap<String,WebObject>(){{}});
+        put("DELETE", new HashMap<String,WebObject>(){{}});
+        put("CONNECT", new HashMap<String,WebObject>(){{}});
+        put("CONNECT", new HashMap<String,WebObject>(){{}});
+        put("PATCH", new HashMap<String,WebObject>(){{}});
+    }};
+    
+    //HTTP SPECIAL ROUTES
+    public final HashMap<String, WebObject> HTTP_SPECIAL_ROUTES_404 = new HashMap<String, WebObject>(){{
+        put("GET", null);
+        put("HEAD", null);
+        put("POST", null);
+        put("PUT", null);
+        put("DELETE", null);
+        put("CONNECT", null);
+        put("CONNECT", null);
+        put("PATCH", null);
+    }};
+    public final HashMap<String, WebObject> HTTP_SPECIAL_ROUTES_DEFAULT = new HashMap<String, WebObject>(){{
+        put("GET", null);
+        put("HEAD", null);
+        put("POST", null);
+        put("PUT", null);
+        put("DELETE", null);
+        put("CONNECT", null);
+        put("CONNECT", null);
+        put("PATCH", null);
+    }};
+    
+    public WebObject SMTP_ROUTE = null;
+    
+    public final HashMap<String, WebObject> WEB_SOCKET_ROUTES = new HashMap<String,WebObject>(){{}};
+    public WebObject WEB_SOCKET_ROUTES_NOT_FOUND = null;
     //LOCALE & DATES
     public static final Calendar CALENDAR = Calendar.getInstance();
     public static final Date DATE = new Date();
@@ -72,8 +111,6 @@ public class SharedObject implements Strings{
     }},"").resolve();
     //DEFAULT PROJECT NAMES
     public static final String NAME_SESSION_ID = "JavaSessionID";
-    public static final String HTTP_SERVICE_TYPE_404 = "HTTP 404";
-    public static final String HTTP_SERVICE_TYPE_DEFAULT = "HTTP DEFAULT";
     public final void expose(String type,CompleteAction<Object,HttpEvent>  action){
         expose(type, null, false, action);
     }
@@ -81,13 +118,14 @@ public class SharedObject implements Strings{
         expose(type, path, false, action);
     }
     public final void expose(String type, String path, boolean locked,CompleteAction<Object,HttpEvent>  action){
-        final WebObject wo = new WebObject(
-            action,
-            null, 
-            null, 
-            type
-        );
-        ROUTES.put(type.toUpperCase() + (path != null?normalizePathSlashes(path):""), wo);
+        if(HTTP_ROUTES.containsKey(type))
+            HTTP_ROUTES
+                .get(type)
+                    .put(normalizePathSlashes(path), new WebObject(
+                        action,
+                        null,
+                        null
+                    ));
     }
     public final void expose(Class<?>... classes) {
         for (Class<?> cls : classes) {
@@ -95,56 +133,70 @@ public class SharedObject implements Strings{
                 if (HttpController.class.isAssignableFrom(cls)) {
                     Method[] methods = cls.getDeclaredMethods();
                     for (Method method : methods) {
-                    	HttpService service = method.getAnnotation(HttpService.class);
+                    	HttpService httpService = method.getAnnotation(HttpService.class);
                     	HttpService classService = cls.getAnnotation(HttpService.class);
-                        if (service != null) {
-                            final WebObject wo = new WebObject(
-                                null,
-                                cls.getName(), 
-                                method.getName(), 
-                                service.method()
-                            );
-                            ROUTES.put(service.method() + normalizePathSlashes((classService != null?classService.path():"")+"/"+service.path()), wo);
+                        if (httpService != null) {
+                            String[] types = httpService.method();
+                            WebObject wo = new WebObject(null,cls.getName(),method.getName());
+                            String 
+                                    path = (classService != null?classService.path()+"/":"");
+                                    path += httpService.path().startsWith("/")?httpService.path():"/"+httpService.path();
+                            if(Arrays.asList(types).contains("*")){
+                                for (Map.Entry<String, HashMap<String, WebObject>> t : HTTP_ROUTES.entrySet()) {
+                                    t
+                                        .getValue()
+                                            .put(path, wo);
+                                }
+                            } else for(int i = 0;i < types.length;i++){
+                                if(HTTP_ROUTES.containsKey(types[i]))
+                                    HTTP_ROUTES
+                                        .get(types[i])
+                                            .put(path, wo);
+                            }
                         }
-                        if (method.getAnnotation(HttpNotFound.class) != null) {
-                            WebObject wo = new WebObject(
-                                null,
-                                cls.getName(), 
-                                method.getName(), 
-                                HTTP_SERVICE_TYPE_404
-                            );
-                            ROUTES.put(HTTP_SERVICE_TYPE_404, wo);
-                            this.config.http.controllerNotFound = wo;
+                        HttpServiceNotFound httpServiceNotFound = method.getAnnotation(HttpServiceNotFound.class);
+                        if (httpServiceNotFound != null) {
+                            String[] types = httpServiceNotFound.method();
+                            WebObject wo = new WebObject(null,cls.getName(),method.getName());
+                            
+                            if(Arrays.asList(types).contains("*")){
+                                for (Map.Entry<String, WebObject> route404 : HTTP_SPECIAL_ROUTES_DEFAULT.entrySet()) {
+                                    route404.setValue(wo);
+                                }
+                            }else for(int i = 0;i < types.length;i++){
+                                if(HTTP_SPECIAL_ROUTES_404.containsKey(types[i]))
+                                    HTTP_SPECIAL_ROUTES_404
+                                        .put(types[i], wo);
+                            }
                         }
-                        if (method.getAnnotation(HttpDefault.class) != null) {
-                            WebObject wo = new WebObject(
-                                null,
-                                cls.getName(), 
-                                method.getName(), 
-                                HTTP_SERVICE_TYPE_DEFAULT
-                            );
-                            ROUTES.put(HTTP_SERVICE_TYPE_DEFAULT, wo);
-                            this.config.http.controllerDefault = wo;
+                        HttpServiceDefault httpServiceDefault = method.getAnnotation(HttpServiceDefault.class);
+                        if (httpServiceDefault != null) {
+                            String[] types = httpServiceDefault.method();
+                            WebObject wo = new WebObject(null,cls.getName(),method.getName());
+                            if(Arrays.asList(types).contains("*")){
+                                for (Map.Entry<String, WebObject> routeDefault : HTTP_SPECIAL_ROUTES_DEFAULT.entrySet()) {
+                                    routeDefault.setValue(wo);
+                                }
+                            }else for(int i = 0;i < types.length;i++){
+                                if(HTTP_SPECIAL_ROUTES_DEFAULT.containsKey(types[i]))
+                                    HTTP_SPECIAL_ROUTES_DEFAULT
+                                        .put(types[i], wo);
+                            }
                         }
                     }
                 } else if (WebSocketController.class.isAssignableFrom(cls)) {
-                    WebSocketService service = (WebSocketService) cls.getAnnotation(WebSocketService.class);
-                    if (service != null) {
-                        String type = "WS";
-                        WebObject wo = new WebObject(null,cls.getName(), null, type);
-                        ROUTES.put(type + service.path().replaceAll("/+", "/"), wo);
+                    WebSocketService webSocketService = (WebSocketService) cls.getAnnotation(WebSocketService.class);
+                    WebObject wo = new WebObject(null, cls.getName(), null);
+                    if (webSocketService != null){
+                        String path = (webSocketService != null?webSocketService.path():"");
+                        WEB_SOCKET_ROUTES.put(path, wo);
                     }
-                    if (cls.getAnnotation(WebSocketNotFound.class) != null){
-                        String type = "WS 404";
-                        WebObject wo = new WebObject(null,cls.getName(), null, type);
-                        ROUTES.put(type, wo);
-                        this.config.webSocket.controllerNotFound = wo;
-                    }
+                    if (cls.getAnnotation(WebSocketNotFound.class) != null)
+                        WEB_SOCKET_ROUTES_NOT_FOUND = wo;
                 } else if (SmtpController.class.isAssignableFrom(cls)) {
-                    SmtpService service = (SmtpService) cls.getAnnotation(SmtpService.class);
-                    String type = "SMTP";
-                    WebObject wo = new WebObject(null,cls.getName(), null, type);
-                    ROUTES.put(type, wo);
+                    SmtpService smtpService = (SmtpService) cls.getAnnotation(SmtpService.class);
+                    if(smtpService != null)
+                        SMTP_ROUTE = new WebObject(null,cls.getName(), null);
                 }
             } catch (SecurityException | IllegalArgumentException  ex) {
                 LOGGER.log(Level.SEVERE, null, ex);

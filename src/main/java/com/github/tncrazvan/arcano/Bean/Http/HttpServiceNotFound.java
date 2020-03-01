@@ -15,4 +15,6 @@ import java.lang.annotation.Target;
 @Target(value = {ElementType.METHOD})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
-public @interface HttpNotFound {}
+public @interface HttpServiceNotFound {
+    public String[] method() default {"GET"};
+}

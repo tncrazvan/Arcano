@@ -12,7 +12,9 @@ import java.lang.annotation.Target;
  */
 
 
-@Target(value = {ElementType.METHOD})
+@Target(value = {ElementType.PARAMETER})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
-public @interface HttpDefault {}
+public @interface HttpServiceParam {
+    public String name() default "";
+}

@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano.Smtp;
 
 import com.github.tncrazvan.arcano.SharedObject;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -11,7 +12,7 @@ import java.util.logging.Level;
  *
  * @author razvan
  */
-public class SmtpServer extends SharedObject implements Runnable{
+public class SmtpServer implements Runnable{
 
     /**
      * @param args the command line arguments
@@ -19,11 +20,13 @@ public class SmtpServer extends SharedObject implements Runnable{
     
     private final ArrayList<SmtpListener> listeners = new ArrayList<>();
     private final ServerSocket ss;
+    public final SharedObject so;
     private String hostname = "";
     
-    public SmtpServer(final ServerSocket ss, final String bindAddress, final int port, final String hostname)
+    public SmtpServer(final ServerSocket ss, SharedObject so, final String bindAddress, final int port, final String hostname)
             throws IOException {
         this.ss = ss;
+        this.so = so;
         ss.bind(new InetSocketAddress(bindAddress, port));
         this.hostname = hostname;
     }
@@ -34,7 +37,7 @@ public class SmtpServer extends SharedObject implements Runnable{
 
     @Override
     public final void run() {
-        while (config.listen) {
+        while (this.so.config.listen) {
             try {
                 final EmailReader emailReader = new EmailReader(this, ss.accept(), listeners);
                 emailReader.parse();
