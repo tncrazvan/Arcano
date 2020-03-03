@@ -112,12 +112,9 @@ public class SharedObject implements Strings{
     //DEFAULT PROJECT NAMES
     public static final String NAME_SESSION_ID = "JavaSessionID";
     public final void expose(String type,CompleteAction<Object,HttpEvent>  action){
-        expose(type, null, false, action);
+        expose(type, null, action);
     }
     public final void expose(String type, String path,CompleteAction<Object,HttpEvent>  action){
-        expose(type, path, false, action);
-    }
-    public final void expose(String type, String path, boolean locked,CompleteAction<Object,HttpEvent>  action){
         if(HTTP_ROUTES.containsKey(type))
             HTTP_ROUTES
                 .get(type)
