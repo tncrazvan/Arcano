@@ -56,8 +56,8 @@ public class Arcano extends SharedObject {
      * @return The classes
      * @throws ClassNotFoundException
      */
-    private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
-        List<Class> classes = new ArrayList<>();
+    private static List<Class<?>> findClasses(File directory, String packageName) throws ClassNotFoundException {
+        List<Class<?>> classes = new ArrayList<>();
         if (!directory.exists()) {
             return classes;
         }
@@ -81,7 +81,7 @@ public class Arcano extends SharedObject {
     * @throws ClassNotFoundException
     * @throws IOException
     */
-   private static Class[] getClasses(Package pckg) throws ClassNotFoundException, IOException {
+   private static Class<?>[] getClasses(Package pckg) throws ClassNotFoundException, IOException {
        String packageName = pckg.getName();
        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
        assert classLoader != null;
@@ -92,11 +92,11 @@ public class Arcano extends SharedObject {
            URL resource = resources.nextElement();
            dirs.add(new File(resource.getFile()));
        }
-       ArrayList<Class> classes = new ArrayList<>();
+       ArrayList<Class<?>> classes = new ArrayList<>();
        for (File directory : dirs) {
            classes.addAll(findClasses(directory, packageName));
        }
-       return classes.toArray(new Class[classes.size()]);
+       return classes.toArray(new Class<?>[classes.size()]);
    }
     
     
@@ -108,8 +108,8 @@ public class Arcano extends SharedObject {
      */
     public Arcano(Package pckg) {
         try {
-            Class[] clss = getClasses(pckg);
-            for(Class cls : clss){
+            Class<?>[] clss = getClasses(pckg);
+            for(Class<?> cls : clss){
                 try{
                     Object o = cls.getDeclaredConstructor().newInstance();
                     boolean a = o instanceof HttpController;
