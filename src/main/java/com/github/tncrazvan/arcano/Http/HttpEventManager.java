@@ -121,17 +121,30 @@ public abstract class HttpEventManager extends EventManager{
             close();
         }
     }
-
+    /**
+     * Send data to the client.The first time this method is called within an
+     * HttpEvent, it will also call the sendHeaders() method, to make sure the
+     * headers are always sent before the body.<br />
+     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+     * This means that whatever http headers are being set after the first
+     * time this method is called are completely ignored. Calling this method is the
+     * same as returning a Object from your HttpController method. <br />
+     * There is really no good reason to call this method from within your HttpController.
+     * 
+     * @param data data to be sent.
+     */
     public final void send(byte[] data) {
         send(data,true);
     }
     /**
      * Send data to the client.The first time this method is called within an
-     * HttpEvent, it will also call the sendHEaders() method, to make sure the
-     * headers. This means that whatever http headers are being set after the first
+     * HttpEvent, it will also call the sendHeaders() method, to make sure the
+     * headers are always sent before the body.<br />
+     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+     * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
-     * same as returning a Object from your HttpController method. There is really
-     * no good reason to call this method from within your HttpController.
+     * same as returning a Object from your HttpController method. <br />
+     * There is really no good reason to call this method from within your HttpController.
      * 
      * @param data data to be sent.
      * @param includeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
@@ -180,12 +193,14 @@ public abstract class HttpEventManager extends EventManager{
         sendHeaders();
     }
     /**
-     * Send data to the client. The first time this method is called within an
-     * HttpEvent, it will also call the sendHEaders() method, to make sure the
-     * headers. This means that whatever http headers are being set after the first
+     * Send data to the client.The first time this method is called within an
+     * HttpEvent, it will also call the sendHeaders() method, to make sure the
+     * headers are always sent before the body.<br />
+     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+     * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
-     * same as returning a Object from your HttpController method. There is really
-     * no good reason to call this method from within your HttpController.
+     * same as returning a Object from your HttpController method. <br />
+     * There is really no good reason to call this method from within your HttpController.
      * 
      * @param data data to be sent.
      */
@@ -193,12 +208,14 @@ public abstract class HttpEventManager extends EventManager{
         send(data,true);
     }
     /**
-     * Send data to the client. The first time this method is called within an
-     * HttpEvent, it will also call the sendHEaders() method, to make sure the
-     * headers. This means that whatever http headers are being set after the first
+     * Send data to the client.The first time this method is called within an
+     * HttpEvent, it will also call the sendHeaders() method, to make sure the
+     * headers are always sent before the body.<br />
+     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+     * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
-     * same as returning a Object from your HttpController method. There is really
-     * no good reason to call this method from within your HttpController.
+     * same as returning a Object from your HttpController method. <br />
+     * There is really no good reason to call this method from within your HttpController.
      * 
      * @param data data to be sent.
      * @param includeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
@@ -228,12 +245,14 @@ public abstract class HttpEventManager extends EventManager{
     }
     
     /**
-     * Send data to the client. The first time this method is called within an
-     * HttpEvent, it will also call the sendHEaders() method, to make sure the
-     * headers. This means that whatever http headers are being set after the first
+     * Send data to the client.The first time this method is called within an
+     * HttpEvent, it will also call the sendHeaders() method, to make sure the
+     * headers are always sent before the body.<br />
+     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+     * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
-     * same as returning a Object from your HttpController method. There is really
-     * no good reason to call this method from within your HttpController.
+     * same as returning a Object from your HttpController method. <br />
+     * There is really no good reason to call this method from within your HttpController.
      * 
      * @param data data to be sent.
      */
@@ -278,12 +297,14 @@ public abstract class HttpEventManager extends EventManager{
     }
 
     /**
-     * Send data to the client. The first time this method is called within an
-     * HttpEvent, it will also call the sendHEaders() method, to make sure the
-     * headers. This means that whatever http headers are being set after the first
+     * Send data to the client.The first time this method is called within an
+     * HttpEvent, it will also call the sendHeaders() method, to make sure the
+     * headers are always sent before the body.<br />
+     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+     * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
-     * same as returning a Object from your HttpController method. There is really
-     * no good reason to call this method from within your HttpController.
+     * same as returning a Object from your HttpController method. <br />
+     * There is really no good reason to call this method from within your HttpController.
      * 
      * @param data data to be sent.
      */
