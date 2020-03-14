@@ -2,6 +2,7 @@ package com.github.tncrazvan.arcano.Http;
 
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
+import com.github.tncrazvan.arcano.Tool.Strings;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -14,7 +15,6 @@ import java.util.logging.Level;
  * @author razvan
  */
 public class HttpController extends HttpEvent implements HttpControllerFeatures{
-    
     public final HttpController install(final HttpRequestReader reader) {
         try {
             this.setResponseHttpHeaders(new HttpHeaders());

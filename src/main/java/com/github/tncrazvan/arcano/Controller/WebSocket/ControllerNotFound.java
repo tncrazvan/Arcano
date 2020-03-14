@@ -1,7 +1,7 @@
 package com.github.tncrazvan.arcano.Controller.WebSocket;
 
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketMessage;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketCommit;
 import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketNotFound;
 
 /**
@@ -16,7 +16,7 @@ public class ControllerNotFound extends WebSocketController{
     }
 
     @Override
-    public void onMessage(final WebSocketMessage message) {}
+    public void onMessage(final WebSocketCommit message) {}
 
     @Override
     public void onClose() {}

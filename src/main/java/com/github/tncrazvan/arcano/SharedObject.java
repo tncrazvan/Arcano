@@ -30,7 +30,10 @@ import com.github.tncrazvan.arcano.Tool.Http.Status;
 import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
 import com.github.tncrazvan.arcano.Bean.Http.HttpServiceNotFound;
 import com.github.tncrazvan.arcano.Bean.Http.HttpServiceDefault;
+import com.github.tncrazvan.arcano.Http.HttpEventManager;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketEventManager;
 import java.util.Arrays;
+import java.util.LinkedList;
 
 /**
  * 
@@ -47,6 +50,10 @@ public class SharedObject implements Strings{
     public static final String NO_COMPRESSION="",DEFLATE="deflate",GZIP="gzip";
     //SYSTEM RUNTIME & PROCESS BUILDERS
     public static final Runtime RUNTIME = Runtime.getRuntime();
+    
+    public final HashMap<String,WebSocketEventManager> webSocketEventManager = new HashMap<>();
+    public final LinkedList<WebSocketEventManager> oldWebSocketEventManager = new LinkedList();
+    
     public static final ProcessBuilder PROCESS_BUILDER = new ProcessBuilder();
     //ROUTING
     //public static final HashMap<String, WebObject> ROUTES = new HashMap<>();
@@ -136,8 +143,8 @@ public class SharedObject implements Strings{
                             String[] types = httpService.method();
                             WebObject wo = new WebObject(null,cls.getName(),method.getName());
                             String 
-                                    path = (classService != null?classService.path()+"/":"");
-                                    path += httpService.path().startsWith("/")?httpService.path():"/"+httpService.path();
+                                    path = (classService != null?classService.path().toLowerCase()+"/":"");
+                                    path += httpService.path().toLowerCase().startsWith("/")?httpService.path().toLowerCase():"/"+httpService.path().toLowerCase();
                             if(Arrays.asList(types).contains("*")){
                                 for (Map.Entry<String, HashMap<String, WebObject>> t : HTTP_ROUTES.entrySet()) {
                                     t
@@ -185,7 +192,7 @@ public class SharedObject implements Strings{
                     WebSocketService webSocketService = (WebSocketService) cls.getAnnotation(WebSocketService.class);
                     WebObject wo = new WebObject(null, cls.getName(), null);
                     if (webSocketService != null){
-                        String path = (webSocketService != null?webSocketService.path():"");
+                        String path = (webSocketService != null?webSocketService.path().toLowerCase():"");
                         WEB_SOCKET_ROUTES.put(path, wo);
                     }
                     if (cls.getAnnotation(WebSocketNotFound.class) != null)

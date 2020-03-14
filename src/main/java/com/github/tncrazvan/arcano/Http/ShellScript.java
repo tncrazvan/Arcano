@@ -19,19 +19,22 @@ import java.util.concurrent.TimeUnit;
  * @author Administrator
  */
 public class ShellScript {
-    private String[] script;
+    private String program;
+    private String[] args;
     private final File workspace;
     
     //CHANGE DIR FROM STRING
-    public ShellScript(File workspace, String... script) {
+    public ShellScript(File workspace, String program, String... args) {
         this.workspace = workspace;
-        this.script = script;
+        this.program = program;
+        this.args = args;
     }
     
     //CHANGE DIR FROM STRING
-    public ShellScript(String... script) {
+    public ShellScript(String program, String... script) {
         this.workspace = null;
-        this.script = script;
+        this.program = program;
+        this.args = script;
     }
     
     public final void execute(HttpEvent controller) throws IOException, InterruptedException{
@@ -55,9 +58,10 @@ public class ShellScript {
         overheadArray.add(queryObject);
         byte[] overhead = overheadArray.toString().getBytes();
         
-        String[] tmp = new String[script.length+2];
-        for(int i=0; i< script.length; i++){
-            tmp[i] = script[i];
+        String[] tmp = new String[args.length+3];
+        tmp[0] = this.program;
+        for(int i=0; i< args.length; i++){
+            tmp[i+1] = args[i];
         }
         tmp[tmp.length-2] = overhead.length+"";
         tmp[tmp.length-1] = controller.reader.request.content.length+"";
@@ -81,10 +85,10 @@ public class ShellScript {
         if(errors.length > 0){
             controller.setResponseHeaderField("Content-Type", "text/plain");
             controller.setResponseHeaderField("Content-Length", errors.length+"");
-            controller.send(errors);
+            controller.push(errors);
         }else{
             String result = new String(process.getInputStream().readAllBytes());
-            controller.send(result,false);
+            controller.push(result,false);
         }
     }
 }

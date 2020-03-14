@@ -5,7 +5,7 @@ import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketMessage;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketCommit;
 
 /**
  *
@@ -58,9 +58,9 @@ public class WebSocketGroupApi extends WebSocketController{
     }
 
     @Override
-    public void onMessage(final WebSocketMessage message) {
+    public void onMessage(final WebSocketCommit message) {
         //send data to everyone inside the group except for this client (obviously)
-        send(message, group, false);
+        push(message);
         /**
          * NOTE: the other clients will receive the data as raw bytes.
          * in the case of JavaScript, you should read this data using a 

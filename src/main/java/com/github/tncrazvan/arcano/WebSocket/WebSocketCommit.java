@@ -13,8 +13,19 @@ import java.util.logging.Level;
  *
  * @author Administrator
  */
-public final class WebSocketMessage {
+public final class WebSocketCommit {
+    
+    private boolean binary = false;
+    
+    public boolean isBinary(){
+        return binary;
+    }
 
+    private WebSocketGroup group = null;
+    
+    public WebSocketGroup getWebSocketGroup(){
+        return group;
+    }
     /**
      * Contains the payload of the message.
      * You can send this back to the current client or a different web socket client.
@@ -50,7 +61,7 @@ public final class WebSocketMessage {
      * Identifies a WebSocketMessage. This object contains the payload of the
      * message.
      */
-    public WebSocketMessage() {
+    public WebSocketCommit() {
     }
 
     /**
@@ -86,8 +97,36 @@ public final class WebSocketMessage {
      * 
      * @param data the payload of the message.
      */
-    public WebSocketMessage(final byte[] data) {
+    public WebSocketCommit(final byte[] data) {
         this.data = data;
+    }
+    
+    /**
+     * Identifies a WebSocketMessage.
+     * 
+     * @param data the payload of the message.
+     * @param group  the group of clients that should receive the payload.
+     */
+    public WebSocketCommit(final byte[] data, WebSocketGroup group) {
+        this.data = data;
+        this.group = group;
+    }
+    
+    /**
+     * Identifies a WebSocketMessage.
+     * 
+     * @param data the payload of the message.
+     * @param group  the group of clients that should receive the payload.
+     * @param binary the WebSocket standard requires the server to specify when the
+     *               content of the message should be trated as binary or not. If
+     *               this value is true, the server will set the binary flag to 0x82
+     *               otherwise it will be set to 0x81. Note that this won't encode
+     *               or convert your data in any way.
+     */
+    public WebSocketCommit(final byte[] data, WebSocketGroup group, boolean binary) {
+        this.data = data;
+        this.group = group;
+        this.binary = binary;
     }
 
     /**
@@ -108,7 +147,7 @@ public final class WebSocketMessage {
      * @param charset the charset used to encode the payload.
      * @throws java.io.UnsupportedEncodingException
      */
-    public WebSocketMessage(final String data, final String charset) throws UnsupportedEncodingException {
+    public WebSocketCommit(final String data, final String charset) throws UnsupportedEncodingException {
         this.data = data.getBytes(charset);
     }
 
@@ -132,7 +171,7 @@ public final class WebSocketMessage {
      * @param data the payload of the message. The payload will be encoded to
      *             charset UTF-8 by default.
      */
-    public WebSocketMessage(final String data) {
+    public WebSocketCommit(final String data) {
         this.data = data.getBytes();
     }
 }

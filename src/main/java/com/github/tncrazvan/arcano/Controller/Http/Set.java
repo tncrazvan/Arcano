@@ -29,10 +29,10 @@ public class Set extends HttpController {
                 group.setGroupName(getRequestQueryString("name"));
             }
             WebSocketGroupApi.GROUP_MANAGER.addGroup(group);
-            send(group.getKey());
+            push(group.getKey());
         } else {
             setResponseStatus(STATUS_NOT_FOUND);
-            send(GROUPS_NOT_ALLOWED);
+            push(GROUPS_NOT_ALLOWED);
         }
     }
 

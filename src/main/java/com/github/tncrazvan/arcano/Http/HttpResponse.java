@@ -17,12 +17,21 @@ import com.github.tncrazvan.arcano.Tool.Actions.VoidAction;
  * @author Administrator
  */
 public class HttpResponse {
+    private boolean exception = false;
     private final HttpHeaders headers;
     private Object content;
     private final Class<?> type;
     private boolean raw;
     private VoidAction action = null;
 
+    public final void setException(boolean exception){
+        this.exception = exception;
+    }
+    
+    public final boolean isException(){
+        return exception;
+    }
+    
     /**
      * Executes an action after the getContent(true) gets called.
      * @param action the action to execute.

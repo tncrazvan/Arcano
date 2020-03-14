@@ -1,21 +1,14 @@
 package com.github.tncrazvan.arcano.WebSocket;
 
-import com.github.tncrazvan.arcano.Http.HttpController;
-import com.github.tncrazvan.arcano.Http.HttpEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import com.github.tncrazvan.arcano.Http.HttpRequestReader;
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
-import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
 import com.github.tncrazvan.arcano.WebObject;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 
 /**
@@ -59,7 +52,7 @@ public abstract class WebSocketEvent extends WebSocketEventManager{
 
     protected abstract void onOpen();
 
-    protected abstract void onMessage(WebSocketMessage payload);
+    protected abstract void onMessage(WebSocketCommit payload);
 
     protected abstract void onClose();
 
@@ -76,7 +69,7 @@ public abstract class WebSocketEvent extends WebSocketEventManager{
     }
 
     @Override
-    protected final void manageOnMessage(final WebSocketMessage payload) {
+    protected final void manageOnMessage(final WebSocketCommit payload) {
         this.onMessage(payload);
     }
     

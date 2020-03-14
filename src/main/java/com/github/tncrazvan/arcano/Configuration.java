@@ -23,9 +23,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.logging.Level;
 /**
@@ -148,10 +146,10 @@ public class Configuration {
         }
     }
     public Certificate certificate = new Certificate();
-    private JsonObject config = null;
+    public JsonObject source = null;
 
     public JsonObject getConfig() {
-        return config;
+        return source;
     }
     
     public void parse(final String settings, final SharedObject so, final String[] args) throws IOException {
@@ -196,23 +194,23 @@ public class Configuration {
         try (FileInputStream fis = new FileInputStream(json)) {
             configBytes = fis.readAllBytes();
         }
-        config = jsonObject(new String(configBytes));
+        source = jsonObject(new String(configBytes));
         JsonElement el;
         JsonObject obj;
-        if(config.has("compress")){
-            this.compression = jsonParse(config.get("compress").getAsJsonArray(), String[].class);
+        if(source.has("compress")){
+            this.compression = jsonParse(source.get("compress").getAsJsonArray(), String[].class);
         }else{
             this.compression = new String[]{};
         }
         
-        if(config.has("key"))
-            key =config.get("key").getAsString();
+        if(source.has("key"))
+            key =source.get("key").getAsString();
         else
             key = "EW3RWSETR2W345TW34ETGWSETQ3E325TE47E45T324W5RTWESRTF3QW245RW3ERFEFRG435444444TRWSEFRGTSER324RW3ERFASERTFWSERTWSETRWESWTESTE";
         
-        if(config.has("cluster")){
-            if(config.has("cluster")){
-                el = config.get("cluster");
+        if(source.has("cluster")){
+            if(source.has("cluster")){
+                el = source.get("cluster");
                 if(el.isJsonObject()){
                     final JsonObject clusterObject = el.getAsJsonObject();
                     clusterObject.keySet().forEach((hostname) -> {
@@ -240,14 +238,14 @@ public class Configuration {
             }
         }
 
-        if (config.has("responseWrapper"))
-            this.responseWrapper = config.get("responseWrapper").getAsBoolean();
+        if (source.has("responseWrapper"))
+            this.responseWrapper = source.get("responseWrapper").getAsBoolean();
 
-        if (config.has("sendExceptions"))
-            this.sendExceptions = config.get("sendExceptions").getAsBoolean();
+        if (source.has("sendExceptions"))
+            this.sendExceptions = source.get("sendExceptions").getAsBoolean();
         
-        if (config.has("threads")){
-            el = config.get("threads");
+        if (source.has("threads")){
+            el = source.get("threads");
             if(el.isJsonObject()){
                 obj = el.getAsJsonObject();
                 if(obj.has("pool"))
@@ -289,26 +287,26 @@ public class Configuration {
             
         }
 
-        if (config.has("timezone"))
-            this.timezone = ZoneId.of(config.get("timezone").getAsString());
+        if (source.has("timezone"))
+            this.timezone = ZoneId.of(source.get("timezone").getAsString());
 
-        if (config.has("locale")) {
-            final String[] localeTmpString = config.get("locale").getAsString().split("_");
+        if (source.has("locale")) {
+            final String[] localeTmpString = source.get("locale").getAsString().split("_");
             this.locale = new Locale(localeTmpString[0], localeTmpString[1]);
             this.formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", this.locale)
                     .withZone(this.timezone);
         }
 
-        if (config.has("port"))
-            this.port = config.get("port").getAsInt();
+        if (source.has("port"))
+            this.port = source.get("port").getAsInt();
 
-        if (config.has("bindAddress"))
-            this.bindAddress = config.get("bindAddress").getAsString();
-        else if (config.has("bindingAddress"))
-            this.bindAddress = config.get("bindingAddress").getAsString();
+        if (source.has("bindAddress"))
+            this.bindAddress = source.get("bindAddress").getAsString();
+        else if (source.has("bindingAddress"))
+            this.bindAddress = source.get("bindingAddress").getAsString();
 
-        if (config.has("serverRoot"))
-            this.serverRoot = this.dir + "/" + config.get("serverRoot").getAsString();
+        if (source.has("serverRoot"))
+            this.serverRoot = this.dir + "/" + source.get("serverRoot").getAsString();
         else
             this.serverRoot = this.dir + "/" + this.serverRoot;
         endchar = this.serverRoot.charAt(this.serverRoot.length() - 1);
@@ -321,8 +319,8 @@ public class Configuration {
         this.serverRoot = Regex.replace(this.serverRoot, "\\/\\.\\/", "/");
         this.serverRoot = Regex.replace(this.serverRoot, "\\/\\.$", "/");
 
-        if (config.has("webRoot"))
-            this.webRoot = this.dir + "/" + config.get("webRoot").getAsString();
+        if (source.has("webRoot"))
+            this.webRoot = this.dir + "/" + source.get("webRoot").getAsString();
         else
             this.webRoot = this.dir + "/" + this.webRoot;
 
@@ -335,14 +333,14 @@ public class Configuration {
         this.webRoot = Regex.replace(this.webRoot,"/+", "/");
         this.webRoot = Regex.replace(this.webRoot, "\\/\\.\\/", "/");
         this.webRoot = Regex.replace(this.webRoot, "\\/\\.$", "/");
-        if (config.has("charset"))
-            this.charset = config.get("charset").getAsString();
+        if (source.has("charset"))
+            this.charset = source.get("charset").getAsString();
 
-        if (config.has("timeout"))
-            this.timeout = config.get("timeout").getAsInt();
+        if (source.has("timeout"))
+            this.timeout = source.get("timeout").getAsInt();
 
-        if (config.has("session")) {
-            el = config.get("session");
+        if (source.has("session")) {
+            el = source.get("session");
             if(el.isJsonObject()){
                 obj = el.getAsJsonObject();
                 if (obj.has("ttl"))
@@ -355,8 +353,8 @@ public class Configuration {
         session.table.add("ttl", "" + this.session.ttl + " seconds");
         session.table.add("keepAlive", this.session.keepAlive ? "True" : "False");
 
-        if (config.has("cookie")) {
-            el = config.get("cookie");
+        if (source.has("cookie")) {
+            el = source.get("cookie");
             if(el.isJsonObject()){
                 obj = el.getAsJsonObject();
                 if (obj.has("ttl"))
@@ -366,8 +364,8 @@ public class Configuration {
         }
         cookie.table.add("ttl", "" + this.cookie.ttl + " seconds");
 
-        if (config.has("webSocket")) {
-            el = config.get("webSocket");
+        if (source.has("webSocket")) {
+            el = source.get("webSocket");
             if(el.isJsonObject()){
                 obj = el.getAsJsonObject();
                 if (obj.has("mtu"))
@@ -399,8 +397,8 @@ public class Configuration {
         this.webSocket.table.add("groups", this.webSocket.groups.table.toString());
         this.webSocket.table.add("mtu", this.webSocket.mtu + " bytes");
 
-        if (config.has("http")) {
-            el = config.get("http");
+        if (source.has("http")) {
+            el = source.get("http");
             if(el.isJsonObject()){
                 obj = el.getAsJsonObject();
                 if (obj.has("mtu"))
@@ -410,8 +408,8 @@ public class Configuration {
         }
         this.http.table.add("mtu", this.http.mtu + " bytes");
 
-        if (config.has("entryPoint"))
-            this.entryPoint = "/"+config.get("entryPoint").getAsString();
+        if (source.has("entryPoint"))
+            this.entryPoint = "/"+source.get("entryPoint").getAsString();
         
         this.entryPoint = this.entryPoint.replaceAll("/+", "/");
 
@@ -435,8 +433,8 @@ public class Configuration {
         configurationTable.add("responseWrapper", this.responseWrapper ? "True" : "False");
 
         // checking for SMTP server
-        if (config.has("smtp")) {
-            el = config.get("smtp");
+        if (source.has("smtp")) {
+            el = source.get("smtp");
             if(el.isJsonObject()){
                 final JsonObject smtpObject = el.getAsJsonObject();
                 if (smtpObject.has("enabled")) {
@@ -500,8 +498,8 @@ public class Configuration {
         });*/
         configurationTable.add("Controllers", controllersTable.toString());
 
-        if (config.has("certificate")) {
-            el = config.get("certificate");
+        if (source.has("certificate")) {
+            el = source.get("certificate");
             if(el.isJsonObject()){
                 final JsonObject certificateObject = el.getAsJsonObject();
 

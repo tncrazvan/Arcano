@@ -21,10 +21,13 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
-import com.github.tncrazvan.arcano.Http.HttpEventListener;
+import com.github.tncrazvan.arcano.Http.HttpRequestReader;
 import com.github.tncrazvan.arcano.Smtp.SmtpServer;
 import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketEventManager;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketCommit;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -182,19 +185,61 @@ public class Arcano extends SharedObject {
                     System.err.println("\n[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
                 }
 
-            if(action != null)
-            new Thread(() -> {
-                System.out.println("Public imports will be packed in background at @webRoot/pack.");
-                for(;;){
-                    try {
-                        action.callback(this);
-                        Thread.sleep(100);
-                    } catch (InterruptedException ex) {
-                        LOGGER.log(Level.SEVERE, null, ex);
-                    }
-                }
-            }).start();
+            if(action != null){
+                Runnable actionRunnable = () -> {
+                    long delay;
+                    for(;;){
+                        try {
+                            delay = action.callback(this);
+                            if(delay <= 0)
+                                break;
 
+                            Thread.sleep(delay);
+                        } catch (InterruptedException ex) {
+                            LOGGER.log(Level.SEVERE, null, ex);
+                        }
+                    }
+                };
+                new Thread(actionRunnable).start();
+            }
+            
+            //push websocket commits
+            Runnable webSocketPushRunnable = () -> {
+                oldWebSocketEventManager.clear();
+                int available = 0;
+                while(true){
+                    for (WebSocketEventManager manager : this.webSocketEventManager.values()) {
+                        if(!manager.isConnected()){
+                            oldWebSocketEventManager.add(manager);
+                            continue;
+                        }
+                        InputStream read = manager.getRead();
+                        if(read != null){
+                            try {
+                                if((available = read.available()) > 0 && manager.isConnected()){
+                                    manager.unmask(read.readNBytes(available<config.webSocket.mtu?available:config.webSocket.mtu));
+                                }
+                                if(manager.getCommits().size() > 0){
+                                    for (WebSocketCommit commit : manager.getCommits()) {
+                                        manager.push(commit);
+                                    }
+                                }
+                            } catch (IOException ex) {
+                                oldWebSocketEventManager.add(manager);
+                                LOGGER.log(Level.SEVERE, null, ex);
+                            }
+                        }
+                    }
+                    
+                    //remove old events
+                    for (WebSocketEventManager element : oldWebSocketEventManager) {
+                        this.webSocketEventManager.remove(element.getUuid());
+                    }
+                    oldWebSocketEventManager.clear();
+                }
+            };
+            new Thread(webSocketPushRunnable).start();
+            
             if (!config.certificate.name.equals("")) try {
                 final char[] password = config.certificate.password.toCharArray();
                 final KeyStore keyStore = KeyStore.getInstance(new File(config.dir + "/" + config.certificate.name),
@@ -210,39 +255,39 @@ public class Arcano extends SharedObject {
                 final SSLServerSocketFactory factory = context.getServerSocketFactory();
                 try (SSLServerSocket ss = ((SSLServerSocket) factory.createServerSocket())) {
                     ss.bind(new InetSocketAddress(config.bindAddress, config.port));
-                    HttpEventListener listener;
+                    HttpRequestReader reader;
                     System.out.println("Server started (using TLSv1.2).");
                     while (config.listen) {
 
-                        listener = new HttpEventListener(this, ss.accept());
+                        reader = new HttpRequestReader(this, ss.accept());
                         if(executor == null)
-                            service.submit(listener);
+                            service.submit(reader);
                         else
-                            executor.submit(listener);
+                            executor.submit(reader);
                     }
                 }
             } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             } catch (NoSuchAlgorithmException ex) {
                 Logger.getLogger(Arcano.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            else try (ServerSocket ss = new ServerSocket()) {
+            } else {
+                ServerSocket ss = new ServerSocket();
                 ss.bind(new InetSocketAddress(config.bindAddress, config.port));
-
-                HttpEventListener listener;
+                HttpRequestReader reader;
                 System.out.println("Server started.");
                 while (config.listen) {
-                    listener = new HttpEventListener(this, ss.accept());
-                    if(executor == null)
-                        service.submit(listener);
-                    else
-                        executor.submit(listener);
+                    try {
+                        reader = new HttpRequestReader(this, ss.accept());
+                        if(executor == null)
+                            service.submit(reader);
+                        else
+                            executor.submit(reader);
+                    } catch (NoSuchAlgorithmException ex) {
+                        LOGGER.log(Level.SEVERE, null, ex);
+                    }
                 }
                 ss.close();
-            } catch (NoSuchAlgorithmException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
             }
-        
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }

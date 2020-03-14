@@ -10,7 +10,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Level;
-import java.util.stream.Stream;
 
 import com.github.tncrazvan.arcano.WebObject;
 import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
@@ -47,7 +46,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             final Object content = response.getContent();
             final byte[] raw = content == null?new byte[]{}:(byte[])content;
             setResponseHeaderField("Content-Length", raw.length+"");
-            send(raw);
+            push(raw);
         } else {
             final Object content = response.getContent();
             String tmp = content.toString();
@@ -59,7 +58,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 tmp = obj.toString();
             }
             setResponseHeaderField("Content-Length", tmp.length()+"");
-            send(tmp);
+            push(tmp);
         }
     }
     
@@ -326,7 +325,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         HttpController controller = new HttpController();
         controller.install(reader);
         controller.setResponseStatus(status);
-        controller.send(message);
+        controller.push(message);
         return controller;
     }
 

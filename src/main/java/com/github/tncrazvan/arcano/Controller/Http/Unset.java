@@ -13,9 +13,9 @@ public class Unset extends HttpController{
         final String name = String.join("/", reader.args);
         if(issetRequestCookie(name)){
             unsetResponseCookie(name, getRequestQueryString("path"), getRequestQueryString("domain"));
-            send(0);
+            push(0);
         }else{
-            send(0);
+            push(0);
         }
     }
     

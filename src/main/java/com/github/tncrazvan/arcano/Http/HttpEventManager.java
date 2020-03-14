@@ -16,10 +16,13 @@ import com.github.tncrazvan.arcano.Tool.Http.Status;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_PARTIAL_CONTENT;
 import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
 import com.github.tncrazvan.arcano.Tool.Strings;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketCommit;
 import com.google.gson.JsonObject;
 import java.io.DataOutputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedList;
 
 /**
  *
@@ -56,6 +59,7 @@ public abstract class HttpEventManager extends EventManager{
             LOGGER.log(Level.WARNING, null, ex);
         }
     }
+    
 
     /**
      * Set a header for your HttpResponse.
@@ -121,11 +125,34 @@ public abstract class HttpEventManager extends EventManager{
             close();
         }
     }
+    private final LinkedList<HttpResponse> commits = new LinkedList<>();
+    
+    public LinkedList<HttpResponse> getCommits(){
+        return commits;
+    }
+    
+    public void commit(HttpResponse commit){
+        commits.add(commit);
+    }
+    
+    public void commit(Exception e){
+        final String message = e.getMessage();
+        final HttpResponse response = new HttpResponse(message == null ? "" : message);
+        commit(response);
+    }
+    
+    public void commit(InvocationTargetException e){
+        final String message = e.getTargetException().getMessage();
+        final HttpResponse response = new HttpResponse(message == null ? "" : message);
+        commit(response);
+    }
+    
+    
     /**
      * Send data to the client.The first time this method is called within an
      * HttpEvent, it will also call the sendHeaders() method, to make sure the
      * headers are always sent before the body.<br />
-     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+     * If you called sendHeaders() manually before calling push(...), the headers won't be sent for a second time.<br />
      * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
      * same as returning a Object from your HttpController method. <br />
@@ -133,14 +160,14 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @param data data to be sent.
      */
-    public final void send(byte[] data) {
-        send(data,true);
+    public final void push(byte[] data) {
+        HttpEventManager.this.push(data,true);
     }
     /**
      * Send data to the client.The first time this method is called within an
      * HttpEvent, it will also call the sendHeaders() method, to make sure the
      * headers are always sent before the body.<br />
-     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+     * If you called sendHeaders() manually before calling push(...), the headers won't be sent for a second time.<br />
      * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
      * same as returning a Object from your HttpController method. <br />
@@ -150,7 +177,7 @@ public abstract class HttpEventManager extends EventManager{
      * @param includeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
      * If this value is set to false, responseHeaders must be set manually.
      */
-    public final void send(byte[] data, boolean includeHeaders) {
+    public final void push(byte[] data, boolean includeHeaders) {
         if (alive) {
             try {
                 for (final String cmpr : reader.so.config.compression) {
@@ -196,7 +223,7 @@ public abstract class HttpEventManager extends EventManager{
      * Send data to the client.The first time this method is called within an
      * HttpEvent, it will also call the sendHeaders() method, to make sure the
      * headers are always sent before the body.<br />
-     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+ If you called sendHeaders() manually before calling push(...), the headers won't be sent for a second time.<br />
      * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
      * same as returning a Object from your HttpController method. <br />
@@ -204,14 +231,14 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @param data data to be sent.
      */
-    public final void send(String data) {
-        send(data,true);
+    public final void push(String data) {
+        HttpEventManager.this.push(data,true);
     }
     /**
      * Send data to the client.The first time this method is called within an
      * HttpEvent, it will also call the sendHeaders() method, to make sure the
      * headers are always sent before the body.<br />
-     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+     * If you called sendHeaders() manually before calling push(...), the headers won't be sent for a second time.<br />
      * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
      * same as returning a Object from your HttpController method. <br />
@@ -221,12 +248,12 @@ public abstract class HttpEventManager extends EventManager{
      * @param includeHeaders specifies wether or not the method should flush the HttpHeaders.<br/>
      * If this value is set to false, responseHeaders must be set manually.
      */
-    public final void send(String data, boolean  includeHeaders) {
+    public final void push(String data, boolean  includeHeaders) {
         try {
             if (data == null)
                 data = "";
 
-            this.send(data.getBytes(reader.so.config.charset),includeHeaders);
+            this.push(data.getBytes(reader.so.config.charset),includeHeaders);
         } catch (final UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -248,7 +275,7 @@ public abstract class HttpEventManager extends EventManager{
      * Send data to the client.The first time this method is called within an
      * HttpEvent, it will also call the sendHeaders() method, to make sure the
      * headers are always sent before the body.<br />
-     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+     * If you called sendHeaders() manually before calling push(...), the headers won't be sent for a second time.<br />
      * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
      * same as returning a Object from your HttpController method. <br />
@@ -256,8 +283,8 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @param data data to be sent.
      */
-    public final void send(final int data) {
-        HttpEventManager.this.send("" + data);
+    public final void push(final int data) {
+        HttpEventManager.this.push("" + data);
     }
 
     /**
@@ -300,7 +327,7 @@ public abstract class HttpEventManager extends EventManager{
      * Send data to the client.The first time this method is called within an
      * HttpEvent, it will also call the sendHeaders() method, to make sure the
      * headers are always sent before the body.<br />
-     * If you called sendHeaders() manually before calling send(...), the headers won't be sent for a second time.<br />
+     * If you called sendHeaders() manually before calling push(...), the headers won't be sent for a second time.<br />
      * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
      * same as returning a Object from your HttpController method. <br />
@@ -308,11 +335,11 @@ public abstract class HttpEventManager extends EventManager{
      * 
      * @param data data to be sent.
      */
-    public final void send(final File data) {
+    public final void push(final File data) {
         try {
             if (!data.exists() || data.isDirectory()) {
                 setResponseStatus(Status.STATUS_NOT_FOUND);
-                send("");
+                HttpEventManager.this.push("");
                 return;
             }
             byte[] buffer;
