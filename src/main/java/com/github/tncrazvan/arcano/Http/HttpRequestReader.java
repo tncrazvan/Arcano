@@ -12,7 +12,6 @@ import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import static com.github.tncrazvan.arcano.SharedObject.londonTimezone;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
-import com.github.tncrazvan.arcano.Tool.Regex;
 import static com.github.tncrazvan.arcano.Tool.System.Time.toLocalDateTime;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.io.DataInputStream;
@@ -154,7 +153,10 @@ public class HttpRequestReader implements Runnable{
                 
                 this.stringifiedLocation = this.locationBuilder.toString()/*.replaceAll("/+", "/")*/;
                 //this.stringifiedLocation = Regex.replace(stringifiedLocation, "^/", "");
-                this.location = stringifiedLocation.split("/");
+                if(stringifiedLocation.equals("/"))
+                    this.location = new String[]{""};
+                else
+                    this.location = stringifiedLocation.split("/");
                 this.onRequest();
             }
 

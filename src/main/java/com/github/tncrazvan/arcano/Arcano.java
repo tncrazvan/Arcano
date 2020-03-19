@@ -110,6 +110,11 @@ public class Arcano extends SharedObject {
      * The package must be contained inside the current project's directory layout.
      */
     public Arcano(Package pckg) {
+        expose(pckg);
+    }
+    public Arcano(){}
+    
+    public final void expose(Package pckg){
         try {
             Class<?>[] clss = getClasses(pckg);
             for(Class<?> cls : clss){
@@ -126,7 +131,7 @@ public class Arcano extends SharedObject {
             LOGGER.log(Level.SEVERE, null, ex);
         }
     }
-    public Arcano(){}
+    
     public final void exposeDefaults(){
         expose(
             com.github.tncrazvan.arcano.Controller.Http.FileService.class,
@@ -136,9 +141,12 @@ public class Arcano extends SharedObject {
             com.github.tncrazvan.arcano.Controller.Http.Set.class,
             com.github.tncrazvan.arcano.Controller.Http.Unset.class,
 
-            com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class,
-            com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi.class
+            com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class/*,
+            com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi.class*/
         );
+        if(config.webSocket.groups.enabled){
+            expose(com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi.class);
+        }
     }
     public final void listen(String[] args) {
         listen(args, null);
