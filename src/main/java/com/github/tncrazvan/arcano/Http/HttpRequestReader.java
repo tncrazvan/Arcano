@@ -150,10 +150,10 @@ public class HttpRequestReader implements Runnable{
                     return;
                 }
                 final String[] uriParts = uri.split("\\?|\\&", 2);
-                locationBuilder.append(uriParts[0].replaceAll("^\\/", ""));
+                locationBuilder.append(uriParts[0]/*.replaceAll("^\\/", "")*/);
                 
-                this.stringifiedLocation = this.locationBuilder.toString().replaceAll("/+", "/");
-                this.stringifiedLocation = Regex.replace(stringifiedLocation, "^/", "");
+                this.stringifiedLocation = this.locationBuilder.toString()/*.replaceAll("/+", "/")*/;
+                //this.stringifiedLocation = Regex.replace(stringifiedLocation, "^/", "");
                 this.location = stringifiedLocation.split("/");
                 this.onRequest();
             }

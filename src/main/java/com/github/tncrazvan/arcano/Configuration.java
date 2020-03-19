@@ -391,7 +391,7 @@ public class Configuration {
             }else
                 System.out.println("webSocket is not an object.");
         }
-        this.webSocket.groups.connections.table.add("max", this.webSocket.groups.connections.max + " connections (This value is ofcourse dependent on the thread pool size)");
+        this.webSocket.groups.connections.table.add("max", this.webSocket.groups.connections.max + " connections (Since version 1.1.0 this value is independent on the thread pool size)");
         this.webSocket.groups.table.add("connections", this.webSocket.groups.connections.table.toString());
         this.webSocket.groups.table.add("enabled", this.webSocket.groups.enabled ? "True" : "False");
         this.webSocket.table.add("groups", this.webSocket.groups.table.toString());

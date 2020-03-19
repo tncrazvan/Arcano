@@ -13,8 +13,9 @@ import com.github.tncrazvan.arcano.Bean.Http.HttpService;
  * @author Razvan
  */
 
+@HttpService(path = "/@isset")
 public class Isset extends HttpController{
-    @HttpService(path="/@isset/file")
+    @HttpService(path="/file")
     public void file() throws FileNotFoundException, IOException{
         final String url = String.join("/", reader.args);
         final File f = new File(reader.so.config.webRoot, url);
@@ -26,7 +27,7 @@ public class Isset extends HttpController{
         flush();
     }
 
-    @HttpService(path = "/@isset/cookie")
+    @HttpService(path = "/cookie")
     public void cookie() {
         final String name = String.join("/", reader.args);
         if(issetRequestCookie(name)){

@@ -17,5 +17,5 @@ import java.lang.annotation.Target;
 @Documented
 public @interface HttpService {
     public String path();
-    public String[] method() default {"GET"};
+    public String[] method() default {""};
 }

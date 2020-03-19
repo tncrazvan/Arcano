@@ -10,7 +10,7 @@ import com.github.tncrazvan.arcano.Bean.Http.HttpServiceNotFound;
  * @author razvan
  */
 public class ControllerNotFound extends HttpController {  
-    @HttpServiceNotFound
+    @HttpServiceNotFound(method = "*")
     public String main() {
         setResponseStatus(STATUS_NOT_FOUND);
         return "";

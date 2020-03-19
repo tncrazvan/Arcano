@@ -29,8 +29,6 @@ import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
 import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
 import com.github.tncrazvan.arcano.Bean.Http.HttpServiceNotFound;
-import com.github.tncrazvan.arcano.Bean.Http.HttpServiceDefault;
-import com.github.tncrazvan.arcano.Http.HttpEventManager;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEventManager;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -72,16 +70,6 @@ public class SharedObject implements Strings{
     
     //HTTP SPECIAL ROUTES
     public final HashMap<String, WebObject> HTTP_SPECIAL_ROUTES_404 = new HashMap<String, WebObject>(){{
-        put("GET", null);
-        put("HEAD", null);
-        put("POST", null);
-        put("PUT", null);
-        put("DELETE", null);
-        put("CONNECT", null);
-        put("CONNECT", null);
-        put("PATCH", null);
-    }};
-    public final HashMap<String, WebObject> HTTP_SPECIAL_ROUTES_DEFAULT = new HashMap<String, WebObject>(){{
         put("GET", null);
         put("HEAD", null);
         put("POST", null);
@@ -141,9 +129,18 @@ public class SharedObject implements Strings{
                     	HttpService classService = cls.getAnnotation(HttpService.class);
                         if (httpService != null) {
                             String[] types = httpService.method();
+                            if(types.length == 1 && types[0].equals("")){
+                                if(classService != null){
+                                    types = classService.method();
+                                    if(types.length == 1 && types[0].equals(""))
+                                        types[0] = "GET";
+                                }else{
+                                    types[0] = "GET";
+                                }
+                            }
                             WebObject wo = new WebObject(null,cls.getName(),method.getName());
                             String 
-                                    path = (classService != null?classService.path().toLowerCase()+"/":"");
+                                    path = (classService != null && !classService.path().equals("/")?classService.path().toLowerCase()+"/":"");
                                     path += httpService.path().toLowerCase().startsWith("/")?httpService.path().toLowerCase():"/"+httpService.path().toLowerCase();
                             if(Arrays.asList(types).contains("*")){
                                 for (Map.Entry<String, HashMap<String, WebObject>> t : HTTP_ROUTES.entrySet()) {
@@ -161,29 +158,18 @@ public class SharedObject implements Strings{
                         HttpServiceNotFound httpServiceNotFound = method.getAnnotation(HttpServiceNotFound.class);
                         if (httpServiceNotFound != null) {
                             String[] types = httpServiceNotFound.method();
+                            if(types.length == 1 && types[0].equals(""))
+                                types[0] = "GET";
+                            
                             WebObject wo = new WebObject(null,cls.getName(),method.getName());
                             
                             if(Arrays.asList(types).contains("*")){
-                                for (Map.Entry<String, WebObject> route404 : HTTP_SPECIAL_ROUTES_DEFAULT.entrySet()) {
+                                for (Map.Entry<String, WebObject> route404 : HTTP_SPECIAL_ROUTES_404.entrySet()) {
                                     route404.setValue(wo);
                                 }
                             }else for(int i = 0;i < types.length;i++){
                                 if(HTTP_SPECIAL_ROUTES_404.containsKey(types[i]))
                                     HTTP_SPECIAL_ROUTES_404
-                                        .put(types[i], wo);
-                            }
-                        }
-                        HttpServiceDefault httpServiceDefault = method.getAnnotation(HttpServiceDefault.class);
-                        if (httpServiceDefault != null) {
-                            String[] types = httpServiceDefault.method();
-                            WebObject wo = new WebObject(null,cls.getName(),method.getName());
-                            if(Arrays.asList(types).contains("*")){
-                                for (Map.Entry<String, WebObject> routeDefault : HTTP_SPECIAL_ROUTES_DEFAULT.entrySet()) {
-                                    routeDefault.setValue(wo);
-                                }
-                            }else for(int i = 0;i < types.length;i++){
-                                if(HTTP_SPECIAL_ROUTES_DEFAULT.containsKey(types[i]))
-                                    HTTP_SPECIAL_ROUTES_DEFAULT
                                         .put(types[i], wo);
                             }
                         }

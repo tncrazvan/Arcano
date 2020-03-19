@@ -7,8 +7,9 @@ import com.github.tncrazvan.arcano.Bean.Http.HttpService;
  *
  * @author Razvan
  */
+@HttpService(path = "/@unset")
 public class Unset extends HttpController{
-    @HttpService(path="/@unset/cookie")
+    @HttpService(path="/cookie")
     public void cookie(){
         final String name = String.join("/", reader.args);
         if(issetRequestCookie(name)){

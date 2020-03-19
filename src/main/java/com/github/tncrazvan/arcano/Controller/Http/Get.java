@@ -17,9 +17,10 @@ import com.github.tncrazvan.arcano.Bean.Http.HttpService;
  *
  * @author Razvan
  */
+@HttpService(path = "/@get")
 public class Get extends HttpController{
     
-    @HttpService(path="/@get/memory")
+    @HttpService(path="/memory")
     public JsonObject memory(){
         final JsonObject result = new JsonObject();
         result.addProperty("free", getFreeMemory());
@@ -28,7 +29,7 @@ public class Get extends HttpController{
         return result;
     }
 
-    @HttpService(path = "/@get/file")
+    @HttpService(path = "/file")
     public File file() throws IOException {
         return new File(reader.so.config.webRoot, String.join("/", reader.args));
     }
@@ -43,7 +44,7 @@ public class Get extends HttpController{
 
     }
 
-    @HttpService(path = "/@get/allWebSocketGroups")
+    @HttpService(path = "/allWebSocketGroups")
     public String allWebSocketGroups() {
         WebSocketGroup group;
         final JsonArray arr = new JsonArray();
@@ -60,7 +61,7 @@ public class Get extends HttpController{
         return arr.toString();
     }
 
-    @HttpService(path = "/@get/cookie")
+    @HttpService(path = "/cookie")
     public String cookie() {
         final String name = String.join("/", reader.args);
         if (issetRequestCookie(name)) {

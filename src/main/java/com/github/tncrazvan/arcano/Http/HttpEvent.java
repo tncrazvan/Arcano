@@ -180,22 +180,11 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
 
     private static HttpController factory(HttpRequestReader reader) {
         try {
-            if(reader.location.length == 0 || "".equals(reader.location[0]))
-                reader.location = new String[]{"/"};
-            else {
-                File check = new File(reader.so.config.webRoot,reader.stringifiedLocation);
-                if(check.exists() && !check.isDirectory()){
-                    HttpController controller = new Get();
-                    controller.install(reader);
-                    Method m = controller.getClass().getDeclaredMethod("file");
-                    controller.invokeMethod(m);
-                    return controller;
-                }
-            }
-            
             String type = reader.request.headers.get("@Method");
             for (int i = reader.location.length; i > 0; i--) {
-                String path = "/" + String.join("/", Arrays.copyOf(reader.location, i)).toLowerCase();
+                String path = String.join("/", Arrays.copyOf(reader.location, i)).toLowerCase();
+                if(path.equals(""))
+                    path="/";
                 HashMap<String, WebObject> method = reader.so.HTTP_ROUTES.get(type);
                 if(method != null){
                     WebObject route = method.get(path);
@@ -239,30 +228,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     }
                 }
             }
-            WebObject wo = reader.so.HTTP_SPECIAL_ROUTES_DEFAULT.get(type);
-            if(wo != null){
-                if(wo.getAction() != null){
-                    CompleteAction<Object,HttpEvent> action = wo.getAction();
-                    HttpController controller = new HttpController();
-                    controller.install(reader);
-                    controller.invokeCompleteAction(action);
-                        return controller;
-                }else {
-                    Class<?> cls = Class.forName(wo.getClassName());
-                    Constructor<?> constructor = cls.getDeclaredConstructor();
-                    String methodname = wo.getMethodName();
-                    HttpController controller = (HttpController) constructor.newInstance();
-                    Method[] methods = controller.getClass().getDeclaredMethods();
-                    for(Method m : methods){
-                        if(!m.getName().equals(methodname)) continue;    
-                        controller.install(reader);
-                        controller.invokeMethod(m);
-                        return controller;
-                    }
-                    return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
-                }
-            }
-            wo = reader.so.HTTP_SPECIAL_ROUTES_404.get(type);
+            WebObject wo = reader.so.HTTP_SPECIAL_ROUTES_404.get(type);
             if(wo != null){
                 CompleteAction<Object,HttpEvent> action = wo.getAction();
                 if(action != null){
@@ -293,7 +259,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
                 }
             }
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"404 fallback route is not defined.");
         }catch(InvalidControllerConstructorException e){
             LOGGER.log(Level.SEVERE, null, e);
             return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
