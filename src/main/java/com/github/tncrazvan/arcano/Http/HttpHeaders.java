@@ -47,9 +47,8 @@ public class HttpHeaders {
 
     public final String fieldToString(final String key) {
         final String value = headers.get(key);
-
         if (key.equals("@Resource") || key.equals("@Status") || value.equalsIgnoreCase(key)) {
-            return value + "\r\n";
+            return (key.equals("@Status")?"HTTP/1.1 ":"")+value + "\r\n";
         }
         return key + ": " + value + "\r\n";
     }
@@ -86,7 +85,7 @@ public class HttpHeaders {
     public final boolean isDefined(final String key) {
         return headers.get(key) != null;
     }
-
+    private String status="";
     /**
      * Set the value of a specific header.
      * 
@@ -94,8 +93,6 @@ public class HttpHeaders {
      * @param value value of the header.
      */
     public final void set(final String name, String value) {
-        if (name.equals("@Status"))
-            value = "HTTP/1.1 " + value;
         headers.put(name, value);
     }
 

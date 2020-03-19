@@ -148,7 +148,7 @@ public class SharedObject implements Strings{
                             }
                             WebObject wo = new WebObject(null,cls.getName(),method.getName());
                             String 
-                                    path = (classService != null && !classService.path().equals("/")?classService.path().toLowerCase()+"/":"");
+                                    path = (classService != null && !classService.path().equals("/")?classService.path().toLowerCase():"");
                                     path += httpService.path().toLowerCase().startsWith("/")?httpService.path().toLowerCase():"/"+httpService.path().toLowerCase();
                             if(Arrays.asList(types).contains("*")){
                                 for (Map.Entry<String, HashMap<String, WebObject>> t : HTTP_ROUTES.entrySet()) {

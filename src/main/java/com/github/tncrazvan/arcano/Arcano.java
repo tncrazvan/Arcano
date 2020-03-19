@@ -135,7 +135,6 @@ public class Arcano extends SharedObject {
     public final void exposeDefaults(){
         expose(
             com.github.tncrazvan.arcano.Controller.Http.FileService.class,
-            com.github.tncrazvan.arcano.Controller.Http.ControllerNotFound.class,
             com.github.tncrazvan.arcano.Controller.Http.Get.class,
             com.github.tncrazvan.arcano.Controller.Http.Isset.class,
             com.github.tncrazvan.arcano.Controller.Http.Set.class,
