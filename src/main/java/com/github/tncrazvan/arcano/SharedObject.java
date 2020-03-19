@@ -97,7 +97,14 @@ public class SharedObject implements Strings{
         expose(type, null, action);
     }
     public final void expose(String type, String path,CompleteAction<Object,HttpEvent>  action){
-        if(HTTP_ROUTES.containsKey(type))
+        if(type.equals("*")){
+            WebObject wo = new WebObject(action,null,null);
+            for (Map.Entry<String, HashMap<String, WebObject>> t : HTTP_ROUTES.entrySet()) {
+                t
+                    .getValue()
+                        .put(path, wo);
+            }
+        }else if(HTTP_ROUTES.containsKey(type))
             HTTP_ROUTES
                 .get(type)
                     .put(normalizePathSlashes(path), new WebObject(
