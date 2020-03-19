@@ -109,6 +109,14 @@ public class SharedObject implements Strings{
     public final void expose(String type,CompleteAction<Object,HttpEvent>  action){
         expose(type, null, action);
     }
+    public final void expose404(String type,CompleteAction<Object,HttpEvent>  action){
+        if(HTTP_SPECIAL_ROUTES_404.containsKey(type))
+            HTTP_SPECIAL_ROUTES_404.put(type, new WebObject(
+                action,
+                null,
+                null
+            ));
+    }
     public final void expose(String type, String path,CompleteAction<Object,HttpEvent>  action){
         if(HTTP_ROUTES.containsKey(type))
             HTTP_ROUTES
