@@ -20,7 +20,6 @@ import com.github.tncrazvan.arcano.Smtp.SmtpController;
 import com.github.tncrazvan.arcano.Tool.Strings;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import java.util.concurrent.ExecutorService;
-import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketNotFound;
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketService;
 import com.github.tncrazvan.arcano.Http.HttpEvent;
@@ -28,10 +27,10 @@ import com.github.tncrazvan.arcano.Http.HttpHeaders;
 import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
 import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
-import com.github.tncrazvan.arcano.Bean.Http.HttpServiceNotFound;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEventManager;
 import java.util.Arrays;
 import java.util.LinkedList;
+import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketControllerNotFound;
 
 /**
  * 
@@ -68,18 +67,6 @@ public class SharedObject implements Strings{
         put("PATCH", new HashMap<String,WebObject>(){{}});
     }};
     
-    //HTTP SPECIAL ROUTES
-    public final HashMap<String, WebObject> HTTP_SPECIAL_ROUTES_404 = new HashMap<String, WebObject>(){{
-        put("GET", null);
-        put("HEAD", null);
-        put("POST", null);
-        put("PUT", null);
-        put("DELETE", null);
-        put("CONNECT", null);
-        put("CONNECT", null);
-        put("PATCH", null);
-    }};
-    
     public WebObject SMTP_ROUTE = null;
     
     public final HashMap<String, WebObject> WEB_SOCKET_ROUTES = new HashMap<String,WebObject>(){{}};
@@ -108,14 +95,6 @@ public class SharedObject implements Strings{
     public static final String NAME_SESSION_ID = "JavaSessionID";
     public final void expose(String type,CompleteAction<Object,HttpEvent>  action){
         expose(type, null, action);
-    }
-    public final void expose404(String type,CompleteAction<Object,HttpEvent>  action){
-        if(HTTP_SPECIAL_ROUTES_404.containsKey(type))
-            HTTP_SPECIAL_ROUTES_404.put(type, new WebObject(
-                action,
-                null,
-                null
-            ));
     }
     public final void expose(String type, String path,CompleteAction<Object,HttpEvent>  action){
         if(HTTP_ROUTES.containsKey(type))
@@ -163,24 +142,6 @@ public class SharedObject implements Strings{
                                             .put(path, wo);
                             }
                         }
-                        HttpServiceNotFound httpServiceNotFound = method.getAnnotation(HttpServiceNotFound.class);
-                        if (httpServiceNotFound != null) {
-                            String[] types = httpServiceNotFound.method();
-                            if(types.length == 1 && types[0].equals(""))
-                                types[0] = "GET";
-                            
-                            WebObject wo = new WebObject(null,cls.getName(),method.getName());
-                            
-                            if(Arrays.asList(types).contains("*")){
-                                for (Map.Entry<String, WebObject> route404 : HTTP_SPECIAL_ROUTES_404.entrySet()) {
-                                    route404.setValue(wo);
-                                }
-                            }else for(int i = 0;i < types.length;i++){
-                                if(HTTP_SPECIAL_ROUTES_404.containsKey(types[i]))
-                                    HTTP_SPECIAL_ROUTES_404
-                                        .put(types[i], wo);
-                            }
-                        }
                     }
                 } else if (WebSocketController.class.isAssignableFrom(cls)) {
                     WebSocketService webSocketService = (WebSocketService) cls.getAnnotation(WebSocketService.class);
@@ -189,7 +150,7 @@ public class SharedObject implements Strings{
                         String path = (webSocketService != null?webSocketService.path().toLowerCase():"");
                         WEB_SOCKET_ROUTES.put(path, wo);
                     }
-                    if (cls.getAnnotation(WebSocketNotFound.class) != null)
+                    if (cls.getAnnotation(WebSocketControllerNotFound.class) != null)
                         WEB_SOCKET_ROUTES_NOT_FOUND = wo;
                 } else if (SmtpController.class.isAssignableFrom(cls)) {
                     SmtpService smtpService = (SmtpService) cls.getAnnotation(SmtpService.class);

@@ -140,12 +140,10 @@ public class Arcano extends SharedObject {
             com.github.tncrazvan.arcano.Controller.Http.Set.class,
             com.github.tncrazvan.arcano.Controller.Http.Unset.class,
 
-            com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class/*,
-            com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi.class*/
+            com.github.tncrazvan.arcano.Controller.WebSocket.ControllerNotFound.class
         );
-        if(config.webSocket.groups.enabled){
+        if(config.webSocket.groups.enabled)
             expose(com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi.class);
-        }
     }
     public final void listen(String[] args) {
         listen(args, null);

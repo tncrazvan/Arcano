@@ -228,37 +228,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     }
                 }
             }
-            WebObject wo = reader.so.HTTP_SPECIAL_ROUTES_404.get(type);
-            if(wo != null){
-                CompleteAction<Object,HttpEvent> action = wo.getAction();
-                if(action != null){
-                    HttpController controller = new HttpController();
-                    controller.install(reader);
-                    controller.invokeCompleteAction(action);
-                        return controller;
-                }else {
-                    Class<?> cls = Class.forName(wo.getClassName());
-                    Constructor<?> constructor = cls.getDeclaredConstructor();
-                    String methodname = wo.getMethodName();
-                    if (constructor == null) throw new InvalidControllerConstructorException(
-                        String.format(
-                            "\nController %s does not contain a valid constructor.\n"
-                            + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                            + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
-                            cls.getName()
-                        )
-                    );
-                    HttpController controller = (HttpController) constructor.newInstance();
-                    Method[] methods = controller.getClass().getDeclaredMethods();
-                    for(Method m : methods){
-                        if(!m.getName().equals(methodname)) continue;    
-                        controller.install(reader);
-                        controller.invokeMethod(m);
-                        return controller;
-                    }
-                    return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
-                }
-            }
+            //fallback 404 response is supposed to be define inside the "/" route.
             return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"404 fallback route is not defined.");
         }catch(InvalidControllerConstructorException e){
             LOGGER.log(Level.SEVERE, null, e);

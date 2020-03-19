@@ -1,4 +1,4 @@
-package com.github.tncrazvan.arcano.Bean.Http;
+package com.github.tncrazvan.arcano.Bean.WebSocket;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -12,9 +12,7 @@ import java.lang.annotation.Target;
  */
 
 
-@Target(value = {ElementType.METHOD})
+@Target(value = {ElementType.TYPE})
 @Retention(value = RetentionPolicy.RUNTIME)
 @Documented
-public @interface HttpServiceNotFound {
-    public String[] method() default {"GET"};
-}
+public @interface WebSocketControllerNotFound {}
