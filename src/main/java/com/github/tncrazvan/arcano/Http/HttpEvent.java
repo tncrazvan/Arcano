@@ -1,6 +1,5 @@
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.Controller.Http.Get;
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
@@ -16,7 +15,6 @@ import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVER_ERROR;
 import com.google.gson.JsonObject;
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
@@ -229,7 +227,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 }
             }
             //fallback 404 response is supposed to be define inside the "/" route.
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"404 fallback route is not defined.");
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"Fallback route \"/\" is not defined.");
         }catch(InvalidControllerConstructorException e){
             LOGGER.log(Level.SEVERE, null, e);
             return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");

@@ -11,13 +11,10 @@ import java.util.logging.Level;
 import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import static com.github.tncrazvan.arcano.SharedObject.londonTimezone;
-import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
-import static com.github.tncrazvan.arcano.Tool.System.Time.toLocalDateTime;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
-import java.io.File;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URLDecoder;
@@ -50,9 +47,9 @@ public class HttpRequestReader implements Runnable{
     
     public static final DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", Locale.US).withZone(londonTimezone);
     private static final Pattern
-            UPGRADE_PATTERN = Pattern.compile("Upgrade"),
-            WEB_SOCKET_PATTERN = Pattern.compile("websocket"),
-            HTTP2_PATTERN = Pattern.compile("h2c");
+        UPGRADE_PATTERN = Pattern.compile("Upgrade"),
+        WEB_SOCKET_PATTERN = Pattern.compile("websocket"),
+        HTTP2_PATTERN = Pattern.compile("h2c");
     public HttpRequestReader(final SharedObject so, final Socket client) throws NoSuchAlgorithmException, IOException {
         this.so = so;
         this.client = client;
@@ -74,8 +71,7 @@ public class HttpRequestReader implements Runnable{
                     chain[1] = chain[0];
                     chain[0] = input.readByte();
                     outputString.append((char) chain[0]);
-                    if ((char) chain[3] == '\r' && (char) chain[2] == '\n' && (char) chain[1] == '\r'
-                            && (char) chain[0] == '\n') {
+                    if ((char) chain[3] == '\r' && (char) chain[2] == '\n' && (char) chain[1] == '\r' && (char) chain[0] == '\n') {
                         keepReading = false;
                     }
                 } catch (final EOFException ex) {
@@ -149,14 +145,10 @@ public class HttpRequestReader implements Runnable{
                     return;
                 }
                 final String[] uriParts = uri.split("\\?|\\&", 2);
-                locationBuilder.append(uriParts[0]/*.replaceAll("^\\/", "")*/);
+                locationBuilder.append(uriParts[0].equals("/")?so.config.entryPoint:uriParts[0]/*.replaceAll("^\\/", "")*/);
                 
-                this.stringifiedLocation = this.locationBuilder.toString()/*.replaceAll("/+", "/")*/;
-                //this.stringifiedLocation = Regex.replace(stringifiedLocation, "^/", "");
-                if(stringifiedLocation.equals("/"))
-                    this.location = new String[]{""};
-                else
-                    this.location = stringifiedLocation.split("/");
+                this.stringifiedLocation = this.locationBuilder.toString();
+                this.location = stringifiedLocation.split("/");
                 this.onRequest();
             }
 
@@ -187,26 +179,7 @@ public class HttpRequestReader implements Runnable{
     private void http(){
         try {
             client.setSoTimeout(so.config.timeout);
-            // default connection, assuming it's Http 1.x
-            
-            // HttpHeaders headers = controller.getResponseHttpHeaders();
-            final File f = new File(so.config.webRoot + locationBuilder);
-            if (f.exists()) {
-                if (!f.isDirectory()) {
-                    final HttpController controller = new HttpController().install(this);
-                    
-                    controller.setResponseHeaderField("Content-Type", resolveContentType(locationBuilder.toString()));
-                    controller.setResponseHeaderField("Last-Modified",formatHttpDefaultDate.format(toLocalDateTime(londonTimezone,f.lastModified())));
-                    controller.setResponseHeaderField("Last-Modified-Timestamp",f.lastModified()+"");
-                    controller.push(f);
-                }else{
-                    //String httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName
-                    HttpController.serve(this);
-                }
-            }else{
-                //controller.setResponseHeaderField("Content-Type", "text/html");
-                HttpController.serve(this);
-            }
+            HttpController.serve(this);
         } catch (SocketException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -214,11 +187,11 @@ public class HttpRequestReader implements Runnable{
     
     private void upgrade(){
         if (matcher.find()) {
-                try{
-                    WebSocketController.serve(this);
-                }catch(Exception e){
-                    LOGGER.log(Level.SEVERE, null, e);
-                }
+            try{
+                WebSocketController.serve(this);
+            }catch(Exception e){
+                LOGGER.log(Level.SEVERE, null, e);
+            }
         } else {
             matcher = HTTP2_PATTERN.matcher(request.headers.get("Upgrade"));
             // Http 2.x connection
