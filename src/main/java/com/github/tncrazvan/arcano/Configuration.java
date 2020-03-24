@@ -525,10 +525,10 @@ public class Configuration {
     /**
      * Read JavaScript and CSS filename entries from a json array inside a json file and pack them together.<br />
      * The output packed files are named "main.js" and "main.css" and they will be located
-     * inside a "pack" directory that is relative to the location of the input <b>.json</b> file.<br /><br />
+     * inside the same directory as the input <b>.json</b> file.<br /><br />
      * 
      * For example, if the input file is "<b>www/imports.json</b>" the output packed files will be saved as
-     * "<b>www/pack/main.js</b>" and "<b>www/pack/main.css</b>".
+     * "<b>www/main.js</b>" and "<b>www/main.css</b>".
      * @param directory The directory in which to look for the input json file.
      * @param imports The name of the input file (<b>www/imports.json</b>).<br />
      * This input file is relative to the json configuration file.<br />
@@ -545,10 +545,10 @@ public class Configuration {
     /**
      * Read JavaScript and CSS filename entries from a json array inside a json file and pack them together.<br />
      * The output packed files are named "main.js" and "main.css" and they will be located
-     * inside a "pack" directory that is relative to the location of the input <b>.json</b> file.<br /><br />
+     * inside the same directory as the input <b>.json</b> file.<br /><br />
      * 
      * For example, if the input file is "<b>www/imports.json</b>" the output packed files will be saved as
-     * "<b>www/pack/main.js</b>" and "<b>www/pack/main.css</b>".
+     * "<b>www/main.js</b>" and "<b>www/main.css</b>".
      * @param directory The directory in which to look for the input json file.
      * @param imports The name of the input file (<b>www/imports.json</b>).<br />
      * This input file is relative to the json configuration file.<br />
@@ -594,8 +594,8 @@ public class Configuration {
                     }
                 }
             }
-            ServerFile mainCSS = new ServerFile(webRoot,"pack/main.css");
-            ServerFile mainJS = new ServerFile(webRoot,"pack/main.js");
+            ServerFile mainCSS = new ServerFile(webRoot,"main.css");
+            ServerFile mainJS = new ServerFile(webRoot,"main.js");
             mainCSS.getParentFile().mkdirs();
             mainJS.getParentFile().mkdirs();
             if(!mainCSS.exists())
