@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 import com.github.tncrazvan.arcano.Bean.Http.HttpServiceParam;
+import java.io.File;
 
 
 /**
@@ -181,7 +182,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
             String type = reader.request.headers.get("@Method");
             for (int i = reader.location.length; i > 0; i--) {
                 String path = String.join("/", Arrays.copyOf(reader.location, i)).toLowerCase();
-                if(path.equals(""))
+                if(path.equals("") || new File(reader.so.config.webRoot,path).exists())
                     path="/";
                 HashMap<String, WebObject> method = reader.so.HTTP_ROUTES.get(type);
                 if(method != null){
