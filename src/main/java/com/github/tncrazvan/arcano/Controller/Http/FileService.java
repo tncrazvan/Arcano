@@ -5,9 +5,7 @@ import java.io.IOException;
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
 import com.github.tncrazvan.arcano.SharedObject;
-import com.github.tncrazvan.arcano.Tool.Http.Status;
 import java.io.File;
-import jdk.internal.joptsimple.internal.Strings;
 
 /**
  *
@@ -26,7 +24,7 @@ public class FileService extends HttpController {
         return SharedObject.RESPONSE_NOT_FOUND;
     }
     
-    @HttpService(path = "/pack")
+    /*@HttpService(path = "/pack")
     public synchronized void pack() throws IOException{
         if(reader.args.length == 0){
             this.setResponseStatus(Status.STATUS_BAD_REQUEST);
@@ -39,5 +37,5 @@ public class FileService extends HttpController {
         
         if(!reader.so.config.pack(reader.so.config.webRoot,Strings.join(reader.args, "/")))
             this.setResponseStatus(Status.STATUS_BAD_REQUEST);
-    }
+    }*/
 }
