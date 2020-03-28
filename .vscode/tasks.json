@@ -8,6 +8,12 @@
             "type": "shell",
             "command": "mvn dependency:resolve && mvn dependency:purge-local-repository clean install",
             "group": "build"
+        },
+        {
+            "label": "release",
+            "type": "shell",
+            "command": "release Arcano 1.1.0",
+            "group": "build"
         }
     ]
 }
