@@ -44,6 +44,10 @@ import javax.net.ssl.SSLServerSocket;
 public class Arcano extends SharedObject {
     private static SmtpServer smtpServer;
     public static void main (final String[] args) throws IOException, ClassNotFoundException, NoSuchAlgorithmException, URISyntaxException{
+        if(args.length == 0) {
+            System.out.println("No arguments provided. Server won't start.");
+            return;
+        }
         new Arcano(Arcano.class.getPackage()).listen(args,(so) -> {
             so.config.pack(so.config.webRoot,"imports.json");
             return 1000L;
@@ -259,6 +263,7 @@ public class Arcano extends SharedObject {
 
                 final SSLServerSocketFactory factory = context.getServerSocketFactory();
                 try (SSLServerSocket ss = ((SSLServerSocket) factory.createServerSocket())) {
+                    ss.setSoTimeout(this.config.timeout);
                     ss.bind(new InetSocketAddress(config.bindAddress, config.port));
                     HttpRequestReader reader;
                     System.out.println("Server started (using TLSv1.2).");
@@ -277,6 +282,7 @@ public class Arcano extends SharedObject {
                 Logger.getLogger(Arcano.class.getName()).log(Level.SEVERE, null, ex);
             } else {
                 ServerSocket ss = new ServerSocket();
+                ss.setSoTimeout(this.config.timeout);
                 ss.bind(new InetSocketAddress(config.bindAddress, config.port));
                 HttpRequestReader reader;
                 System.out.println("Server started.");

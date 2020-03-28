@@ -93,6 +93,20 @@ public class SharedObject implements Strings{
     }},"").resolve();
     //DEFAULT PROJECT NAMES
     public static final String NAME_SESSION_ID = "JavaSessionID";
+    
+    
+    
+    public final void expose(String[] types,CompleteAction<Object,HttpEvent>  action){
+        for(String type : types){
+            expose(type, action);
+        }
+    }
+    
+    public final void expose(String[] types, String path,CompleteAction<Object,HttpEvent>  action){
+        for(String type : types){
+            expose(type,path,action);
+        }
+    }
     public final void expose(String type,CompleteAction<Object,HttpEvent>  action){
         expose(type, null, action);
     }
