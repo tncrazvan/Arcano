@@ -6,7 +6,7 @@ import java.util.zip.DeflaterOutputStream;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface Deflate {
     static byte[] deflate(final byte[] input) throws IOException{

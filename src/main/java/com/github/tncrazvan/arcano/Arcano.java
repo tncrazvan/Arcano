@@ -1,45 +1,47 @@
 package com.github.tncrazvan.arcano;
 
-import com.github.tncrazvan.arcano.Configuration.Threads;
-import com.github.tncrazvan.arcano.Http.HttpController;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.logging.Level;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
-
-import com.github.tncrazvan.arcano.Http.HttpRequestReader;
-import com.github.tncrazvan.arcano.Smtp.SmtpServer;
-import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketEventManager;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketCommit;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+
+import com.github.tncrazvan.arcano.Configuration.Threads;
+import com.github.tncrazvan.arcano.Http.HttpController;
+import com.github.tncrazvan.arcano.Http.HttpRequestReader;
+import com.github.tncrazvan.arcano.Smtp.SmtpServer;
+import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketCommit;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketEventManager;
 
 /**
  *
- * @author Razvan
+ * @author Razvan Tanase
  */
 public class Arcano extends SharedObject {
     private static SmtpServer smtpServer;
@@ -268,12 +270,15 @@ public class Arcano extends SharedObject {
                     HttpRequestReader reader;
                     System.out.println("Server started (using TLSv1.2).");
                     while (config.listen) {
-
-                        reader = new HttpRequestReader(this, ss.accept());
-                        if(executor == null)
-                            service.submit(reader);
-                        else
-                            executor.submit(reader);
+                        try{
+                            reader = new HttpRequestReader(this, ss.accept());
+                            if(executor == null)
+                                service.submit(reader);
+                            else
+                                executor.submit(reader);
+                        }catch(SocketTimeoutException e){
+                            //System.out.println(String.format("Socket timed out after %s milliseconds.", this.config.timeout));
+                        }
                     }
                 }
             } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex) {
@@ -293,7 +298,9 @@ public class Arcano extends SharedObject {
                             service.submit(reader);
                         else
                             executor.submit(reader);
-                    } catch (NoSuchAlgorithmException ex) {
+                    }catch(SocketTimeoutException e){
+                        //System.out.println(String.format("Socket timed out after %s milliseconds.", this.config.timeout));
+                    }catch (NoSuchAlgorithmException ex) {
                         LOGGER.log(Level.SEVERE, null, ex);
                     }
                 }

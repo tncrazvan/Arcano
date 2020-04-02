@@ -1,14 +1,14 @@
 package com.github.tncrazvan.arcano.Tool.Security;
 
-import com.github.tncrazvan.arcano.SharedObject;
-import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import static com.github.tncrazvan.arcano.Tool.Encoding.Base64.btoa;
 import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha512String;
+
+import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import com.google.gson.JsonObject;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public class JwtMessage implements JsonTools{
     private final JsonObject header = new JsonObject();

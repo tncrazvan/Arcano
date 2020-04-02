@@ -7,7 +7,7 @@ package com.github.tncrazvan.arcano.Tool.Cluster;
 
 /**
  *
- * @author RazvanTanase
+ * @author Razvan Tanase
  */
 public class NoSecretFoundException extends Exception{
     private static final long serialVersionUID = 6525068845546526095L;

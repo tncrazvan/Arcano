@@ -7,7 +7,7 @@ package com.github.tncrazvan.arcano.Http;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface HttpControllerFeatures {
     default void onClose(){}    

@@ -1,12 +1,14 @@
 package com.github.tncrazvan.arcano.Controller.Http;
 
+import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_FOUND;
+import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import com.github.tncrazvan.arcano.Http.HttpController;
-import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_FOUND;
-import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
+
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
+import com.github.tncrazvan.arcano.Http.HttpController;
 
 /**
  *

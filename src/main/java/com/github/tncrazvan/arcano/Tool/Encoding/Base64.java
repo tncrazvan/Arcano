@@ -8,12 +8,13 @@ package com.github.tncrazvan.arcano.Tool.Encoding;
 import static com.github.tncrazvan.arcano.SharedObject.BASE64_DECODER;
 import static com.github.tncrazvan.arcano.SharedObject.BASE64_ENCODER;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface Base64 {
     

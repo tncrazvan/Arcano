@@ -1,10 +1,16 @@
 package com.github.tncrazvan.arcano.WebSocket;
 
-import com.github.tncrazvan.arcano.Http.HttpRequestReader;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 
+import com.github.tncrazvan.arcano.Http.HttpRequestReader;
+
+/**
+ *
+ * @author Razvan Tanase
+ */
 public abstract class WebSocketController extends WebSocketEvent{
 
     protected String[] args;

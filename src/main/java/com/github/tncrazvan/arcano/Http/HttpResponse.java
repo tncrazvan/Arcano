@@ -1,20 +1,22 @@
 package com.github.tncrazvan.arcano.Http;
 
-import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonStringify;
-import com.github.tncrazvan.arcano.Tool.System.ServerFile;
-import com.google.gson.JsonArray;
+import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+
 import com.github.tncrazvan.arcano.Tool.Actions.VoidAction;
+import com.github.tncrazvan.arcano.Tool.System.ServerFile;
+import com.google.gson.JsonArray;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public class HttpResponse {
     private boolean exception = false;
@@ -51,15 +53,21 @@ public class HttpResponse {
     }
 
     public HttpResponse(final HttpHeaders headers, final Object content) {
-        this((HashMap<String, String>) headers.getHashMap(), content);
+        raw = false;
+        type = content.getClass();
+        this.headers = headers;
+        this.content = content;
     }
 
     public HttpResponse(final Object content) {
-        this(new HashMap<String, String>(), content);
+        this(HttpHeaders.response(), content);
     }
+    
+    
+    
 
     public HttpResponse(final HttpHeaders headers) {
-        this((HashMap<String, String>) headers.getHashMap(), null);
+        this(headers, null);
     }
 
     public HttpResponse(final HashMap<String, String> headers) {
@@ -67,10 +75,7 @@ public class HttpResponse {
     }
 
     public HttpResponse(final HashMap<String, String> headers, final Object content) {
-        raw = false;
-        type = content.getClass();
-        this.headers = new HttpHeaders(headers);
-        this.content = content;
+        this(HttpHeaders.response(headers), content);
     }
 
     /**

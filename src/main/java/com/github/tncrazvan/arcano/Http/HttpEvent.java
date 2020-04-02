@@ -1,30 +1,30 @@
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
-import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
+import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVER_ERROR;
+
+import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Level;
 
+import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
+import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.WebObject;
+import com.github.tncrazvan.arcano.Bean.Http.HttpServiceParam;
+import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
-import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_INTERNAL_SERVER_ERROR;
 import com.google.gson.JsonObject;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Parameter;
-import com.github.tncrazvan.arcano.Bean.Http.HttpServiceParam;
-import java.io.File;
 
 
 /**
  *
- * @author Razvan
+ * @author Razvan Tanase
  */
 public class HttpEvent extends HttpEventManager implements JsonTools{
     private void sendHttpResponse(Exception e){
@@ -56,7 +56,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 obj.addProperty(exception?"exception":"result", tmp);
                 tmp = obj.toString();
             }
-            setResponseHeaderField("Content-Length", tmp.length()+"");
+            //setResponseHeaderField("Content-Length", tmp.length()+"");
             push(tmp);
         }
     }
@@ -151,6 +151,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                         setResponseHeaderField(key, header);
                     });
                 }
+                setResponseStatus(response.getHttpHeaders().getStatus());
                 sendHttpResponse(response);
             } else {
                 // if it's some other type of object...
@@ -179,7 +180,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
 
     private static HttpController factory(HttpRequestReader reader) {
         try {
-            String type = reader.request.headers.get("@Method");
+            String type = reader.request.headers.getMethod();
             for (int i = reader.location.length; i > 0; i--) {
                 String path = String.join("/", Arrays.copyOf(reader.location, i)).toLowerCase();
                 if(path.equals(""))

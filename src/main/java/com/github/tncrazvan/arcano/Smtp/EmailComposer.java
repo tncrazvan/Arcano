@@ -1,15 +1,18 @@
 package com.github.tncrazvan.arcano.Smtp;
 
-import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.Tool.Http.MultipartFormData.generateMultipartBoundary;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+
 import javax.net.ssl.SSLSocketFactory;
+
+import com.github.tncrazvan.arcano.SharedObject;
 
 /**
  *
- * @author razvan
+ * @author Razvan Tanase
  */
 public class EmailComposer extends SmtpMessageManager{
     private final Email email;

@@ -1,20 +1,9 @@
 package com.github.tncrazvan.arcano;
 
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
-import com.github.tncrazvan.arcano.Tool.Cluster.Cluster;
-import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
-import com.github.tncrazvan.arcano.Tool.Cluster.InvalidClusterEntryException;
-import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonObject;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonParse;
-import com.github.tncrazvan.arcano.Tool.Http.Status;
-import com.github.tncrazvan.arcano.Tool.Regex;
-import com.github.tncrazvan.arcano.Tool.System.ServerFile;
-import com.github.tncrazvan.asciitable.AsciiTable;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,9 +15,22 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.logging.Level;
+
+import com.github.tncrazvan.arcano.Tool.Regex;
+import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
+import com.github.tncrazvan.arcano.Tool.Cluster.Cluster;
+import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
+import com.github.tncrazvan.arcano.Tool.Cluster.InvalidClusterEntryException;
+import com.github.tncrazvan.arcano.Tool.Encoding.JsonTools;
+import com.github.tncrazvan.arcano.Tool.Http.Status;
+import com.github.tncrazvan.arcano.Tool.System.ServerFile;
+import com.github.tncrazvan.asciitable.AsciiTable;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 /**
  * Containst the configuration file objects.
- * @author Razvan
+ * @author Razvan Tanase
  */
 public class Configuration {
     public ZoneId timezone = ZoneId.systemDefault();

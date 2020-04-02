@@ -6,7 +6,7 @@ import java.util.zip.InflaterInputStream;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface Inflate {
     static byte[] inflate(final byte[] input) throws IOException{

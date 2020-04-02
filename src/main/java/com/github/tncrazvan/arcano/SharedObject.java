@@ -1,40 +1,42 @@
 package com.github.tncrazvan.arcano;
 
-import com.github.tncrazvan.arcano.Bean.Email.SmtpService;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
+import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
+
 import java.lang.reflect.Method;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.time.ZoneId;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
+
+import com.github.tncrazvan.arcano.Bean.Email.SmtpService;
+import com.github.tncrazvan.arcano.Bean.Http.HttpService;
+import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketControllerNotFound;
+import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketService;
 import com.github.tncrazvan.arcano.Http.HttpController;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
-import java.util.concurrent.ThreadPoolExecutor;
+import com.github.tncrazvan.arcano.Http.HttpEvent;
+import com.github.tncrazvan.arcano.Http.HttpHeaders;
+import com.github.tncrazvan.arcano.Http.HttpResponse;
 import com.github.tncrazvan.arcano.Http.HttpSessionManager;
 import com.github.tncrazvan.arcano.Smtp.SmtpController;
 import com.github.tncrazvan.arcano.Tool.Strings;
-import com.github.tncrazvan.arcano.Http.HttpResponse;
-import java.util.concurrent.ExecutorService;
-import com.github.tncrazvan.arcano.Bean.Http.HttpService;
-import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketService;
-import com.github.tncrazvan.arcano.Http.HttpEvent;
-import com.github.tncrazvan.arcano.Http.HttpHeaders;
 import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 import com.github.tncrazvan.arcano.Tool.Http.Status;
-import static com.github.tncrazvan.arcano.Tool.Strings.normalizePathSlashes;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketEvent;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketEventManager;
-import java.util.Arrays;
-import java.util.LinkedList;
-import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketControllerNotFound;
 
 /**
  * 
- * @author Razvan
+ * @author Razvan Tanase
  */
 public class SharedObject implements Strings{
     //SESSIONS
@@ -87,10 +89,12 @@ public class SharedObject implements Strings{
     public static final Base64.Decoder BASE64_DECODER = Base64.getDecoder();
     //DEFAULT RESPONSES
     public static final HttpResponse RESPONSE_EMPTY = new HttpResponse("").resolve();
-    public static final HttpResponse RESPONSE_NOT_FOUND = new HttpResponse(new HttpHeaders(){{
-        set("@Status", Status.STATUS_NOT_FOUND);
-        set("Content-Length", "0");
-    }},"").resolve();
+    public static final HttpResponse RESPONSE_NOT_FOUND = new HttpResponse(
+            HttpHeaders
+                    .response(Status.STATUS_NOT_FOUND)
+                    .set("Content-Length", "0"),
+            ""
+    ).resolve();
     //DEFAULT PROJECT NAMES
     public static final String NAME_SESSION_ID = "JavaSessionID";
     

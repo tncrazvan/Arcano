@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano.Tool.Http;
 
-import com.github.tncrazvan.arcano.Http.HttpHeaders;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,11 +9,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.logging.Level;
-import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
+import com.github.tncrazvan.arcano.Http.HttpHeaders;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface Fetch {
     public static FetchResult get(final String targetURL) {

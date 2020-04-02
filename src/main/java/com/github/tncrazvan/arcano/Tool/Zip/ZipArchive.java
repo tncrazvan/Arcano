@@ -5,7 +5,8 @@
  */
 package com.github.tncrazvan.arcano.Tool.Zip;
 
-import com.github.tncrazvan.arcano.Tool.System.ServerFile;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,11 +14,12 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
+import com.github.tncrazvan.arcano.Tool.System.ServerFile;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
  public class ZipArchive{
     private final String filename;

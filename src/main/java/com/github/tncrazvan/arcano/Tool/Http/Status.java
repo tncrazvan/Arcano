@@ -7,7 +7,7 @@ package com.github.tncrazvan.arcano.Tool.Http;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface Status {
     //STATUS STRINGS

@@ -7,7 +7,7 @@ package com.github.tncrazvan.arcano.Smtp;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public abstract class SmtpController {
     public abstract void onEmailReceived(Email email);

@@ -18,7 +18,7 @@ import java.util.Map;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public class ServerFile extends File{
     private static final long serialVersionUID = 4567989494529454756L;
@@ -65,14 +65,32 @@ public class ServerFile extends File{
         fos.close();
     }
 
+    /**
+     * Get all information attributes of this file.
+     * @return file information map.
+     * @throws IOException
+     */
     public final Map<String, Object> info() throws IOException {
         return info("*");
     }
 
+    /**
+     * Get a specific information field regarding this file.
+     * @param selection
+     * @return
+     * @throws IOException
+     */
     public final Map<String, Object> info(final String selection) throws IOException {
-         return Files.readAttributes(this.toPath(), selection);
+        return Files.readAttributes(this.toPath(), selection);
     }
-    public final String readString(String charset) throws IOException{
+
+    /**
+     * Read all contents of this file as a String.
+     * @param charset charset to use when decoding the contents.
+     * @return contents of the file.
+     * @throws IOException
+     */
+    public final String readString(final String charset) throws IOException {
         return Files.readString(this.toPath(),Charset.forName(charset));
     }
 }

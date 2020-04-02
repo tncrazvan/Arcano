@@ -1,5 +1,9 @@
 package com.github.tncrazvan.arcano.Smtp;
 
+import static com.github.tncrazvan.arcano.Tool.Regex.extract;
+import static com.github.tncrazvan.arcano.Tool.Regex.group;
+import static com.github.tncrazvan.arcano.Tool.Regex.match;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,13 +13,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import static com.github.tncrazvan.arcano.Tool.Regex.match;
-import static com.github.tncrazvan.arcano.Tool.Regex.group;
-import static com.github.tncrazvan.arcano.Tool.Regex.extract;
 
 /**
  *
- * @author razvan
+ * @author Razvan Tanase
  */
 public abstract class SmtpMessageManager {
     protected final PrintWriter sockout;

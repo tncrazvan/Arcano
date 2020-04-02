@@ -1,11 +1,13 @@
 package com.github.tncrazvan.arcano.Controller.WebSocket;
 
-import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketService;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
-import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
+import com.github.tncrazvan.arcano.Bean.WebSocket.WebSocketService;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketCommit;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 
 /**
  *

@@ -1,16 +1,18 @@
 package com.github.tncrazvan.arcano.Smtp;
 
-import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
+import com.github.tncrazvan.arcano.SharedObject;
+
 /**
  *
- * @author razvan
+ * @author Razvan Tanase
  */
 public class SmtpServer implements Runnable{
 

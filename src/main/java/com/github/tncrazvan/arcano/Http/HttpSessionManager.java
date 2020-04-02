@@ -1,13 +1,15 @@
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.EventManager;
 import static com.github.tncrazvan.arcano.SharedObject.NAME_SESSION_ID;
+
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.tncrazvan.arcano.EventManager;
+
 /**
  *
- * @author Razvan
+ * @author Razvan Tanase
  */
 public class HttpSessionManager {
     public final Map<String,HttpSession> LIST = new HashMap<>();

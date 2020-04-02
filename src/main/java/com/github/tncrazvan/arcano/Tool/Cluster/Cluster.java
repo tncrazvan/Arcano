@@ -5,15 +5,16 @@
  */
 package com.github.tncrazvan.arcano.Tool.Cluster;
 
-import com.github.tncrazvan.arcano.Tool.Regex;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import com.github.tncrazvan.arcano.Tool.Regex;
+
 /**
  *
- * @author RazvanTanase
+ * @author Razvan Tanase
  */
 public class Cluster {
     private final HashMap<String, ClusterServer> map;

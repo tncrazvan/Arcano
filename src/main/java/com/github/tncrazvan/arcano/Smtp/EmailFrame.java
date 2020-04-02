@@ -2,7 +2,7 @@ package com.github.tncrazvan.arcano.Smtp;
 
 /**
  *
- * @author razvan
+ * @author Razvan Tanase
  */
 public class EmailFrame {
     private final String message;

@@ -7,7 +7,7 @@ package com.github.tncrazvan.arcano.Tool.Http;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface ContentType {
     
@@ -40,6 +40,7 @@ public interface ContentType {
         }
         switch(tmp_type){
             case "wasm":return "application/wasm";
+            case "htm":return "text/html";
             case "html":return "text/html";
             case "css": return "text/css";
             case "csv": return "text/csv";

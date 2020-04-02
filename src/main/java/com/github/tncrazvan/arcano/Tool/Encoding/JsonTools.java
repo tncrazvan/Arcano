@@ -1,15 +1,16 @@
 package com.github.tncrazvan.arcano.Tool.Encoding;
 
+import java.io.Reader;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
-import java.io.Reader;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface JsonTools {
     static final Gson JSON_PARSER = new Gson();

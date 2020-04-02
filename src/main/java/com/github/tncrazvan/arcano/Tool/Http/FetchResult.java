@@ -4,7 +4,7 @@ import java.io.UnsupportedEncodingException;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public class FetchResult{
     private final byte[] data;

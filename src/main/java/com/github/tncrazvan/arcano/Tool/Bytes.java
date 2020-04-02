@@ -9,7 +9,7 @@ import java.util.Arrays;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface Bytes {
     /**

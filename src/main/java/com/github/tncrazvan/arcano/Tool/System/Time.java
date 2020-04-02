@@ -11,7 +11,7 @@ import java.time.ZoneId;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface Time {
     

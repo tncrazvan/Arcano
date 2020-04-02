@@ -1,16 +1,18 @@
 package com.github.tncrazvan.arcano.Http;
 
-import com.github.tncrazvan.arcano.SharedObject;
-import com.github.tncrazvan.arcano.EventManager;
 import static com.github.tncrazvan.arcano.SharedObject.NAME_SESSION_ID;
 import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1String;
-import com.github.tncrazvan.arcano.Tool.System.Time;
+
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.tncrazvan.arcano.EventManager;
+import com.github.tncrazvan.arcano.SharedObject;
+import com.github.tncrazvan.arcano.Tool.System.Time;
+
 /**
  *
- * @author razvan
+ * @author Razvan Tanase
  */
 public class HttpSession{
     private long time;

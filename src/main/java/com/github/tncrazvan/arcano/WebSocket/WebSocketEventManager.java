@@ -1,24 +1,25 @@
 package com.github.tncrazvan.arcano.WebSocket;
 
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1Bytes;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.logging.Level;
 
 import javax.xml.bind.DatatypeConverter;
 
-import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import com.github.tncrazvan.arcano.EventManager;
-import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1Bytes;
-import com.github.tncrazvan.arcano.Tool.Http.Status;
 import com.github.tncrazvan.arcano.Tool.Strings;
-import java.util.LinkedList;
+import com.github.tncrazvan.arcano.Tool.Http.Status;
 
 /**
  *
- * @author Razvan
+ * @author Razvan Tanase
  */
 public abstract class WebSocketEventManager extends EventManager{
     private boolean connected = true;
@@ -76,17 +77,11 @@ public abstract class WebSocketEventManager extends EventManager{
                             )
                         );
 
-            responseHeaders.set("@Status", Status.STATUS_SWITCHING_PROTOCOLS);
+            responseHeaders.setStatus(Status.STATUS_SWITCHING_PROTOCOLS);
             responseHeaders.set("Connection", "Upgrade");
             responseHeaders.set("Upgrade", "websocket");
             responseHeaders.set("Sec-WebSocket-Accept", acceptKey);
-            reader.output.write(
-                    (
-                            responseHeaders.toString()
-                            + "\r\n"
-                    )
-                            .getBytes()
-            );
+            reader.output.write((responseHeaders.toString()+ "\r\n").getBytes());
             reader.output.flush();
             manageOnOpen();
             reader.so.webSocketEventManager.put(uuid, this);

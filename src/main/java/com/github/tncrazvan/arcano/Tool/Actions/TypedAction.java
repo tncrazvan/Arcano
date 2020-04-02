@@ -1,10 +1,10 @@
 package com.github.tncrazvan.arcano.Tool.Actions;
 
 /**
- *
- * @author Administrator
- * @param <T>
+ * Make a callback and define its parameter type (P).
+ * @author Razvan Tanase
+ * @param <P> type of the parameter object.
  */
-public interface TypedAction<T>{
-    public abstract void callback(T e);
+public interface TypedAction<P>{
+    public abstract void callback(P e);
 }

@@ -1,18 +1,20 @@
 package com.github.tncrazvan.arcano.Controller.Http;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi;
-import java.io.IOException;
-import com.github.tncrazvan.arcano.Http.HttpController;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
-import java.io.File;
 import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonStringify;
-import static com.github.tncrazvan.arcano.Tool.System.Memory.getAllocatedMemory;
+import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
 import static com.github.tncrazvan.arcano.Tool.System.Memory.getFreeMemory;
 import static com.github.tncrazvan.arcano.Tool.System.Memory.getMaxMemory;
-import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_NOT_FOUND;
+import static com.github.tncrazvan.arcano.Tool.System.Memory.getTotalMemory;
+
+import java.io.File;
+import java.io.IOException;
+
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
+import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi;
+import com.github.tncrazvan.arcano.Http.HttpController;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 /**
  *
  * @author Razvan
@@ -24,7 +26,7 @@ public class Get extends HttpController{
     public JsonObject memory(){
         final JsonObject result = new JsonObject();
         result.addProperty("free", getFreeMemory());
-        result.addProperty("allocated", getAllocatedMemory());
+        result.addProperty("allocated", getTotalMemory());
         result.addProperty("max", getMaxMemory());
         return result;
     }

@@ -9,7 +9,7 @@ import java.lang.reflect.Constructor;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface ConstructorFinder {
     public static Constructor<?> getNoParametersConstructor(final Class<?> cls) {

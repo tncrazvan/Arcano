@@ -8,7 +8,7 @@ import java.util.zip.GZIPOutputStream;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface Gzip {
     static byte[] compress(final byte[] input) throws IOException{

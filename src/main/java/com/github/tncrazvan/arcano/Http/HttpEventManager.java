@@ -1,32 +1,33 @@
 package com.github.tncrazvan.arcano.Http;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.logging.Level;
-import com.github.tncrazvan.arcano.EventManager;
 import static com.github.tncrazvan.arcano.SharedObject.DEFLATE;
 import static com.github.tncrazvan.arcano.SharedObject.GZIP;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import com.github.tncrazvan.arcano.Tool.Compression.Deflate;
-import com.github.tncrazvan.arcano.Tool.Compression.Gzip;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
 import static com.github.tncrazvan.arcano.Tool.Http.MultipartFormData.generateMultipartBoundary;
-import com.github.tncrazvan.arcano.Tool.Http.Status;
 import static com.github.tncrazvan.arcano.Tool.Http.Status.STATUS_PARTIAL_CONTENT;
-import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
-import com.github.tncrazvan.arcano.Tool.Strings;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketCommit;
-import com.google.gson.JsonObject;
+
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
+import java.util.logging.Level;
+
+import com.github.tncrazvan.arcano.EventManager;
+import com.github.tncrazvan.arcano.Tool.Strings;
+import com.github.tncrazvan.arcano.Tool.Compression.Deflate;
+import com.github.tncrazvan.arcano.Tool.Compression.Gzip;
+import com.github.tncrazvan.arcano.Tool.Http.Status;
+import com.github.tncrazvan.arcano.Tool.Security.JwtMessage;
+import com.google.gson.JsonObject;
 
 /**
  *
- * @author Razvan
+ * @author Razvan Tanase
  */
 public abstract class HttpEventManager extends EventManager{
     //private HttpHeaders responseHeaders;
@@ -99,7 +100,7 @@ public abstract class HttpEventManager extends EventManager{
      *               com.github.tncrazvan.arcano.Tool.Status class.
      */
     public final void setResponseStatus(final String status) {
-        setResponseHeaderField("@Status", status);
+        responseHeaders.setStatus(status);
     }
 
     /**
@@ -161,7 +162,7 @@ public abstract class HttpEventManager extends EventManager{
      * @param data data to be sent.
      */
     public final void push(byte[] data) {
-        HttpEventManager.this.push(data,true);
+        this.push(data,true);
     }
     /**
      * Send data to the client.The first time this method is called within an
@@ -198,9 +199,9 @@ public abstract class HttpEventManager extends EventManager{
                         break;
                     }
                 }
-                if (includeHeaders && firstMessage && defaultHeaders) {
+                if (includeHeaders && firstMessage && defaultHeaders)
                     sendHeaders();
-                }
+                
                 reader.output.write(data);
                 reader.output.flush();
                 alive = true;
@@ -232,7 +233,7 @@ public abstract class HttpEventManager extends EventManager{
      * @param data data to be sent.
      */
     public final void push(String data) {
-        HttpEventManager.this.push(data,true);
+        this.push(data,true);
     }
     /**
      * Send data to the client.The first time this method is called within an
@@ -307,8 +308,8 @@ public abstract class HttpEventManager extends EventManager{
 
     /**
      * Usually the server sets a few responseHeaders to your HttpResponse, such as the
- "@Status" of the response as "200 OK", "Cache-Control" to "no-store", "Date"
- to the current Greenwich date.
+     * "@Status" of the response as "200 OK", "Cache-Control" to "no-store", "Date"
+     * to the current Greenwich date.
      */
     public final void disableDefaultResponseHeaders() {
         defaultHeaders = false;
@@ -316,8 +317,8 @@ public abstract class HttpEventManager extends EventManager{
 
     /**
      * Usually the server sets a few responseHeaders to your HttpResponse, such as the
- "@Status" of the response as "200 OK", "Cache-Control" to "no-store", "Date"
- to the current Greenwich date.
+     * "@Status" of the response as "200 OK", "Cache-Control" to "no-store", "Date"
+     * to the current Greenwich date.
      */
     public final void enableDefaultResponseHeaders() {
         defaultHeaders = true;

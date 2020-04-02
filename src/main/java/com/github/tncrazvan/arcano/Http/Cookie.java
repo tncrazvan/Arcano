@@ -2,7 +2,7 @@ package com.github.tncrazvan.arcano.Http;
 
 /**
  *
- * @author Razvan
+ * @author Razvan Tanase
  */
 public class Cookie {
     String 

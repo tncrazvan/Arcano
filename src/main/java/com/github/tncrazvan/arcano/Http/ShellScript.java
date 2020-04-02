@@ -5,8 +5,6 @@
  */
 package com.github.tncrazvan.arcano.Http;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,9 +12,12 @@ import java.io.OutputStream;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public class ShellScript {
     private String program;

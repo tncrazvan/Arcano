@@ -6,6 +6,7 @@
 package com.github.tncrazvan.arcano.Tool.Encoding;
 
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -13,12 +14,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.logging.Level;
+
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface Hashing {
     

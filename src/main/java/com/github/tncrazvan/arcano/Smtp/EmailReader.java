@@ -1,10 +1,7 @@
 package com.github.tncrazvan.arcano.Smtp;
 
-import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
-import com.github.tncrazvan.arcano.SharedObject;
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
-import com.github.tncrazvan.arcano.WebObject;
+
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -13,9 +10,13 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
+import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
+import com.github.tncrazvan.arcano.WebObject;
+import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
+
 /**
  *
- * @author razvan
+ * @author Razvan Tanase
  */
 public class EmailReader extends SmtpMessageManager{
     String 

@@ -5,7 +5,7 @@ import java.util.Map;
 
 /**
  *
- * @author razvan
+ * @author Razvan Tanase
  */
 public class WebSocketGroupManager {
     private final Map<String,WebSocketGroup> groups = new HashMap<>();

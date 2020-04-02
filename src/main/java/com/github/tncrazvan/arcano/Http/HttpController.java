@@ -1,24 +1,30 @@
 package com.github.tncrazvan.arcano.Http;
 
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
-import com.github.tncrazvan.arcano.Tool.Strings;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Map;
 import java.util.logging.Level;
+
+import com.github.tncrazvan.arcano.Tool.Reflect.ConstructorFinder;
 
 /**
  *
- * @author razvan
+ * @author Razvan Tanase
  */
 public class HttpController extends HttpEvent implements HttpControllerFeatures{
     public final HttpController install(final HttpRequestReader reader) {
         try {
-            this.setResponseHttpHeaders(new HttpHeaders());
             this.reader = reader;
+            HttpHeaders h = HttpHeaders.response();
+            for(Map.Entry<String,String> entry : this.reader.so.config.headers.entrySet()){
+                h.set(entry.getKey(), entry.getValue());
+            }
+            this.setResponseHttpHeaders(h);
             this.resolveRequestId();
             this.initEventManager();
             this.initHttpEventManager();

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 /**
  *
- * @author razvan
+ * @author Razvan Tanase
  */
 public class Email {
     private final String subject,sender;

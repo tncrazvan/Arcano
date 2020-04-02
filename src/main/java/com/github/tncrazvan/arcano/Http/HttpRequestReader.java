@@ -1,33 +1,36 @@
 package com.github.tncrazvan.arcano.Http;
 
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import static com.github.tncrazvan.arcano.SharedObject.londonTimezone;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.security.NoSuchAlgorithmException;
-import java.util.logging.Level;
-import com.github.tncrazvan.arcano.SharedObject;
-import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import static com.github.tncrazvan.arcano.SharedObject.londonTimezone;
-import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URLDecoder;
+import java.security.NoSuchAlgorithmException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.net.ssl.SSLSocket;
+
+import com.github.tncrazvan.arcano.SharedObject;
+import com.github.tncrazvan.arcano.WebSocket.WebSocketController;
 
 /**
  *
- * @author Razvan
+ * @author Razvan Tanase
  */
 public class HttpRequestReader implements Runnable{
     public Socket client;
@@ -83,7 +86,7 @@ public class HttpRequestReader implements Runnable{
             if (outputString.length() == 0) {
                 client.close();
             } else {
-                final HttpHeaders clientHeader = HttpHeaders.fromString(outputString.toString().trim());
+                final HttpHeaders clientHeader = HttpHeaders.requestFromString(outputString.toString().trim());
                 // outputString = new StringBuilder();
                 final ArrayList<byte[]> inputList = new ArrayList<>();
                 int length = 0;
@@ -130,7 +133,7 @@ public class HttpRequestReader implements Runnable{
                     }
                 }
                 this.request = new HttpRequest(clientHeader, inputBytes);
-                String uri = request.headers.get("@Resource");
+                String uri = request.headers.getResource();
                 if(uri == null) {
                     output.write(SharedObject.RESPONSE_NOT_FOUND.toString().getBytes(so.config.charset));
                     System.out.println("Invalid resource requsted: "+request.headers.toString());

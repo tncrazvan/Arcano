@@ -11,7 +11,7 @@ import java.util.UUID;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public interface Strings {
     

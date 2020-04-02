@@ -5,7 +5,7 @@ import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public class WebObject {
     private final CompleteAction<Object,HttpEvent> action;

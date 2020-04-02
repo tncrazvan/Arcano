@@ -1,11 +1,12 @@
 package com.github.tncrazvan.arcano.Controller.Http;
 
-import com.github.tncrazvan.arcano.Http.HttpController;
-import java.io.IOException;
-import com.github.tncrazvan.arcano.Bean.Http.HttpService;
-import com.github.tncrazvan.arcano.Http.HttpResponse;
-import com.github.tncrazvan.arcano.SharedObject;
 import java.io.File;
+import java.io.IOException;
+
+import com.github.tncrazvan.arcano.SharedObject;
+import com.github.tncrazvan.arcano.Bean.Http.HttpService;
+import com.github.tncrazvan.arcano.Http.HttpController;
+import com.github.tncrazvan.arcano.Http.HttpResponse;
 
 /**
  *

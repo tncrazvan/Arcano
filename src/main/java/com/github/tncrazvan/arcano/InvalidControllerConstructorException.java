@@ -7,7 +7,7 @@ package com.github.tncrazvan.arcano;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public class InvalidControllerConstructorException extends Exception{
 

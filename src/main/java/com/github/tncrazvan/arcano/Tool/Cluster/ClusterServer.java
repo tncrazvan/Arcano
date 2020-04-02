@@ -5,11 +5,16 @@
  */
 package com.github.tncrazvan.arcano.Tool.Cluster;
 
+import java.util.HashMap;
+
 import com.github.tncrazvan.arcano.Http.HttpHeaders;
 import com.github.tncrazvan.arcano.Tool.Http.Fetch;
 import com.github.tncrazvan.arcano.Tool.Http.FetchResult;
-import java.util.HashMap;
 
+/**
+ *
+ * @author Razvan Tanase
+ */
 public class ClusterServer {
     private final String hostname;
     private final String arcanoSecret;
@@ -34,7 +39,7 @@ public class ClusterServer {
     }
 
     public final void getData(final String arcanoSecret) {
-        final HttpHeaders headers = new HttpHeaders(false);
+        final HttpHeaders headers = HttpHeaders.response();
         headers.setCookie("ArcanoSecret", arcanoSecret, "UTF-8");
         final FetchResult result = Fetch.get("http://" + hostname + "/@get/memory", new HashMap<String, String>() {
             private static final long serialVersionUID = -7816453807505595526L;

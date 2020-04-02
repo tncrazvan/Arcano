@@ -1,19 +1,21 @@
 package com.github.tncrazvan.arcano.WebSocket;
 
+import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import com.github.tncrazvan.arcano.Http.HttpRequestReader;
-import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
-import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
-import com.github.tncrazvan.arcano.WebObject;
-import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.logging.Level;
+
+import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
+import com.github.tncrazvan.arcano.WebObject;
+import com.github.tncrazvan.arcano.Http.HttpRequestReader;
 
 
 /**
  *
- * @author Razvan
+ * @author Razvan Tanase
  */
 public abstract class WebSocketEvent extends WebSocketEventManager{
     

@@ -1,12 +1,8 @@
 package com.github.tncrazvan.arcano;
 
-import com.github.tncrazvan.arcano.Http.HttpHeaders;
-import com.github.tncrazvan.arcano.Http.HttpRequestReader;
-import com.github.tncrazvan.arcano.Http.HttpResponse;
-import com.github.tncrazvan.arcano.Http.HttpSession;
 import static com.github.tncrazvan.arcano.SharedObject.NAME_SESSION_ID;
 import static com.github.tncrazvan.arcano.Tool.Encoding.Hashing.getSha1String;
-import com.github.tncrazvan.arcano.Tool.System.Time;
+
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URLDecoder;
@@ -14,12 +10,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.tncrazvan.arcano.Http.HttpHeaders;
+import com.github.tncrazvan.arcano.Http.HttpRequestReader;
+import com.github.tncrazvan.arcano.Http.HttpSession;
+import com.github.tncrazvan.arcano.Tool.System.Time;
+
 /**
  * Provides a layer of abstraction for both HttpEventManager and WebSocketEventManager.
  * Contains a few methods that are useful to both classes, 
  * such as Http Header managing methods, tools to set, unset, 
  * and read cookie, and more.
- * @author razvan
+ * @author Razvan Tanase
  */
 public abstract class EventManager{
     public HttpRequestReader reader = null;
@@ -33,7 +34,7 @@ public abstract class EventManager{
     public HashMap<String,String> queryString = new HashMap<>();
     public StringBuilder location = new StringBuilder();
     public Map<String,String> userLanguages = new HashMap<>();
-    protected HttpHeaders responseHeaders = new HttpHeaders();
+    protected HttpHeaders responseHeaders = null;
     //public Socket client;
     public HttpSession session = null;
     
@@ -42,7 +43,7 @@ public abstract class EventManager{
     }
 
     public final void initEventManager() throws UnsupportedEncodingException {
-        String uri = reader.request.headers.get("@Resource");
+        String uri = reader.request.headers.getResource();
         try {
             uri = URLDecoder.decode(uri, reader.so.config.charset);
         } catch (final IllegalArgumentException ex) {
@@ -256,7 +257,7 @@ public abstract class EventManager{
      * @return the name of the method as a String.
      */
     public final String getRequestMethod() {
-        return reader.request.headers.get("@Method");
+        return reader.request.headers.getMethod();
     }
 
     /**

@@ -6,12 +6,13 @@
 package com.github.tncrazvan.arcano.WebSocket;
 
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 
 /**
  *
- * @author Administrator
+ * @author Razvan Tanase
  */
 public final class WebSocketCommit {
     
@@ -49,7 +50,7 @@ public final class WebSocketCommit {
     /**
      * Get the payload of the message as a String.
      * 
-     * @param charset The charset to use when encoding the String.
+     * @param charset charset to use when decoding the String.
      * @return the payload of the message as a String.
      * @throws java.io.UnsupportedEncodingException
      */
