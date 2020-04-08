@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.logging.Level;
 
 import com.github.tncrazvan.arcano.Tool.Regex;
-import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
+import com.github.tncrazvan.arcano.Tool.Actions.TypedAction;
 import com.github.tncrazvan.arcano.Tool.Cluster.Cluster;
 import com.github.tncrazvan.arcano.Tool.Cluster.ClusterServer;
 import com.github.tncrazvan.arcano.Tool.Cluster.InvalidClusterEntryException;
@@ -544,6 +544,41 @@ public class Configuration {
         return pack(directory,imports, null);
     }
     
+    public static class PackedSource{
+        private String css="";
+        private String js="";
+        private ServerFile currentServerFile = null;
+
+        public String getCss() {
+            return css;
+        }
+
+        public void setCss(String css) {
+            this.css = css;
+        }
+        public void addCss(String css){
+            this.css += css;
+        }
+
+        public String getJs() {
+            return js;
+        }
+        public void setJs(String js) {
+            this.js = js;
+        }
+        public void addJs(String js){
+            this.js += js;
+        }
+
+        public ServerFile getCurrentServerFile() {
+            return currentServerFile;
+        }
+
+        public void setCurrentServerFile(ServerFile currentServerFile) {
+            this.currentServerFile = currentServerFile;
+        }
+    }
+
     /**
      * Read JavaScript and CSS filename entries from a json array inside a json file and pack them together.<br />
      * The output packed files are named "main.js" and "main.css" and they will be located
@@ -568,7 +603,7 @@ public class Configuration {
      * in collisions between the scripts when they are packed together.
      * @return true if the files have been minified correctly, false otherwise.
      */
-    public boolean pack(String directory, String imports, CompleteAction<String,ServerFile> forEachFile){
+    public boolean pack(String directory, String imports, TypedAction<PackedSource> forEachFile){
         try {
             ServerFile f = new ServerFile(directory,imports);
             if(!f.exists())
@@ -576,23 +611,19 @@ public class Configuration {
             
             JsonArray arr = JsonTools.jsonArray(f.readString(charset));
             String item;
-            String js = "";
-            String css = "";
+            PackedSource ps = new PackedSource();
             for(JsonElement e : arr){
                 item = e.getAsString();
                 ServerFile current = new ServerFile(webRoot,item);
                 if(!current.exists()) continue;
+                ps.setCurrentServerFile(current);
                 if(forEachFile != null){
-                    if(item.endsWith(".css")){
-                        css += forEachFile.callback(current);
-                    }else if(item.trim().endsWith(".js")){
-                        js += forEachFile.callback(current);
-                    }
+                    forEachFile.callback(ps);
                 }else{
                     if(item.endsWith(".css")){
-                        css += current.readString(charset)+"\n";
+                        ps.addCss(current.readString(charset)+"\n");
                     }else if(item.endsWith(".js")){
-                        js += current.readString(charset)+"\n";
+                        ps.addJs(current.readString(charset)+"\n");
                     }
                 }
             }
@@ -604,8 +635,8 @@ public class Configuration {
                 mainCSS.createNewFile();
             if(!mainJS.exists())
                 mainJS.createNewFile();
-            mainCSS.write(css, charset);
-            mainJS.write(js, charset);
+            mainCSS.write(ps.getCss(), charset);
+            mainJS.write(ps.getJs(), charset);
             return true;
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
