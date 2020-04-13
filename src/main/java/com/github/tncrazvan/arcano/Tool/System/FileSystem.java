@@ -16,8 +16,8 @@ public interface FileSystem {
      * @param recursive is true, then the method will be evaluated recursively for each subgroups of directories inside the provided directory.
      * @param action the action to execute for each encountered file.
      */
-    static void explore(final String dir, final boolean recursive, final WorkspaceAction action) {
-        explore(new File(dir), recursive, action);
+    static void explore(final String dir, final boolean recursive, final WorkspaceAction<ServerFile> action) {
+        explore(new ServerFile(dir), recursive, action);
     }
 
     /**
@@ -27,20 +27,20 @@ public interface FileSystem {
      * @param recursive is true, then the method will be evaluated recursively for each subgroups of directories inside the provided directory.
      * @param action the action to execute for each encountered file.
      */
-    static void explore(final File dir, final boolean recursive, final WorkspaceAction action) {
+    static void explore(final ServerFile dir, final boolean recursive, final WorkspaceAction<ServerFile> action) {
         if(!dir.isDirectory()) return;
         if(action.getWorkspace() == null)
             action.setWorkspace(dir);
-        final File[] files = dir.listFiles();
+        final ServerFile[] files = (ServerFile[])dir.listFiles();
         if(files != null){
             //lookup directories
-            for (final File file : files) {
+            for (final ServerFile file : files) {
                 if(file.isDirectory() && action.callback(file) && recursive){
                     explore(file, recursive, action);
                 }
             }
             //lookup files
-            for (final File file : files) {
+            for (final ServerFile file : files) {
                 if(!file.isDirectory() && action.callback(file) && recursive){
                     explore(file, recursive, action);
                 }
