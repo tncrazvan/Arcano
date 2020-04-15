@@ -4,13 +4,13 @@ import static com.github.tncrazvan.arcano.Tool.Encoding.JsonTools.jsonStringify;
 import static com.github.tncrazvan.arcano.Tool.Http.ContentType.resolveContentType;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 
 import com.github.tncrazvan.arcano.Tool.Actions.VoidAction;
+import com.github.tncrazvan.arcano.Tool.Http.Status;
 import com.github.tncrazvan.arcano.Tool.System.ServerFile;
 import com.google.gson.JsonArray;
 
@@ -62,9 +62,6 @@ public class HttpResponse {
     public HttpResponse(final Object content) {
         this(HttpHeaders.response(), content);
     }
-    
-    
-    
 
     public HttpResponse(final HttpHeaders headers) {
         this(headers, null);
@@ -96,13 +93,35 @@ public class HttpResponse {
                 final String tmp = ((JsonArray) content).toString();
                 this.content = tmp;
             } else if (type == File.class || type == ServerFile.class) {
-                final File file = (File) content;
-                if (headers != null && !headers.isDefined("Content-Type")) {
-                    headers.set("Content-Type", resolveContentType(file.getName()));
+                final ServerFile file = (ServerFile) content;
+                
+                if(file.getRanges().size() > 1){
+                    if(headers != null){
+                        headers.setStatus(Status.STATUS_PARTIAL_CONTENT);
+                        headers.set("Content-Type","multipart/byteranges; boundary="+file.getMultipartBoundary());
+                    }
+                    this.content = file.readAsMultipart(headers);
+                }else if(file.getRanges().size() > 0){
+                    if(headers != null){
+                        headers.setStatus(Status.STATUS_PARTIAL_CONTENT);
+                        if(!headers.isDefined("Content-Type")){
+                            headers.set("Content-Type", file.getContentType());
+                        }
+                        headers.set("Content-Range", file.getContentRange());
+                    }
+                    int start = file.getRanges().get(0)[0];
+                    int end = file.getRanges().get(0)[1];
+                    if(end < 0)
+                        end = (int)file.length()-start;
+                    int length = end-start+1;
+                    this.content = file.read(start, length);
+                }else{
+                    if(headers != null && !headers.isDefined("Content-Type")){
+                        headers.set("Content-Type", file.getContentType());
+                    }
+                    this.content = file.read();
                 }
-                final FileInputStream fis = new FileInputStream(file);
-                this.content = fis.readAllBytes();
-                fis.close();
+                
                 raw = true;
             } else if (type == String.class || type == Integer.class || type == Float.class || type == Double.class
                     || type == Boolean.class || type == Byte.class || type == Character.class || type == Short.class

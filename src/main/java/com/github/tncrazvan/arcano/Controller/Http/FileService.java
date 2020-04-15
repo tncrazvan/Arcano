@@ -1,12 +1,12 @@
 package com.github.tncrazvan.arcano.Controller.Http;
 
-import java.io.File;
 import java.io.IOException;
 
 import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 import com.github.tncrazvan.arcano.Http.HttpController;
 import com.github.tncrazvan.arcano.Http.HttpResponse;
+import com.github.tncrazvan.arcano.Tool.System.ServerFile;
 
 /**
  *
@@ -19,7 +19,7 @@ public class FileService extends HttpController {
             reader.args = new String[]{reader.so.config.entryPoint};
         else if(reader.args.length == 1 && reader.args[0].equals("")) 
             reader.args[0] = reader.so.config.entryPoint;
-        File response = new Delegate<Get>(){}.start().file();
+        ServerFile response = new Delegate<Get>(){}.start().file();
         if(response.exists())
             return new HttpResponse(response);
         return SharedObject.RESPONSE_NOT_FOUND;

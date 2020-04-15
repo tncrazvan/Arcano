@@ -252,6 +252,16 @@ public abstract class EventManager{
     }
 
     /**
+     * Check if a header is set.
+     * 
+     * @param name name of the header.
+     * @return true if the header is defined, false otherwise.
+     */
+    public final boolean issetRequestHeaderField(final String name) {
+        return reader.request.headers.isDefined(name);
+    }
+
+    /**
      * Get the method of the HttpRequest.
      * 
      * @return the name of the method as a String.

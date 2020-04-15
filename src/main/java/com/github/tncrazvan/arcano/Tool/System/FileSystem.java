@@ -2,7 +2,8 @@ package com.github.tncrazvan.arcano.Tool.System;
 
 import java.io.File;
 
-import com.github.tncrazvan.arcano.Tool.Actions.WorkspaceAction;
+import com.github.tncrazvan.arcano.Tool.Actions.CompleteAction;
+import com.github.tncrazvan.arcano.Tool.Actions.ReturnedAction;
 
 /**
  *
@@ -16,7 +17,7 @@ public interface FileSystem {
      * @param recursive is true, then the method will be evaluated recursively for each subgroups of directories inside the provided directory.
      * @param action the action to execute for each encountered file.
      */
-    static void explore(final String dir, final boolean recursive, final WorkspaceAction<ServerFile> action) {
+    static void explore(final String dir, final boolean recursive, final CompleteAction<Boolean,ServerFile> action) {
         explore(new ServerFile(dir), recursive, action);
     }
 
@@ -27,22 +28,22 @@ public interface FileSystem {
      * @param recursive is true, then the method will be evaluated recursively for each subgroups of directories inside the provided directory.
      * @param action the action to execute for each encountered file.
      */
-    static void explore(final ServerFile dir, final boolean recursive, final WorkspaceAction<ServerFile> action) {
+    static void explore(final ServerFile dir, final boolean recursive, final CompleteAction<Boolean,ServerFile> action) {
         if(!dir.isDirectory()) return;
-        if(action.getWorkspace() == null)
-            action.setWorkspace(dir);
-        final ServerFile[] files = (ServerFile[])dir.listFiles();
+        final File[] files = dir.listFiles();
         if(files != null){
             //lookup directories
-            for (final ServerFile file : files) {
-                if(file.isDirectory() && action.callback(file) && recursive){
-                    explore(file, recursive, action);
+            for (final File file : files) {
+                ServerFile f = new ServerFile(file);
+                if(file.isDirectory() && action.callback(f) && recursive){
+                    explore(f, recursive, action);
                 }
             }
             //lookup files
-            for (final ServerFile file : files) {
-                if(!file.isDirectory() && action.callback(file) && recursive){
-                    explore(file, recursive, action);
+            for (final File file : files) {
+                ServerFile f = new ServerFile(file);
+                if(!file.isDirectory() && action.callback(f) && recursive){
+                    explore(f, recursive, action);
                 }
             }
         }

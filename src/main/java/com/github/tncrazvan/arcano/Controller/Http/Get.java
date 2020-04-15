@@ -6,12 +6,12 @@ import static com.github.tncrazvan.arcano.Tool.System.Memory.getFreeMemory;
 import static com.github.tncrazvan.arcano.Tool.System.Memory.getMaxMemory;
 import static com.github.tncrazvan.arcano.Tool.System.Memory.getTotalMemory;
 
-import java.io.File;
 import java.io.IOException;
 
 import com.github.tncrazvan.arcano.Bean.Http.HttpService;
 import com.github.tncrazvan.arcano.Controller.WebSocket.WebSocketGroupApi;
 import com.github.tncrazvan.arcano.Http.HttpController;
+import com.github.tncrazvan.arcano.Tool.System.ServerFile;
 import com.github.tncrazvan.arcano.WebSocket.WebSocketGroup;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -32,8 +32,11 @@ public class Get extends HttpController{
     }
 
     @HttpService(path = "/file")
-    public File file() throws IOException {
-        return new File(reader.so.config.webRoot, String.join("/", reader.args));
+    public ServerFile file() throws IOException {
+        ServerFile file = new ServerFile(reader.so.config.webRoot, String.join("/", reader.args));
+        if(this.issetRequestHeaderField("Range"))
+            file.resolveRangesFromHeader(this.getRequestHeaderField("Range"));
+        return file;
     }
 
     class Cookie {
