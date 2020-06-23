@@ -1,18 +1,13 @@
 {
     "configurations": [
+
         {
             "type": "java",
             "name": "CodeLens (Launch) - Arcano",
             "request": "launch",
             "mainClass": "com.github.tncrazvan.arcano.Arcano",
-            "projectName": "Arcano"
-        },
-        {
-            "type": "java",
-            "name": "CodeLens (Launch) - Server",
-            "request": "launch",
-            "mainClass": "com.github.tncrazvan.arcano.Server",
-            "projectName": "Arcano"
+            "projectName": "Arcano",
+            "args": "C:/Users/Administrator/Projects/HtmlProjects/arcano.tech/http.json"
         }
     ]
 }

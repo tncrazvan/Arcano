@@ -277,6 +277,7 @@ public class Arcano extends SharedObject {
                             else
                                 executor.submit(reader);
                         }catch(SocketTimeoutException e){
+                            LOGGER.log(Level.SEVERE, null, e);
                             //System.out.println(String.format("Socket timed out after %s milliseconds.", this.config.timeout));
                         }
                     }
@@ -287,7 +288,7 @@ public class Arcano extends SharedObject {
                 Logger.getLogger(Arcano.class.getName()).log(Level.SEVERE, null, ex);
             } else {
                 ServerSocket ss = new ServerSocket();
-                ss.setSoTimeout(this.config.timeout);
+                //ss.setSoTimeout(this.config.timeout);
                 ss.bind(new InetSocketAddress(config.bindAddress, config.port));
                 HttpRequestReader reader;
                 System.out.println("Server started.");
@@ -299,6 +300,7 @@ public class Arcano extends SharedObject {
                         else
                             executor.submit(reader);
                     }catch(SocketTimeoutException e){
+                        LOGGER.log(Level.SEVERE, null, e);
                         //System.out.println(String.format("Socket timed out after %s milliseconds.", this.config.timeout));
                     }catch (NoSuchAlgorithmException ex) {
                         LOGGER.log(Level.SEVERE, null, ex);
