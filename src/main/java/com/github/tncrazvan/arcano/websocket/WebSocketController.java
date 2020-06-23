@@ -1,6 +1,7 @@
 package com.github.tncrazvan.arcano.websocket;
 
 import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
+import com.github.tncrazvan.arcano.http.HttpHeaders;
 
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
@@ -26,6 +27,7 @@ public abstract class WebSocketController extends WebSocketEvent{
         try{
             this.reader = reader;
             this.args = reader.args;
+            this.setResponseHttpHeaders(HttpHeaders.response());
             this.resolveRequestId();
             this.initEventManager();
             this.findRequestLanguages();

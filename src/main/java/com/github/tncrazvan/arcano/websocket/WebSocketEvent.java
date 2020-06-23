@@ -23,8 +23,8 @@ public abstract class WebSocketEvent extends WebSocketEventManager{
         if(reader.location.length == 0 || "".equals(reader.location[0]))
             reader.location = new String[]{"/"};
         for (int i = reader.location.length; i > 0; i--) {
-            String path = "/" + String.join("/", Arrays.copyOf(reader.location, i)).toLowerCase();
-            instantPack(reader, reader.so.WEB_SOCKET_ROUTES.get(path));
+            //String path = "/" + String.join("/", Arrays.copyOf(reader.location, i)).toLowerCase();
+            instantPack(reader, reader.so.WEB_SOCKET_ROUTES.get(reader.stringifiedLocation));
         }
     }
     
