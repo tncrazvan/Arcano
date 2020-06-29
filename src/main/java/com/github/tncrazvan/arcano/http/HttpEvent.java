@@ -4,7 +4,6 @@ import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import static com.github.tncrazvan.arcano.tool.http.Status.STATUS_INTERNAL_SERVER_ERROR;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -14,13 +13,11 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 
-import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.WebObject;
 import com.github.tncrazvan.arcano.bean.http.HttpServiceParam;
 import com.github.tncrazvan.arcano.tool.action.CompleteAction;
 import com.github.tncrazvan.arcano.tool.encoding.JsonTools;
-import com.github.tncrazvan.arcano.tool.reflect.ConstructorFinder;
 import com.google.gson.JsonObject;
 
 
@@ -113,8 +110,8 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 final HttpResponse response = (HttpResponse) result;
                 response.resolve();
                 final HashMap<String, String> localHeaders = response.getHashMapHeaders();
+                setResponseStatus(response.getHttpHeaders().getStatus());
                 if (localHeaders != null) {
-                    setResponseStatus(response.getHttpHeaders().getStatus());
                     localHeaders.forEach((key, header) -> {
                         setResponseHeaderField(key, header);
                     });
@@ -194,11 +191,14 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                 for(Entry<String,WebObject> item : method.entrySet()){
                     if(route != null) break;
                     Matcher matcher = item.getValue().getPattern().matcher(path);
-                    while(route == null && matcher.find()){
+                    if(route == null && matcher.find()){
+                        int len = matcher.groupCount();
+                        if(len != reader.location.length - i){
+                            //Number of parameters don't match!
+                            break;
+                        }
                         if(route == null){
                             route = method.get(item.getValue().getPath());
-
-                            int len = matcher.groupCount();
                             if(len >= 1)
                                 for(int j = 1; j <= len; j++){
                                     String group = matcher.group(j);
