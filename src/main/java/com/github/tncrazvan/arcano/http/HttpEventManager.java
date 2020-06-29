@@ -117,7 +117,8 @@ public abstract class HttpEventManager extends EventManager{
     public final void sendHeaders() {
         firstMessage = false;
         try {
-            reader.output.write((responseHeaders.toString() + "\r\n").getBytes(reader.so.config.charset));
+            String headers = responseHeaders.toString();
+            reader.output.write((headers + "\r\n").getBytes(reader.so.config.charset));
             reader.output.flush();
             alive = true;
         } catch (final IOException ex) {

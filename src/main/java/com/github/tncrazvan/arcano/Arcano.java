@@ -222,8 +222,7 @@ public class Arcano extends SharedObject {
             
             if (!config.certificate.name.equals("")) try {
                 final char[] password = config.certificate.password.toCharArray();
-                final KeyStore keyStore = KeyStore.getInstance(new File(config.dir + "/" + config.certificate.name),
-                        password);
+                final KeyStore keyStore = KeyStore.getInstance(new File(config.dir + "/" + config.certificate.name),password);
                 final TrustManagerFactory trustManagerFactory = TrustManagerFactory
                         .getInstance(TrustManagerFactory.getDefaultAlgorithm());
                 trustManagerFactory.init(keyStore);
