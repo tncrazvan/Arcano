@@ -32,7 +32,7 @@ public abstract class EventManager{
     
     //public HttpRequest request;
     public HashMap<String,String> queryString = new HashMap<>();
-    public StringBuilder location = new StringBuilder();
+    //public String[] location = new String[]{};
     public Map<String,String> userLanguages = new HashMap<>();
     protected HttpHeaders responseHeaders = null;
     //public Socket client;
@@ -52,7 +52,7 @@ public abstract class EventManager{
         String[] tmp, object;
         final String[] uriParts = uri.split("\\?|\\&", 2);
 
-        location.append(uriParts[0].replaceAll("^\\/", ""));
+        //location.append(uriParts[0].replaceAll("^\\/", ""));
 
         if (uriParts.length > 1) {
             tmp = uriParts[1].split("\\&");
@@ -67,9 +67,9 @@ public abstract class EventManager{
         }
     }
 
-    public final StringBuilder getLocation() {
+    /*public final StringBuilder getLocation() {
         return location;
-    }
+    }*/
 
     public final boolean issetSession() {
         return (issetRequestCookie(NAME_SESSION_ID) && reader.so.sessions.issetSession(getRequestCookie(NAME_SESSION_ID)));

@@ -100,38 +100,39 @@ public class SharedObject implements Strings{
     
     
     
-    public final void expose(String[] types,CompleteAction<Object,HttpEvent>  action){
+    public final SharedObject expose(String[] types,CompleteAction<Object,HttpEvent> action){
         for(String type : types){
             expose(type, action);
         }
+        return this;
     }
     
-    public final void expose(String[] types, String path,CompleteAction<Object,HttpEvent>  action){
+    public final SharedObject expose(String[] types, String path,CompleteAction<Object,HttpEvent> action){
         for(String type : types){
             expose(type,path,action);
         }
+        return this;
     }
-    public final void expose(String type,CompleteAction<Object,HttpEvent>  action){
-        expose(type, null, action);
+    public final SharedObject expose(String type,CompleteAction<Object,HttpEvent> action){
+        return expose(type, null, action);
     }
-    public final void expose(String type, String path,CompleteAction<Object,HttpEvent>  action){
+    public final SharedObject expose(String type, String path,CompleteAction<Object,HttpEvent> action){
         if(type.equals("*")){
             WebObject wo = new WebObject(action,null,null);
-            for (Map.Entry<String, HashMap<String, WebObject>> t : HTTP_ROUTES.entrySet()) {
-                t
-                    .getValue()
-                        .put(path, wo);
+            wo.setPath(path);
+            for (Map.Entry<String, HashMap<String, WebObject>> mtd : HTTP_ROUTES.entrySet()) {
+                mtd.getValue().put(normalizePathSlashes(path), wo);
             }
-        }else if(HTTP_ROUTES.containsKey(type))
+        }else if(HTTP_ROUTES.containsKey(type)){
+            WebObject wo = new WebObject(action,null,null);
+            wo.setPath(path);
             HTTP_ROUTES
                 .get(type)
-                    .put(normalizePathSlashes(path), new WebObject(
-                        action,
-                        null,
-                        null
-                    ));
+                    .put(normalizePathSlashes(path), wo);
+        }
+        return this;
     }
-    public final void expose(Class<?>... classes) {
+    public final SharedObject expose(Class<?>... classes) {
         for (Class<?> cls : classes) {
             try {
                 if (HttpController.class.isAssignableFrom(cls)) {
@@ -153,19 +154,18 @@ public class SharedObject implements Strings{
                             WebObject wo = new WebObject(null,cls.getName(),method.getName());
                             String 
                                     path = (classService != null && !classService.path().equals("/")?classService.path().toLowerCase():"");
-                            String addedPath = httpService.path().toLowerCase().startsWith("/")?httpService.path().toLowerCase():"/"+httpService.path().toLowerCase();
+                            String addedPath = httpService.path().toLowerCase().startsWith("/") && httpService.path().toLowerCase() != "@404"?httpService.path().toLowerCase():"/"+httpService.path().toLowerCase();
                                     path += addedPath.equals("/") && !path.equals("")?"":addedPath;
+                            wo.setPath(path);
                             if(Arrays.asList(types).contains("*")){
                                 for (Map.Entry<String, HashMap<String, WebObject>> t : HTTP_ROUTES.entrySet()) {
-                                    t
-                                        .getValue()
-                                            .put(path, wo);
+                                    t.getValue().put(normalizePathSlashes(path), wo);
                                 }
                             } else for(int i = 0;i < types.length;i++){
                                 if(HTTP_ROUTES.containsKey(types[i]))
                                     HTTP_ROUTES
                                         .get(types[i])
-                                            .put(path, wo);
+                                            .put(normalizePathSlashes(path), wo);
                             }
                         }
                     }
@@ -187,5 +187,6 @@ public class SharedObject implements Strings{
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
+        return this;
     }
 }

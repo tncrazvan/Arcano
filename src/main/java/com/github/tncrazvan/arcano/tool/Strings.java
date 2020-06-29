@@ -8,6 +8,9 @@ package com.github.tncrazvan.arcano.tool;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.UUID;
+import java.util.regex.Pattern;
+
+import com.github.tncrazvan.arcano.WebObject;
 
 /**
  *
@@ -34,8 +37,9 @@ public interface Strings {
                 .replaceAll(PATTERN_RIGHT_START_2, "&gt;");
 
     }
-
+    
     public static String normalizePathSlashes(String path) {
+        if(path == "@404") return path;
         path = path.trim().toLowerCase();
         final int classPathLength = path.length();
         if (classPathLength >= 1 && path.charAt(0) != '/') {

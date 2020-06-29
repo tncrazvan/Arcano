@@ -1,7 +1,6 @@
 package com.github.tncrazvan.arcano.http;
 
 import static com.github.tncrazvan.arcano.tool.encoding.JsonTools.jsonStringify;
-import static com.github.tncrazvan.arcano.tool.http.ContentType.resolveContentType;
 
 import java.io.File;
 import java.io.FileNotFoundException;

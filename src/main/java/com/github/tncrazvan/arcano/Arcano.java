@@ -34,7 +34,6 @@ import com.github.tncrazvan.arcano.Configuration.Threads;
 import com.github.tncrazvan.arcano.http.HttpController;
 import com.github.tncrazvan.arcano.http.HttpRequestReader;
 import com.github.tncrazvan.arcano.smtp.SmtpServer;
-import com.github.tncrazvan.arcano.tool.action.CompleteAction;
 import com.github.tncrazvan.arcano.websocket.WebSocketCommit;
 import com.github.tncrazvan.arcano.websocket.WebSocketController;
 import com.github.tncrazvan.arcano.websocket.WebSocketEventManager;
@@ -50,10 +49,7 @@ public class Arcano extends SharedObject {
             System.out.println("No arguments provided. Server won't start.");
             return;
         }
-        new Arcano(Arcano.class.getPackage()).listen(args,(so) -> {
-            so.config.pack(so.config.webRoot,"imports.json");
-            return 1000L;
-        });
+        new Arcano(Arcano.class.getPackage()).listen(args);
     }
 
     
@@ -140,19 +136,10 @@ public class Arcano extends SharedObject {
     
     public final void exposeDefaults(){
         expose(
-            com.github.tncrazvan.arcano.controller.http.FileService.class,
-            com.github.tncrazvan.arcano.controller.http.Get.class,
-            com.github.tncrazvan.arcano.controller.http.Isset.class,
-            com.github.tncrazvan.arcano.controller.http.Set.class,
-            com.github.tncrazvan.arcano.controller.http.Unset.class,
-
             com.github.tncrazvan.arcano.controller.websocket.ControllerNotFound.class
         );
         if(config.webSocket.groups.enabled)
             expose(com.github.tncrazvan.arcano.controller.websocket.WebSocketGroupApi.class);
-    }
-    public final void listen(String[] args) {
-        listen(args, null);
     }
     /**
      * Starts the server listening.
@@ -161,7 +148,7 @@ public class Arcano extends SharedObject {
      *             learn how to create a settings files.
      * @param action Action to be run before each connection.
      */
-    public final void listen(String[] args, CompleteAction<Long,SharedObject> action) {
+    public final void listen(String[] args) {
         System.out.println("ARGS: " + Arrays.toString(args));
 
         try {
@@ -195,24 +182,6 @@ public class Arcano extends SharedObject {
                 } else {
                     System.err.println("\n[WARNING] smtp.hostname is not defined. Smtp server won't start. [WARNING]");
                 }
-
-            if(action != null){
-                Runnable actionRunnable = () -> {
-                    long delay;
-                    for(;;){
-                        try {
-                            delay = action.callback(this);
-                            if(delay <= 0)
-                                break;
-
-                            Thread.sleep(delay);
-                        } catch (InterruptedException ex) {
-                            LOGGER.log(Level.SEVERE, null, ex);
-                        }
-                    }
-                };
-                new Thread(actionRunnable).start();
-            }
             
             //push websocket commits
             Runnable webSocketPushRunnable = () -> {

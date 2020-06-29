@@ -10,7 +10,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
 
 import com.github.tncrazvan.arcano.InvalidControllerConstructorException;
 import com.github.tncrazvan.arcano.SharedObject;
@@ -27,6 +29,7 @@ import com.google.gson.JsonObject;
  * @author Razvan Tanase
  */
 public class HttpEvent extends HttpEventManager implements JsonTools{
+    public HashMap<String, String> params = new HashMap<>();
     private void sendHttpResponse(Exception e){
         final String message = e.getMessage();
         final HttpResponse response = new HttpResponse(message == null ? "" : message);
@@ -177,23 +180,40 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
         }
     }
     
-
     private static HttpController factory(HttpRequestReader reader) {
         try {
             String type = reader.request.headers.getMethod();
+            HashMap<String, WebObject> method = reader.so.HTTP_ROUTES.get(type);
             for (int i = reader.location.length; i > 0; i--) {
                 String path = String.join("/", Arrays.copyOf(reader.location, i)).toLowerCase();
                 if(path.equals(""))
                     path="/";
-                HashMap<String, WebObject> method = reader.so.HTTP_ROUTES.get(type);
                 if(method != null){
-                    WebObject route = method.get(path);
+                    WebObject route = null;
+                    for(Entry<String,WebObject> item : method.entrySet()){
+                        if(route != null) break;
+                        Matcher matcher = item.getValue().getPattern().matcher(path);
+                        while(matcher.find()){
+                            if(route == null){
+                                route = method.get(item.getValue().getPath());
+
+                                int len = matcher.groupCount();
+                                if(len >= 1)
+                                    for(int j = 1; j <= len; j++){
+                                        String group = matcher.group(j);
+                                        route.paramMap.put(route.paramNames.get(j-1), group);
+                                    }
+                            }
+                        }
+                    }
+                    
                     //If resource has been found...
                     if(route != null){
                         //..try to serve it
                         CompleteAction<Object,HttpEvent> action = route.getAction();
                         if(action != null){
                             HttpController controller = new HttpController();
+                            controller.params = route.paramMap;
                             controller.install(reader);
                             controller.invokeCompleteAction(action);
                             return controller;
@@ -210,6 +230,7 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                             )
                         );
                         HttpController controller = (HttpController) constructor.newInstance();
+                        controller.params = route.paramMap;
                         reader.args = resolveMethodArgs(i, reader.location);
                         controller.install(reader);
                         Method[] methods = controller.getClass().getDeclaredMethods();
@@ -228,32 +249,65 @@ public class HttpEvent extends HttpEventManager implements JsonTools{
                     }
                 }
             }
+            if(method != null){
+                WebObject route = method.get("@404");
+                //If resource has been found...
+                if(route != null){
+                    //..try to serve it
+                    CompleteAction<Object,HttpEvent> action = route.getAction();
+                    if(action != null){
+                        HttpController controller = new HttpController();
+                        controller.install(reader);
+                        controller.invokeCompleteAction(action);
+                        return controller;
+                    }
+                    Class<?> cls = Class.forName(route.getClassName());
+                    Constructor<?> constructor = ConstructorFinder.getNoParametersConstructor(cls);
+                    if (constructor == null) throw new InvalidControllerConstructorException(
+                        String.format(
+                            "\nController %s does not contain a valid constructor.\n"
+                            + "A valid constructor for your controller is a constructor that has no parameters.\n"
+                            + "Perhaps your class is an inner class and it's not public or static? Try make it a \"public static class\"!",
+                            route.getClassName()
+                        )
+                    );
+                    HttpController controller = (HttpController) constructor.newInstance();
+                    reader.args = reader.location;
+                    controller.install(reader);
+                    Method[] methods = controller.getClass().getDeclaredMethods();
+                    for(Method m : methods){
+                        if(!m.getName().equals("main")) continue;
+                        controller.invokeMethod(m);
+                        return controller;
+                    }
+                }
+            }
             //fallback 404 response is supposed to be define inside the "/" route.
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"Fallback route \"/\" is not defined.");
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"Fallback route \"@404\" is not defined.");
         }catch(InvalidControllerConstructorException e){
             LOGGER.log(Level.SEVERE, null, e);
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,e.getMessage());
         }catch (InstantiationException e){
             LOGGER.log(Level.SEVERE, null, e);
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,e.getMessage());
         }catch (ClassNotFoundException e){
             LOGGER.log(Level.SEVERE, null, e);
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,e.getMessage());
         } catch (NoSuchMethodException e) {
             LOGGER.log(Level.SEVERE, null, e);
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,e.getMessage());
         } catch (SecurityException e) {
             LOGGER.log(Level.SEVERE, null, e);
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,e.getMessage());
         } catch (IllegalAccessException e) {
             LOGGER.log(Level.SEVERE, null, e);
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,e.getMessage());
         } catch (IllegalArgumentException e) {
             LOGGER.log(Level.SEVERE, null, e);
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,e.getMessage());
         } catch (InvocationTargetException e) {
             LOGGER.log(Level.SEVERE, null, e);
-            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"");
+            return instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,e.getMessage());
         }
     }
     
