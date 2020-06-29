@@ -99,24 +99,23 @@ public class SharedObject implements Strings{
     public static final String NAME_SESSION_ID = "JavaSessionID";
     
     
-    
-    public final SharedObject expose(String[] types,CompleteAction<Object,HttpEvent> action){
+    public final SharedObject addHttpEventListener(String[] types,CompleteAction<Object,HttpEvent> action){
         for(String type : types){
-            expose(type, action);
+            addHttpEventListener(type, action);
         }
         return this;
     }
     
-    public final SharedObject expose(String[] types, String path,CompleteAction<Object,HttpEvent> action){
+    public final SharedObject addHttpEventListener(String[] types, String path,CompleteAction<Object,HttpEvent> action){
         for(String type : types){
-            expose(type,path,action);
+            addHttpEventListener(type,path,action);
         }
         return this;
     }
-    public final SharedObject expose(String type,CompleteAction<Object,HttpEvent> action){
-        return expose(type, null, action);
+    public final SharedObject addHttpEventListener(String type,CompleteAction<Object,HttpEvent> action){
+        return addHttpEventListener(type, null, action);
     }
-    public final SharedObject expose(String type, String path,CompleteAction<Object,HttpEvent> action){
+    public final SharedObject addHttpEventListener(String type, String path,CompleteAction<Object,HttpEvent> action){
         if(type.equals("*")){
             WebObject wo = new WebObject(action,null,null);
             wo.setPath(path);
@@ -132,61 +131,23 @@ public class SharedObject implements Strings{
         }
         return this;
     }
-    public final SharedObject expose(Class<?>... classes) {
-        for (Class<?> cls : classes) {
-            try {
-                if (HttpController.class.isAssignableFrom(cls)) {
-                    Method[] methods = cls.getDeclaredMethods();
-                    for (Method method : methods) {
-                    	HttpService httpService = method.getAnnotation(HttpService.class);
-                    	HttpService classService = cls.getAnnotation(HttpService.class);
-                        if (httpService != null) {
-                            String[] types = httpService.method();
-                            if(types.length == 1 && types[0].equals("")){
-                                if(classService != null){
-                                    types = classService.method();
-                                    if(types.length == 1 && types[0].equals(""))
-                                        types[0] = "GET";
-                                }else{
-                                    types[0] = "GET";
-                                }
-                            }
-                            WebObject wo = new WebObject(null,cls.getName(),method.getName());
-                            String 
-                                    path = (classService != null && !classService.path().equals("/")?classService.path().toLowerCase():"");
-                            String addedPath = httpService.path().toLowerCase().startsWith("/") && httpService.path().toLowerCase() != "@404"?httpService.path().toLowerCase():"/"+httpService.path().toLowerCase();
-                                    path += addedPath.equals("/") && !path.equals("")?"":addedPath;
-                            wo.setPath(path);
-                            if(Arrays.asList(types).contains("*")){
-                                for (Map.Entry<String, HashMap<String, WebObject>> t : HTTP_ROUTES.entrySet()) {
-                                    t.getValue().put(normalizePathSlashes(path), wo);
-                                }
-                            } else for(int i = 0;i < types.length;i++){
-                                if(HTTP_ROUTES.containsKey(types[i]))
-                                    HTTP_ROUTES
-                                        .get(types[i])
-                                            .put(normalizePathSlashes(path), wo);
-                            }
-                        }
-                    }
-                } else if (WebSocketController.class.isAssignableFrom(cls)) {
-                    WebSocketService webSocketService = (WebSocketService) cls.getAnnotation(WebSocketService.class);
-                    WebObject wo = new WebObject(null, cls.getName(), null);
-                    if (webSocketService != null){
-                        String path = (webSocketService != null?webSocketService.path().toLowerCase():"");
-                        WEB_SOCKET_ROUTES.put(path, wo);
-                    }
-                    if (cls.getAnnotation(WebSocketControllerNotFound.class) != null)
-                        WEB_SOCKET_ROUTES_NOT_FOUND = wo;
-                } else if (SmtpController.class.isAssignableFrom(cls)) {
-                    SmtpService smtpService = (SmtpService) cls.getAnnotation(SmtpService.class);
-                    if(smtpService != null)
-                        SMTP_ROUTE = new WebObject(null,cls.getName(), null);
-                }
-            } catch (SecurityException | IllegalArgumentException  ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
+
+    public final SharedObject addWebSocketEventListener(Class<WebSocketController> cls) {
+        WebSocketService webSocketService = (WebSocketService) cls.getAnnotation(WebSocketService.class);
+        WebObject wo = new WebObject(null, cls.getName(), null);
+        if (webSocketService != null){
+            String path = (webSocketService != null?webSocketService.path().toLowerCase():"");
+            WEB_SOCKET_ROUTES.put(path, wo);
         }
+        if (cls.getAnnotation(WebSocketControllerNotFound.class) != null)
+            WEB_SOCKET_ROUTES_NOT_FOUND = wo;
+        return this;
+    }
+
+    public final SharedObject addSmtpEventListener(Class<SmtpController> cls) {
+        SmtpService smtpService = (SmtpService) cls.getAnnotation(SmtpService.class);
+        if(smtpService != null)
+            SMTP_ROUTE = new WebObject(null,cls.getName(), null);
         return this;
     }
 }

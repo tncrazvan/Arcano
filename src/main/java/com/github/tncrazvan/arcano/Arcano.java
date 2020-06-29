@@ -49,7 +49,7 @@ public class Arcano extends SharedObject {
             System.out.println("No arguments provided. Server won't start.");
             return;
         }
-        new Arcano(Arcano.class.getPackage()).listen(args);
+        new Arcano().listen(args);
     }
 
     
@@ -111,36 +111,8 @@ public class Arcano extends SharedObject {
      * @param pckg The package that contains your services.<br />
      * The package must be contained inside the current project's directory layout.
      */
-    public Arcano(Package pckg) {
-        expose(pckg);
-    }
     public Arcano(){}
     
-    public final void expose(Package pckg){
-        try {
-            Class<?>[] clss = getClasses(pckg);
-            for(Class<?> cls : clss){
-                try{
-                    Object o = cls.getDeclaredConstructor().newInstance();
-                    boolean a = o instanceof HttpController;
-                    boolean b = o instanceof WebSocketController;
-                     if(a || b) expose(cls);
-                }catch(NoSuchMethodException e){
-                    System.out.println("Class "+cls.getName()+" skipped while looking for services because it does not have a valid constructor.");
-                }
-            }
-        } catch (IOException | ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException  ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    public final void exposeDefaults(){
-        expose(
-            com.github.tncrazvan.arcano.controller.websocket.ControllerNotFound.class
-        );
-        if(config.webSocket.groups.enabled)
-            expose(com.github.tncrazvan.arcano.controller.websocket.WebSocketGroupApi.class);
-    }
     /**
      * Starts the server listening.
      * 
