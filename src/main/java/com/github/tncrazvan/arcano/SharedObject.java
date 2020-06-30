@@ -17,13 +17,11 @@ import java.util.logging.Logger;
 import com.github.tncrazvan.arcano.bean.email.SmtpService;
 import com.github.tncrazvan.arcano.bean.websocket.WebSocketControllerNotFound;
 import com.github.tncrazvan.arcano.bean.websocket.WebSocketService;
-import com.github.tncrazvan.arcano.http.HttpEvent;
 import com.github.tncrazvan.arcano.http.HttpHeaders;
 import com.github.tncrazvan.arcano.http.HttpResponse;
 import com.github.tncrazvan.arcano.http.HttpSessionManager;
 import com.github.tncrazvan.arcano.smtp.SmtpController;
 import com.github.tncrazvan.arcano.tool.Strings;
-import com.github.tncrazvan.arcano.tool.action.CompleteAction;
 import com.github.tncrazvan.arcano.tool.action.HttpEventAction;
 import com.github.tncrazvan.arcano.tool.http.Status;
 import com.github.tncrazvan.arcano.websocket.WebSocketController;
@@ -94,22 +92,12 @@ public class SharedObject implements Strings{
     //DEFAULT PROJECT NAMES
     public static final String NAME_SESSION_ID = "JavaSessionID";
     
-    
-    public final SharedObject addHttpEventListener(String[] types,HttpEventAction<Object> action){
-        for(String type : types){
-            addHttpEventListener(type, action);
-        }
-        return this;
-    }
-    
+    //WITH PARAMETERS
     public final SharedObject addHttpEventListener(String[] types, String path,HttpEventAction<Object> action){
         for(String type : types){
             addHttpEventListener(type,path,action);
         }
         return this;
-    }
-    public final SharedObject addHttpEventListener(String type,HttpEventAction<Object> action){
-        return addHttpEventListener(type, null, action);
     }
     public final SharedObject addHttpEventListener(String type, String path,HttpEventAction<Object> action){
         if(type.equals("*")){

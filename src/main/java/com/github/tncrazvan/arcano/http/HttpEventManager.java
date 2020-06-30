@@ -38,7 +38,6 @@ public abstract class HttpEventManager extends EventManager{
     private String acceptEncoding;
     private String encodingLabel;
 
-
     public final void initHttpEventManager() {
         if (this.reader.request.headers.isDefined("Accept-Encoding")) {
             acceptEncoding = this.reader.request.headers.get("Accept-Encoding");

@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.github.tncrazvan.arcano.http.HttpEvent;
-import com.github.tncrazvan.arcano.tool.action.CompleteAction;
 import com.github.tncrazvan.arcano.tool.action.HttpEventAction;
 
 /**

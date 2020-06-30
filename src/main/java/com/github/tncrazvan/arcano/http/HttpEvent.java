@@ -1,7 +1,6 @@
 package com.github.tncrazvan.arcano.http;
 
 import static com.github.tncrazvan.arcano.tool.http.Status.STATUS_INTERNAL_SERVER_ERROR;
-import static com.github.tncrazvan.arcano.tool.http.Status.STATUS_BAD_REQUEST;
 
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -18,6 +17,7 @@ import com.google.gson.JsonObject;
  * @author Razvan Tanase
  */
 public class HttpEvent extends HttpEventManager{
+
     private void sendHttpResponse(Exception e){
         final String message = e.getMessage();
         final HttpResponse response = new HttpResponse(message == null ? "" : message);
@@ -47,11 +47,10 @@ public class HttpEvent extends HttpEventManager{
             push(tmp);
         }
     }
-    
-    public final void invokeHttpEventAction(final HttpEventAction<Object> action){
-        try {
-            Object result = action.callback(this);
 
+    public final void activateWebObject(final WebObject route){
+        try {
+            Object result = route.getAction().callback(this);
 
             //try to invokeMethod method
             if (result instanceof ShellScript) {
@@ -75,6 +74,7 @@ public class HttpEvent extends HttpEventManager{
                 sendHttpResponse(new HttpResponse(result == null ? "" : result).resolve());
             }
         } catch (final Exception  e) {
+            e.printStackTrace();
             setResponseStatus(STATUS_INTERNAL_SERVER_ERROR);
             if (reader.so.config.sendExceptions) {
                 sendHttpResponse(e);
@@ -115,14 +115,11 @@ public class HttpEvent extends HttpEventManager{
                 //If resource has been found...
                 if(route != null){
                     //..try to serve it
-                    HttpEventAction<Object> action = route.getAction();
-                    if(action != null){
-                        HttpController controller = new HttpController();
-                        controller.requestParameters = route.paramMap;
-                        controller.install(reader);
-                        controller.invokeHttpEventAction(action);
-                        return controller;
-                    }
+                    HttpController controller = new HttpController();
+                    controller.requestParameters = route.paramMap;
+                    controller.install(reader);
+                    controller.activateWebObject(route);
+                    return controller;
                 }
             }
         
@@ -131,13 +128,10 @@ public class HttpEvent extends HttpEventManager{
             //If resource has been found...
             if(route != null){
                 //..try to serve it
-                HttpEventAction<Object> action = route.getAction();
-                if(action != null){
-                    HttpController controller = new HttpController();
-                    controller.install(reader);
-                    controller.invokeHttpEventAction(action);
-                    return controller;
-                }
+                HttpController controller = new HttpController();
+                controller.install(reader);
+                controller.activateWebObject(route);
+                return controller;
             }
         }
         
