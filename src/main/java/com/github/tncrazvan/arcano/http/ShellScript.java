@@ -44,7 +44,7 @@ public class ShellScript {
             argsArray.add(arg);
         }
         final JsonObject queryObject = new JsonObject();
-        controller.queryString.forEach((key, value) -> {
+        controller.requestQueryStrings.forEach((key, value) -> {
             queryObject.addProperty(key, value);
         });
         

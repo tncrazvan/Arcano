@@ -2,10 +2,8 @@ package com.github.tncrazvan.arcano;
 
 import static com.github.tncrazvan.arcano.tool.Strings.normalizePathSlashes;
 
-import java.lang.reflect.Method;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
@@ -14,14 +12,11 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.github.tncrazvan.arcano.bean.email.SmtpService;
-import com.github.tncrazvan.arcano.bean.http.HttpService;
 import com.github.tncrazvan.arcano.bean.websocket.WebSocketControllerNotFound;
 import com.github.tncrazvan.arcano.bean.websocket.WebSocketService;
-import com.github.tncrazvan.arcano.http.HttpController;
 import com.github.tncrazvan.arcano.http.HttpEvent;
 import com.github.tncrazvan.arcano.http.HttpHeaders;
 import com.github.tncrazvan.arcano.http.HttpResponse;
@@ -29,6 +24,7 @@ import com.github.tncrazvan.arcano.http.HttpSessionManager;
 import com.github.tncrazvan.arcano.smtp.SmtpController;
 import com.github.tncrazvan.arcano.tool.Strings;
 import com.github.tncrazvan.arcano.tool.action.CompleteAction;
+import com.github.tncrazvan.arcano.tool.action.HttpEventAction;
 import com.github.tncrazvan.arcano.tool.http.Status;
 import com.github.tncrazvan.arcano.websocket.WebSocketController;
 import com.github.tncrazvan.arcano.websocket.WebSocketEvent;
@@ -99,23 +95,23 @@ public class SharedObject implements Strings{
     public static final String NAME_SESSION_ID = "JavaSessionID";
     
     
-    public final SharedObject addHttpEventListener(String[] types,CompleteAction<Object,HttpEvent> action){
+    public final SharedObject addHttpEventListener(String[] types,HttpEventAction<Object> action){
         for(String type : types){
             addHttpEventListener(type, action);
         }
         return this;
     }
     
-    public final SharedObject addHttpEventListener(String[] types, String path,CompleteAction<Object,HttpEvent> action){
+    public final SharedObject addHttpEventListener(String[] types, String path,HttpEventAction<Object> action){
         for(String type : types){
             addHttpEventListener(type,path,action);
         }
         return this;
     }
-    public final SharedObject addHttpEventListener(String type,CompleteAction<Object,HttpEvent> action){
+    public final SharedObject addHttpEventListener(String type,HttpEventAction<Object> action){
         return addHttpEventListener(type, null, action);
     }
-    public final SharedObject addHttpEventListener(String type, String path,CompleteAction<Object,HttpEvent> action){
+    public final SharedObject addHttpEventListener(String type, String path,HttpEventAction<Object> action){
         if(type.equals("*")){
             WebObject wo = new WebObject(action,null,null);
             wo.setPath(path);

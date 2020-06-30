@@ -23,9 +23,9 @@ public class WebSocketGroupApi extends WebSocketController{
         //if "ALLOW" is true
         if(reader.so.config.webSocket.groups.enabled){ //ws groups are enabled
             //if query "?join" is present in the request URL
-            if(issetRequestQueryString("join")){
+            if(requestQueryStrings.containsKey("join")){
                 //use that query value as the group's name
-                groupName = getRequestQueryString("join");
+                groupName = requestQueryStrings.get("join");
                 //if the group exists in this controller
                 if(GROUP_MANAGER.groupExists(groupName)){
                     //NOTE: GROUP_MANAGER is relative to the controller,

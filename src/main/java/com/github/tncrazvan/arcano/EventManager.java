@@ -31,7 +31,8 @@ public abstract class EventManager{
     }
     
     //public HttpRequest request;
-    public HashMap<String,String> queryString = new HashMap<>();
+    public HashMap<String,String> requestQueryStrings = new HashMap<>();
+    public HashMap<String, String> requestParameters = new HashMap<>();
     //public String[] location = new String[]{};
     public Map<String,String> userLanguages = new HashMap<>();
     protected HttpHeaders responseHeaders = null;
@@ -59,9 +60,9 @@ public abstract class EventManager{
             for (final String part : tmp) {
                 object = part.split("=", 2);
                 if (object.length > 1) {
-                    queryString.put(object[0].trim(), object[1]);
+                    requestQueryStrings.put(object[0].trim(), object[1]);
                 } else {
-                    queryString.put(object[0].trim(), "");
+                    requestQueryStrings.put(object[0].trim(), "");
                 }
             }
         }
@@ -139,7 +140,7 @@ public abstract class EventManager{
     protected static final WebObject getWebSocketWebObject(HttpRequestReader reader, final String[] location, final String httpMethod)
             throws ClassNotFoundException {
         for (int i = location.length; i > 0; i--) {
-            String path = "/" + String.join("/", Arrays.copyOf(location, i)).toLowerCase();
+            //String path = "/" + String.join("/", Arrays.copyOf(location, i)).toLowerCase();
             WebObject route = reader.so.WEB_SOCKET_ROUTES.get(httpMethod);
             if(route != null){
                 return route;
@@ -148,63 +149,6 @@ public abstract class EventManager{
         throw new ClassNotFoundException();
     }
     
-    protected static final String[] resolveMethodArgs(final int offset, final String[] location) {
-        String[] args = new String[0];
-        if (location.length - 1 > offset - 1) {
-            final int length = location.length - offset;
-            args = Arrays.copyOfRange(location, offset, offset + length);
-        }
-        return args;
-    }
-
-    public final HashMap<String,String> getRequestQueryStringHashMap(){
-        return queryString;
-    }
-    
-    /**
-     * Checks if the requested URL contains the given key as a query.
-     * 
-     * @param key name of the query.
-     * @return
-     */
-    public final boolean issetRequestQueryString(final String key) {
-        return queryString.containsKey(key);
-    }
-
-    /**
-     * Get the value of a specific query string. For example:<br />
-     * given the url <b>http://127.0.0.1/new/user?username=my_username</b><br />
-     * you can get the username from the url by calling
-     * getRequestQueryString("username")
-     * 
-     * @param key name of the query.
-     * @return the value of the query.
-     */
-    public final String getRequestQueryString(final String key) {
-        return queryString.get(key);
-    }
-    
-    /**
-     * Get the value of a specific query string. For example:<br />
-     * given the url <b>http://127.0.0.1/new/user?username=my_username</b><br />
-     * you can get the username from the url by calling
-     * getRequestQueryString("username").<br />
-     * The difference between this method and getRequestQueryString is that this method
-     * tries to cast the String value to an int if possible and return it as an Object.<br />
-     * From the user point of view there are no advantages using this method.<br />
-     * This method is used by the HttpEvent when packing your @HttpParam parameters to seemengly cast your parameters.
-     * 
-     * @param key name of the query.
-     * @return the value of the query.
-     */
-    public final Object getRequestQueryStringAsObject(final String key) {
-        String value = queryString.get(key);
-        try{
-            return Integer.parseInt(value);
-        }catch(Exception e){
-            return value;
-        }
-    }
     
     /**
      * Finds the languages of the client application. The value is stored in

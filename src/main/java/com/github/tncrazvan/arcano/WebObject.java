@@ -7,13 +7,14 @@ import java.util.regex.Pattern;
 
 import com.github.tncrazvan.arcano.http.HttpEvent;
 import com.github.tncrazvan.arcano.tool.action.CompleteAction;
+import com.github.tncrazvan.arcano.tool.action.HttpEventAction;
 
 /**
  *
  * @author Razvan Tanase
  */
 public class WebObject {
-    private final CompleteAction<Object,HttpEvent> action;
+    private final HttpEventAction<Object> action;
     private final String classname;
     private final String methodname;
     private String path;
@@ -21,7 +22,7 @@ public class WebObject {
     public final ArrayList<String> paramNames = new ArrayList<>();
     public final HashMap<String, String> paramMap = new HashMap<>();
     
-    public WebObject(final CompleteAction<Object,HttpEvent> action, final String CLASSNAME, final String METRHOD_NAME) {
+    public WebObject(final HttpEventAction<Object> action, final String CLASSNAME, final String METRHOD_NAME) {
         this.action = action;
         this.classname = CLASSNAME;
         this.methodname = METRHOD_NAME;
@@ -37,19 +38,16 @@ public class WebObject {
                 paramNames.add(paramName);
             }
         }
-        /*this.path = this.path.replaceAll("\\s*\\{[A-z0-9]+\\}\\s*", "").replaceAll("\\/+", "/");
-        if(this.path.charAt(this.path.length()-1) == '/' && this.path.length() > 1)
-            this.path = this.path.substring(0,this.path.length()-1);*/
         this.pattern = Pattern.compile(
             "^"
             +path
-            .replaceAll("\\s*\\{[A-z0-9]+\\}\\s*", "?([A-z0-9%]+)?")
+            .replaceAll("\\s*\\{[A-z0-9]+\\}\\s*", "([^\\/]+)")
             .replaceAll("/","\\\\/")
             +"$"
         );
     }
 
-    public final CompleteAction<Object,HttpEvent> getAction(){
+    public final HttpEventAction<Object> getAction(){
         return this.action;
     }
     

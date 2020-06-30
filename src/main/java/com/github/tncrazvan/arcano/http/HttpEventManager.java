@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.logging.Level;
 
@@ -36,6 +37,7 @@ public abstract class HttpEventManager extends EventManager{
     protected boolean isDir = false;
     private String acceptEncoding;
     private String encodingLabel;
+
 
     public final void initHttpEventManager() {
         if (this.reader.request.headers.isDefined("Accept-Encoding")) {
