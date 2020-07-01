@@ -3,7 +3,6 @@ package com.github.tncrazvan.arcano;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
@@ -17,6 +16,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -31,11 +31,9 @@ import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
 
 import com.github.tncrazvan.arcano.Configuration.Threads;
-import com.github.tncrazvan.arcano.http.HttpController;
 import com.github.tncrazvan.arcano.http.HttpRequestReader;
 import com.github.tncrazvan.arcano.smtp.SmtpServer;
 import com.github.tncrazvan.arcano.websocket.WebSocketCommit;
-import com.github.tncrazvan.arcano.websocket.WebSocketController;
 import com.github.tncrazvan.arcano.websocket.WebSocketEventManager;
 
 /**
@@ -157,12 +155,14 @@ public class Arcano extends SharedObject {
             
             //push websocket commits
             Runnable webSocketPushRunnable = () -> {
-                oldWebSocketEventManager.clear();
+                this.oldWebSocketEventManager.clear();
                 int available = 0;
+                Collection<WebSocketEventManager> collection;
                 while(true){
-                    for (WebSocketEventManager manager : this.webSocketEventManager.values()) {
+                    collection = this.webSocketEventManager.values();
+                    for (WebSocketEventManager manager : collection) {
                         if(!manager.isConnected()){
-                            oldWebSocketEventManager.add(manager);
+                            this.oldWebSocketEventManager.add(manager);
                             continue;
                         }
                         InputStream read = manager.getRead();
@@ -177,17 +177,17 @@ public class Arcano extends SharedObject {
                                     }
                                 }
                             } catch (IOException ex) {
-                                oldWebSocketEventManager.add(manager);
+                                this.oldWebSocketEventManager.add(manager);
                                 LOGGER.log(Level.SEVERE, null, ex);
                             }
                         }
                     }
                     
                     //remove old events
-                    for (WebSocketEventManager element : oldWebSocketEventManager) {
+                    for (WebSocketEventManager element : this.oldWebSocketEventManager) {
                         this.webSocketEventManager.remove(element.getUuid());
                     }
-                    oldWebSocketEventManager.clear();
+                    this.oldWebSocketEventManager.clear();
                 }
             };
             new Thread(webSocketPushRunnable).start();

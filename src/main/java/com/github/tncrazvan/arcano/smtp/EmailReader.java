@@ -193,27 +193,6 @@ public class EmailReader extends SmtpMessageManager{
         listeners.forEach((listener) -> {
             listener.onEmailReceived(email);
         });
-        try {
-            WebObject wo = server.so.SMTP_ROUTE;
-            final Class<?> cls = Class.forName(wo.getClassName());
-            final Constructor<?> constructor = ConstructorFinder.getNoParametersConstructor(cls);
-            if (constructor == null) {
-                throw new InvalidControllerConstructorException(String.format(
-                        "\nController %s does not contain a valid constructor.\n"
-                                + "A valid constructor for your controller is a constructor that has no parameters.\n"
-                                + "Perhaps your class is an inner class and it's not static or public? Try make it a \"static public class\"!",
-                        wo.getClassName()));
-            }
-            try {
-                final SmtpController controller = (SmtpController) constructor.newInstance();
-                final Method method = controller.getClass().getDeclaredMethod("onEmailReceived", Email.class);
-                method.invoke(controller,email);
-            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException | InstantiationException ex) {
-                LOGGER.log(Level.SEVERE, null, ex);
-            }
-        } catch (ClassNotFoundException | InvalidControllerConstructorException | IllegalArgumentException | SecurityException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-        }
     }
     
     private final void saveLastFrame(){

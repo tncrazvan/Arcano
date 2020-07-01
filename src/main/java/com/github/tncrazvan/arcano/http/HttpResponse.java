@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.github.tncrazvan.arcano.tool.action.VoidAction;
@@ -137,6 +138,8 @@ public class HttpResponse {
             } else {
                 if(type.isArray()){
                     this.content = jsonStringify((Object[])content);
+                }else if(this.content instanceof ArrayList){
+                    this.content = jsonStringify(((ArrayList<Object>)content).toArray());
                 }else{
                     this.content = jsonStringify(content);
                 }

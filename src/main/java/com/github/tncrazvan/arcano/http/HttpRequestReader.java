@@ -135,7 +135,7 @@ public class HttpRequestReader implements Runnable{
                 this.request = new HttpRequest(clientHeader, inputBytes);
                 String uri = request.headers.getResource();
                 if(uri == null) {
-                    output.write(SharedObject.RESPONSE_NOT_FOUND.toString().getBytes(so.config.charset));
+                    output.write(SharedObject.HTTP_RESPONSE_NOT_FOUND.toString().getBytes(so.config.charset));
                     System.out.println("Invalid resource requsted: "+request.headers.toString());
                     output.close();
                     input.close();
@@ -174,6 +174,11 @@ public class HttpRequestReader implements Runnable{
                 upgrade();
             } else {
                 http();
+                try {
+                    this.client.close();
+                } catch (IOException ex) {
+                    LOGGER.log(Level.SEVERE, null, ex);
+                }
             }
         }
     }

@@ -12,7 +12,7 @@ import com.github.tncrazvan.arcano.http.HttpRequestReader;
  *
  * @author Razvan Tanase
  */
-public abstract class WebSocketController extends WebSocketEvent{
+public class WebSocketController extends WebSocketEvent{
 
     protected String[] args;
     

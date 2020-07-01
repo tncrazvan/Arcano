@@ -83,14 +83,8 @@ public abstract class WebSocketEventManager extends EventManager{
             responseHeaders.set("Sec-WebSocket-Accept", acceptKey);
             reader.output.write((responseHeaders.toString()+ "\r\n").getBytes());
             reader.output.flush();
-            manageOnOpen();
+            onOpen();
             reader.so.webSocketEventManager.put(uuid, this);
-            /*
-                final InputStream read = reader.client.getInputStream();
-                while (connected) {
-                    unmask((byte) read.read());
-                }
-            */
         } catch (final IOException ex) {
             close();
         } catch (final NoSuchAlgorithmException ex) {
@@ -192,7 +186,7 @@ public abstract class WebSocketEventManager extends EventManager{
                 if (payload.length == 0) {
                     this.message = new WebSocketCommit();
                     this.message.data = payload;
-                    manageOnMessage(this.message);
+                    onMessage(this.message);
                     break;
                 }
                 try {
@@ -206,7 +200,7 @@ public abstract class WebSocketEventManager extends EventManager{
 
                     this.message = new WebSocketCommit();
                     this.message.data = payload;
-                    manageOnMessage(this.message);
+                    onMessage(this.message);
                     lengthKey = 0;
                     reading = FIRST_BYTE;
                     lengthIndex = 0;
@@ -227,7 +221,7 @@ public abstract class WebSocketEventManager extends EventManager{
         try {
             connected = false;
             reader.client.close();
-            manageOnClose();
+            onClose();
         } catch (final IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -407,7 +401,7 @@ public abstract class WebSocketEventManager extends EventManager{
         }
     }
     
-    protected abstract void manageOnOpen();
-    protected abstract void manageOnMessage(WebSocketCommit payload);
-    protected abstract void manageOnClose();
+    protected abstract void onOpen();
+    protected abstract void onMessage(WebSocketCommit payload);
+    protected abstract void onClose();
 }

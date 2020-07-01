@@ -158,6 +158,9 @@ public class Configuration {
         this.parse(new File(settings),so,args);
     }
 
+
+    
+    public final AsciiTable configurationTable = new AsciiTable();
     /**
      * Parse configuration from the input filename.
      * @param json json configuration filename.
@@ -415,7 +418,6 @@ public class Configuration {
         
         this.entryPoint = this.entryPoint.replaceAll("/+", "/");
 
-        final AsciiTable configurationTable = new AsciiTable();
         configurationTable.add("KEY", "VALUE");
         configurationTable.add("locale", locale.toString());
         configurationTable.add("timezone", timezone.toString()+" (Http cookies by default use GMT aka UTC±00:00)");
@@ -465,7 +467,7 @@ public class Configuration {
         }
 
         final AsciiTable controllersTable = new AsciiTable();
-        controllersTable.add("TYPE", "PATH", "CLASS");
+        controllersTable.add("TYPE", "PATH", "LOCATION");
         
         ArrayList<String> httpTypeKeys = new ArrayList<>(so.HTTP_ROUTES.keySet());
         Collections.sort(httpTypeKeys, (String a, String b) -> a.compareTo(b));
@@ -476,9 +478,10 @@ public class Configuration {
             
             for(String route : httpRouteKeys){
                 WebObject wo = routes.get(route);
-                String className = wo.getClassName() == null?"{UNKNOWN CLASS}":wo.getClassName();
+                /* String className = wo.getClassName() == null?"{UNKNOWN CLASS}":wo.getClassName();
                 String methodName = wo.getMethodName() == null?"{UNKNOWN METHOD}":wo.getMethodName();
-                controllersTable.add("HTTP "+type, route, className+"."+methodName);
+                controllersTable.add("HTTP "+type, route, className+"."+methodName); */
+                controllersTable.add("HTTP "+type, route, wo.getHttpEventAction() != null?wo.getHttpEventAction().toString():"Unknown");
             }
         }
         
@@ -487,8 +490,9 @@ public class Configuration {
         for(String route : webSocketTypeKeys){
             WebObject wo = so.WEB_SOCKET_ROUTES.get(route);
             //Collections.sort(webSocketTypeKeys, (String a, String b) -> a.compareTo(b));
-            String className = wo.getClassName() == null?"{UNKNOWN CLASS}":wo.getClassName();
-            controllersTable.add("WEB SOCKET", route, className);
+            //String className = wo.getClassName() == null?"{UNKNOWN CLASS}":wo.getClassName();
+            //controllersTable.add("WEB SOCKET", route, className);
+            controllersTable.add("Web Socket ", route, wo.getWebSocketEventAction() != null?wo.getWebSocketEventAction().toString():"Unknown");
         }
         
         /*ROUTES.entrySet().forEach((entry) -> {
