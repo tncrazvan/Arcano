@@ -7,18 +7,14 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.logging.Level;
@@ -70,13 +66,15 @@ public class Arcano extends SharedObject {
      */
     public final void listen(String[] args) {
         System.out.println("ARGS: " + Arrays.toString(args));
-        System.out.println("Caller Working Directory: " + config.callerDir);
-        System.out.println("Config Working Directory: " + config.dir);
         try {
             config.parse(args[0], this, args);
             configureThreadPoolPolicy();
             configureSmtpPolicy();
             pushWebSocketCommits();
+
+            
+            System.out.println("Caller Working Directory: " + config.callerDir);
+            System.out.println("Config Working Directory: " + config.dir);
 
             if (!config.certificate.name.equals(""))
                 try {

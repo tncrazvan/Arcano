@@ -38,18 +38,18 @@ public class ShellScript {
         this.args = script;
     }
     
-    public final void execute(HttpEvent controller) throws IOException, InterruptedException{
+    public final void execute(HttpEvent event) throws IOException, InterruptedException{
         final JsonArray argsArray = new JsonArray();
-        for (String arg : controller.reader.args) {
+        for (String arg : event.request.reader.args) {
             argsArray.add(arg);
         }
         final JsonObject queryObject = new JsonObject();
-        controller.requestQueryStrings.forEach((key, value) -> {
+        event.request.queryStrings.forEach((key, value) -> {
             queryObject.addProperty(key, value);
         });
         
         final JsonObject headersObject = new JsonObject();
-        for(Entry<String,String> entry : controller.reader.request.headers.getHashMap().entrySet()){
+        for(Entry<String,String> entry : event.request.reader.content.headers.getHashMap().entrySet()){
             headersObject.addProperty(entry.getKey(), entry.getValue());
         }
         
@@ -65,31 +65,31 @@ public class ShellScript {
             tmp[i+1] = args[i];
         }
         tmp[tmp.length-2] = overhead.length+"";
-        tmp[tmp.length-1] = controller.reader.request.content.length+"";
+        tmp[tmp.length-1] = event.request.reader.content.body.length+"";
         
         ProcessBuilder builder = new ProcessBuilder(tmp);
-        builder.directory(this.workspace == null?new File(controller.reader.so.config.dir):this.workspace);
+        builder.directory(this.workspace == null?new File(event.so.config.dir):this.workspace);
         Process process = builder.start();
         try (OutputStream stdin = process.getOutputStream()) {
             if(overhead.length > 0)
                 stdin.write(overhead);
-            if(controller.reader.request.content.length > 0)
-                stdin.write(controller.reader.request.content);
+            if(event.request.reader.content.body.length > 0)
+                stdin.write(event.request.reader.content.body);
             stdin.flush();
             stdin.close();
         }
         
-        process.waitFor(controller.reader.so.config.timeout,TimeUnit.MILLISECONDS);
+        process.waitFor(event.so.config.timeout,TimeUnit.MILLISECONDS);
         process.destroyForcibly();
         InputStream error = process.getErrorStream();
         final byte[] errors = error.readAllBytes();
         if(errors.length > 0){
-            controller.setResponseHeaderField("Content-Type", "text/plain");
-            controller.setResponseHeaderField("Content-Length", errors.length+"");
-            controller.push(errors);
+            event.response.headers.set("Content-Type", "text/plain");
+            event.response.headers.set("Content-Length", errors.length+"");
+            event.push(errors);
         }else{
             String result = new String(process.getInputStream().readAllBytes());
-            controller.push(result,false);
+            event.push(result,false);
         }
     }
 }

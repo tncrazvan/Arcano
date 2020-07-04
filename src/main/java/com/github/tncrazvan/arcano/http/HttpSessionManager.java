@@ -17,11 +17,11 @@ public class HttpSessionManager {
     public HttpSessionManager() {}
     
     public final HttpSession startSession(final EventManager e, final long sessionTtl) {
-        if (e.issetRequestCookie(NAME_SESSION_ID)) {// if session id is set
-            final String sessionID = e.getRequestCookie(NAME_SESSION_ID);
+        if (e.request.issetCookie(NAME_SESSION_ID)) {// if session id is set
+            final String sessionID = e.request.getCookie(NAME_SESSION_ID);
             if (LIST.containsKey(sessionID)) {// if session exists
                 final HttpSession session = LIST.get(sessionID);
-                if (e.reader.so.config.session.keepAlive)
+                if (e.so.config.session.keepAlive)
                     session.setTime(System.currentTimeMillis());
                 return session;
             }

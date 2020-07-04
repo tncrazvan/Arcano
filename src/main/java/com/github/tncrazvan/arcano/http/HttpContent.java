@@ -16,7 +16,7 @@ import java.util.HashMap;
  * @author Razvan Tanase
  */
 
-public class HttpRequest {
+public class HttpContent {
     /**
      * Headers of the current request.
      */
@@ -24,35 +24,35 @@ public class HttpRequest {
     /**
      * Payload of the current request.
      */
-    public final byte[] content;
+    public final byte[] body;
 
     private static final byte[] SEPARATOR = "\r\n\r\n".getBytes();
 
-    public HttpRequest(final HashMap<String, String> headers, final String content)
+    public HttpContent(final HashMap<String, String> headers, final String content)
             throws UnsupportedEncodingException {
         this(HttpHeaders.request(headers), content.getBytes("UTF-8"));
     }
-    public HttpRequest(final HashMap<String, String> headers, final String content, final String charset)
+    public HttpContent(final HashMap<String, String> headers, final String content, final String charset)
             throws UnsupportedEncodingException {
         this(HttpHeaders.request(headers), content.getBytes(charset));
     }
-    public HttpRequest(final HashMap<String, String> headers, final byte[] content) {
+    public HttpContent(final HashMap<String, String> headers, final byte[] content) {
         this(HttpHeaders.request(headers), content);
     }
 
-    public HttpRequest(final HttpHeaders headers, final String content)
+    public HttpContent(final HttpHeaders headers, final String content)
             throws UnsupportedEncodingException {
         this.headers = headers;
-        this.content = content.getBytes("UTF-8");
+        this.body = content.getBytes("UTF-8");
     }
-    public HttpRequest(final HttpHeaders headers, final String content, final String charset)
+    public HttpContent(final HttpHeaders headers, final String content, final String charset)
             throws UnsupportedEncodingException {
         this.headers = headers;
-        this.content = content.getBytes(charset);
+        this.body = content.getBytes(charset);
     }
-    public HttpRequest(final HttpHeaders headers, final byte[] content) {
+    public HttpContent(final HttpHeaders headers, final byte[] content) {
         this.headers = headers;
-        this.content = content;
+        this.body = content;
     }
 
     /**
@@ -71,7 +71,7 @@ public class HttpRequest {
         OutputStream output = host.getOutputStream();
         output.write(headers.toString().getBytes(charset));
         output.write(SEPARATOR);
-        output.write(content);
+        output.write(body);
         output.flush();
         output.close();
         host.close();

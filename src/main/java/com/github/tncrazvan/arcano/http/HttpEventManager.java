@@ -14,11 +14,11 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.logging.Level;
 
 import com.github.tncrazvan.arcano.EventManager;
+import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.tool.Strings;
 import com.github.tncrazvan.arcano.tool.compression.Deflate;
 import com.github.tncrazvan.arcano.tool.compression.Gzip;
@@ -30,7 +30,7 @@ import com.google.gson.JsonObject;
  *
  * @author Razvan Tanase
  */
-public abstract class HttpEventManager extends EventManager{
+public abstract class HttpEventManager extends EventManager implements HttpEventFeatures{
     //private HttpHeaders responseHeaders;
     private boolean defaultHeaders=true;
     private boolean alive=true;
@@ -38,12 +38,14 @@ public abstract class HttpEventManager extends EventManager{
     private String acceptEncoding;
     private String encodingLabel;
 
-    public final void initHttpEventManager() {
-        if (this.reader.request.headers.isDefined("Accept-Encoding")) {
-            acceptEncoding = this.reader.request.headers.get("Accept-Encoding");
+
+    public HttpEventManager(HttpRequestReader reader, SharedObject so) throws UnsupportedEncodingException {
+        super(reader, so);
+        if (this.request.reader.content.headers.isDefined("Accept-Encoding")) {
+            acceptEncoding = this.request.reader.content.headers.get("Accept-Encoding");
             encodingLabel = "Content-Encoding";
-        } else if (this.reader.request.headers.isDefined("Transfer-Encoding")) {
-            acceptEncoding = this.reader.request.headers.get("Transfer-Encoding");
+        } else if (this.request.reader.content.headers.isDefined("Transfer-Encoding")) {
+            acceptEncoding = this.request.reader.content.headers.get("Transfer-Encoding");
             encodingLabel = "Transfer-Encoding";
         } else {
             acceptEncoding = "";
@@ -56,61 +58,11 @@ public abstract class HttpEventManager extends EventManager{
      */
     public final void close() {
         try {
-            reader.client.close();
+            request.reader.client.close();
+            onClose();
         } catch (final IOException ex) {
             LOGGER.log(Level.WARNING, null, ex);
         }
-    }
-    
-
-    /**
-     * Set a header for your HttpResponse.
-     * 
-     * @param name  name of your header.
-     * @param value value of your header.
-     */
-    public final void setResponseHeaderField(final String name, final String value) {
-        responseHeaders.set(name, value);
-    }
-
-    /**
-     * Get the value a header from your HttpResponse.
-     * 
-     * @param name name of the header.
-     * @return value of the header as a String.
-     */
-    public final String getResponseHeaderField(final String name) {
-        return responseHeaders.get(name);
-    }
-
-    /**
-     * Check if your HttpResponse contains a specific header.
-     * 
-     * @param name name of the header.
-     * @return true if the header exists, false otherwise.
-     */
-    public final boolean issetResponseHeaderField(final String name) {
-        return responseHeaders.isDefined(name);
-    }
-
-    /**
-     * Set the status of your HttpResponse.
-     * 
-     * @param status an Http valid status String. You can get all the available Http
-     *               status strings inside the
-     *               com.github.tncrazvan.arcano.Tool.Status class.
-     */
-    public final void setResponseStatus(final String status) {
-        responseHeaders.setStatus(status);
-    }
-
-    /**
-     * Get the HttpHEaders object of your response.
-     * 
-     * @return responseHeaders of the response.
-     */
-    public final HttpHeaders getResponseHttpHeaders() {
-        return responseHeaders;
     }
 
     private boolean firstMessage = true;
@@ -118,9 +70,9 @@ public abstract class HttpEventManager extends EventManager{
     public final void sendHeaders() {
         firstMessage = false;
         try {
-            String headers = responseHeaders.toString();
-            reader.output.write((headers + "\r\n").getBytes(reader.so.config.charset));
-            reader.output.flush();
+            String headers = response.headers.toString();
+            request.reader.output.write((headers + "\r\n").getBytes(so.config.charset));
+            request.reader.output.flush();
             alive = true;
         } catch (final IOException ex) {
             ex.printStackTrace(System.out);
@@ -183,19 +135,19 @@ public abstract class HttpEventManager extends EventManager{
     public final void push(byte[] data, boolean includeHeaders) {
         if (alive) {
             try {
-                for (final String cmpr : reader.so.config.compression) {
+                for (final String cmpr : so.config.compression) {
                     switch (cmpr) {
                     case DEFLATE:
                         if (acceptEncoding.matches(".+" + cmpr + ".*")) {
                             data = Deflate.deflate(data);
-                            this.responseHeaders.set(encodingLabel, cmpr);
+                            this.response.headers.set(encodingLabel, cmpr);
                             break;
                         }
                         break;
                     case GZIP:
                         if (acceptEncoding.matches(".+" + cmpr + ".*")) {
                             data = Gzip.compress(data);
-                            this.responseHeaders.set(encodingLabel, cmpr);
+                            this.response.headers.set(encodingLabel, cmpr);
                             break;
                         }
                         break;
@@ -204,8 +156,8 @@ public abstract class HttpEventManager extends EventManager{
                 if (includeHeaders && firstMessage && defaultHeaders)
                     sendHeaders();
                 
-                reader.output.write(data);
-                reader.output.flush();
+                request.reader.output.write(data);
+                request.reader.output.flush();
                 alive = true;
             } catch (final IOException ex) {
                 ex.printStackTrace(System.out);
@@ -226,7 +178,7 @@ public abstract class HttpEventManager extends EventManager{
      * Send data to the client.The first time this method is called within an
      * HttpEvent, it will also call the sendHeaders() method, to make sure the
      * headers are always sent before the body.<br />
- If you called sendHeaders() manually before calling push(...), the headers won't be sent for a second time.<br />
+     * If you called sendHeaders() manually before calling push(...), the headers won't be sent for a second time.<br />
      * This means that whatever http headers are being set after the first
      * time this method is called are completely ignored. Calling this method is the
      * same as returning a Object from your HttpController method. <br />
@@ -256,7 +208,7 @@ public abstract class HttpEventManager extends EventManager{
             if (data == null)
                 data = "";
 
-            this.push(data.getBytes(reader.so.config.charset),includeHeaders);
+            this.push(data.getBytes(so.config.charset),includeHeaders);
         } catch (final UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -270,8 +222,8 @@ public abstract class HttpEventManager extends EventManager{
     public final void grantKey(){
         final JsonObject obj = new JsonObject();
         obj.addProperty("token", Strings.uuid());
-        final JwtMessage message = new JwtMessage(obj,reader.so.config.key,reader.so.config.charset);
-        setResponseCookie("JavaArcanoKey", message.toString());
+        final JwtMessage message = new JwtMessage(obj,so.config.key,so.config.charset);
+        response.setCookie("JavaArcanoKey", message.toString());
     }
     
     /**
@@ -287,7 +239,7 @@ public abstract class HttpEventManager extends EventManager{
      * @param data data to be sent.
      */
     public final void push(final int data) {
-        HttpEventManager.this.push("" + data);
+        this.push("" + data);
     }
 
     /**
@@ -296,7 +248,7 @@ public abstract class HttpEventManager extends EventManager{
      * @param type Content-Type string.
      */
     public final void setResponseContentType(final String type) {
-        responseHeaders.set("Content-Type", type);
+        response.headers.set("Content-Type", type);
     }
 
     /**
@@ -305,7 +257,7 @@ public abstract class HttpEventManager extends EventManager{
      * @return Content-Type of the response.
      */
     public final String getResponseContentType() {
-        return responseHeaders.get("Content-Type");
+        return response.headers.get("Content-Type");
     }
 
     /**
@@ -341,19 +293,19 @@ public abstract class HttpEventManager extends EventManager{
     public final void push(final File data) {
         try {
             if (!data.exists() || data.isDirectory()) {
-                setResponseStatus(Status.STATUS_NOT_FOUND);
+                response.headers.setStatus(Status.STATUS_NOT_FOUND);
                 HttpEventManager.this.push("");
                 return;
             }
             byte[] buffer;
             try (RandomAccessFile raf = new RandomAccessFile(data, "r");
-                    DataOutputStream dos = new DataOutputStream(reader.client.getOutputStream())) {
+                    DataOutputStream dos = new DataOutputStream(request.reader.client.getOutputStream())) {
 
                 final int fileLength = (int) raf.length();
 
-                if (this.reader.request.headers.isDefined("Range")) {
-                    setResponseStatus(STATUS_PARTIAL_CONTENT);
-                    final String[] ranges = this.reader.request.headers.get("Range").split("=")[1].split(",");
+                if (this.request.reader.content.headers.isDefined("Range")) {
+                    response.headers.setStatus(STATUS_PARTIAL_CONTENT);
+                    final String[] ranges = this.request.reader.content.headers.get("Range").split("=")[1].split(",");
                     final int[] rangeStart = new int[ranges.length];
                     final int[] rangeEnd = new int[ranges.length];
                     int lastIndex;
@@ -378,8 +330,8 @@ public abstract class HttpEventManager extends EventManager{
                         if (firstMessage && defaultHeaders) {
                             firstMessage = false;
                             // header.set("Content-Length", ""+clength);
-                            responseHeaders.set("Content-Type", "multipart/byteranges; boundary=" + boundary);
-                            dos.writeUTF(responseHeaders.toString());
+                            response.headers.set("Content-Type", "multipart/byteranges; boundary=" + boundary);
+                            dos.writeUTF(response.headers.toString());
                         }
 
                         for (int i = 0; i < rangeStart.length; i++) {
@@ -388,20 +340,20 @@ public abstract class HttpEventManager extends EventManager{
                             dos.writeUTF("--" + boundary + "\r\n");
                             dos.writeUTF("Content-Type: " + ctype + "\r\n");
                             dos.writeUTF("Content-Range: bytes " + start + "-" + end + "/" + fileLength + "\r\n\r\n");
-                            if (end - start + 1 > reader.so.config.http.mtu) {
+                            if (end - start + 1 > so.config.http.mtu) {
                                 int remainingBytes = end - start + 1;
-                                buffer = new byte[reader.so.config.http.mtu];
+                                buffer = new byte[so.config.http.mtu];
                                 raf.seek(start);
                                 while (remainingBytes > 0) {
                                     raf.read(buffer);
                                     dos.write(buffer);
-                                    remainingBytes -= reader.so.config.http.mtu;
+                                    remainingBytes -= so.config.http.mtu;
                                     if (remainingBytes < 0) {
-                                        buffer = new byte[remainingBytes + reader.so.config.http.mtu];
+                                        buffer = new byte[remainingBytes + so.config.http.mtu];
                                         dos.write(buffer);
                                         remainingBytes = 0;
                                     } else {
-                                        buffer = new byte[reader.so.config.http.mtu];
+                                        buffer = new byte[so.config.http.mtu];
                                     }
                                 }
 
@@ -424,9 +376,9 @@ public abstract class HttpEventManager extends EventManager{
                         final int len = end - start + 1;
                         if (firstMessage && defaultHeaders) {
                             firstMessage = false;
-                            responseHeaders.set("Content-Range", "bytes " + start + "-" + end + "/" + fileLength);
-                            responseHeaders.set("Content-Length", "" + len);
-                            dos.write((responseHeaders.toString() + "\r\n").getBytes());
+                            response.headers.set("Content-Range", "bytes " + start + "-" + end + "/" + fileLength);
+                            response.headers.set("Content-Length", "" + len);
+                            dos.write((response.headers.toString() + "\r\n").getBytes());
                         }
                         buffer = new byte[end - start + 1];
                         raf.seek(start);
@@ -436,8 +388,8 @@ public abstract class HttpEventManager extends EventManager{
                 } else {
                     if (firstMessage && defaultHeaders) {
                         firstMessage = false;
-                        responseHeaders.set("Content-Length", "" + fileLength);
-                        dos.write((responseHeaders.toString() + "\r\n").getBytes());
+                        response.headers.set("Content-Length", "" + fileLength);
+                        dos.write((response.headers.toString() + "\r\n").getBytes());
                     }
                     buffer = new byte[fileLength];
                     raf.seek(0);
@@ -449,7 +401,7 @@ public abstract class HttpEventManager extends EventManager{
             LOGGER.log(Level.INFO, null, ex);
         } catch (final IOException ex) {
             //ex.printStackTrace();
-            System.out.println("Client "+reader.client.getInetAddress().toString()+" disconnected before receiving the whole file ("+data.getName()+")");
+            System.out.println("Client "+request.reader.client.getInetAddress().toString()+" disconnected before receiving the whole file ("+data.getName()+")");
         }
         
         close();

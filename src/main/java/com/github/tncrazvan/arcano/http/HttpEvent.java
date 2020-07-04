@@ -2,9 +2,13 @@ package com.github.tncrazvan.arcano.http;
 
 import static com.github.tncrazvan.arcano.tool.http.Status.STATUS_INTERNAL_SERVER_ERROR;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.WebObject;
@@ -16,9 +20,22 @@ import com.google.gson.JsonObject;
  * @author Razvan Tanase
  */
 public class HttpEvent extends HttpEventManager{
+    public HttpEvent(HttpRequestReader reader, SharedObject so) throws UnsupportedEncodingException {
+        super(reader,so);
+        HttpHeaders headers = HttpHeaders.response();
+        for (Map.Entry<String, String> entry : so.config.headers.entrySet()) {
+            headers.set(entry.getKey(), entry.getValue());
+        }
+        this.response.setHttpHeaders(headers);
+        this.request.resolveId();
+        this.request.findLanguages();
+    }
 
     private void sendHttpResponse(Exception e){
-        final String message = e.getMessage();
+        String message = Stream
+                        .of(e.getStackTrace())
+                        .map(StackTraceElement::toString)
+                        .collect(Collectors.joining("\n"));
         final HttpResponse response = new HttpResponse(message == null ? "" : message);
         sendHttpResponse(response,true);
     }
@@ -30,14 +47,14 @@ public class HttpEvent extends HttpEventManager{
         if (response.isRaw()) {
             final Object content = response.getContent();
             final byte[] raw = content == null?new byte[]{}:(byte[])content;
-            setResponseHeaderField("Content-Length", raw.length+"");
+            this.response.headers.set("Content-Length", raw.length+"");
             push(raw);
         } else {
             final Object content = response.getContent();
             String tmp = content.toString();
-            if (reader.so.config.responseWrapper) {
-                if(!issetResponseHeaderField("Content-Type"))
-                    setResponseHeaderField("Content-Type", "application/json");
+            if (so.config.responseWrapper) {
+                if(!this.response.headers.isDefined("Content-Type"))
+                    this.response.headers.set("Content-Type", "application/json");
                 final JsonObject obj = new JsonObject();
                 obj.addProperty(exception?"exception":"result", tmp);
                 tmp = obj.toString();
@@ -47,7 +64,7 @@ public class HttpEvent extends HttpEventManager{
         }
     }
 
-    public final void activateWebObject(final WebObject route){
+    private final void activateWebObject(final WebObject route){
         try {
             Object result = route.getHttpEventAction().callback(this);
             //try to invokeMethod method
@@ -60,10 +77,10 @@ public class HttpEvent extends HttpEventManager{
                 final HttpResponse response = (HttpResponse) result;
                 response.resolve();
                 final HashMap<String, String> localHeaders = response.getHashMapHeaders();
-                setResponseStatus(response.getHttpHeaders().getStatus());
+                this.response.headers.setStatus(response.getHttpHeaders().getStatus());
                 if (localHeaders != null) {
                     localHeaders.forEach((key, header) -> {
-                        setResponseHeaderField(key, header);
+                        this.response.headers.set(key, header);
                     });
                 }
                 sendHttpResponse(response);
@@ -75,27 +92,27 @@ public class HttpEvent extends HttpEventManager{
             }
         } catch (final Exception  e) {
             e.printStackTrace();
-            setResponseStatus(STATUS_INTERNAL_SERVER_ERROR);
-            if (reader.so.config.sendExceptions) {
+            this.response.headers.setStatus(STATUS_INTERNAL_SERVER_ERROR);
+            if (so.config.sendExceptions) {
                 sendHttpResponse(e);
             } else
                 sendHttpResponse(SharedObject.HTTP_RESPONSE_EMPTY);
         }
     }
     
-    private static HttpController instantPackStatus(HttpRequestReader reader,String status,String message){
-        HttpController controller = new HttpController();
-        controller.install(reader);
-        controller.setResponseStatus(status);
-        controller.push(message);
-        return controller;
+    private static HttpEvent instantPackStatus(HttpRequestReader reader,SharedObject so,String status,String message)
+            throws UnsupportedEncodingException {
+        HttpEvent event = new HttpEvent(reader,so);
+        event.response.headers.setStatus(status);
+        event.push(message);
+        return event;
     }
 
     // public static void serve(final StringBuilder url,String
     // httpMethod,String httpNotFoundNameOriginal,String httpNotFoundName) {
-    public static final void serve(final HttpRequestReader reader) {
-        String type = reader.request.headers.getMethod();
-        HashMap<String, WebObject> method = reader.so.HTTP_ROUTES.get(type);
+    public static final void serve(final HttpRequestReader reader, final SharedObject so) throws UnsupportedEncodingException {
+        String type = reader.content.headers.getMethod();
+        HashMap<String, WebObject> method = so.HTTP_ROUTES.get(type);
  
         String path = String.join("/", reader.location).toLowerCase();
         if(path.equals(""))
@@ -125,10 +142,9 @@ public class HttpEvent extends HttpEventManager{
             //If resource has been found...
             if(wo != null){
                 //..try to serve it
-                HttpController controller = new HttpController();
-                controller.requestParameters = wo.paramMap;
-                controller.install(reader);
-                controller.activateWebObject(wo);
+                HttpEvent event = new HttpEvent(reader,so);
+                event.request.parameters = wo.paramMap;
+                event.activateWebObject(wo);
                 return;
             }
         }
@@ -138,14 +154,13 @@ public class HttpEvent extends HttpEventManager{
             //If resource has been found...
             if(wo != null){
                 //..try to serve it
-                HttpController controller = new HttpController();
-                controller.install(reader);
-                controller.activateWebObject(wo);
+                HttpEvent event = new HttpEvent(reader,so);
+                event.activateWebObject(wo);
                 return;
             }
         }
         
         //fallback 404 response is supposed to be define inside the "/" route.
-        instantPackStatus(reader,STATUS_INTERNAL_SERVER_ERROR,"Fallback route \"@404\" is not defined.");
+        instantPackStatus(reader,so,STATUS_INTERNAL_SERVER_ERROR,"Fallback route \"@404\" is not defined.");
     } 
 }

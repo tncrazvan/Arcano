@@ -14,6 +14,8 @@ import java.util.logging.Level;
 import javax.xml.bind.DatatypeConverter;
 
 import com.github.tncrazvan.arcano.EventManager;
+import com.github.tncrazvan.arcano.SharedObject;
+import com.github.tncrazvan.arcano.http.HttpRequestReader;
 import com.github.tncrazvan.arcano.tool.Strings;
 import com.github.tncrazvan.arcano.tool.http.Status;
 
@@ -27,21 +29,14 @@ public abstract class WebSocketEventManager extends EventManager{
     private final String uuid = Strings.uuid();
     private InputStream read = null;
     //private final HttpHeaders responseHeaders;
-    public WebSocketEventManager() {}
-    
-    /**
-     * Get the default language of the user agent that made the request.
-     * 
-     * @return a String that identifies the language.
-     */
-    public final String getUserDefaultLanguage() {
-        return userLanguages.get("DEFAULT-LANGUAGE");
+    public WebSocketEventManager(HttpRequestReader reader, SharedObject so) throws UnsupportedEncodingException {
+        super(reader,so);
     }
     
     public final InputStream getRead(){
         try {
             if(read == null)
-                read = reader.client.getInputStream();
+                read = request.reader.client.getInputStream();
             return read;
         } catch (IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -59,32 +54,32 @@ public abstract class WebSocketEventManager extends EventManager{
 
     public final void execute() {
         try {
+            
             final String acceptKey = 
                     DatatypeConverter
                         .printBase64Binary(
                             getSha1Bytes(
-                                reader
-                                    .request
-                                        .headers
-                                            .get("Sec-WebSocket-Key") + 
-                                reader
-                                    .so
-                                        .WEBSOCKET_ACCEPT_KEY, 
-                                reader
-                                    .so
-                                        .config
-                                            .charset
+                                request
+                                    .reader
+                                        .content
+                                            .headers
+                                                .get("Sec-WebSocket-Key") + 
+                                so
+                                    .WEBSOCKET_ACCEPT_KEY, 
+                                so
+                                    .config
+                                        .charset
                             )
                         );
 
-            responseHeaders.setStatus(Status.STATUS_SWITCHING_PROTOCOLS);
-            responseHeaders.set("Connection", "Upgrade");
-            responseHeaders.set("Upgrade", "websocket");
-            responseHeaders.set("Sec-WebSocket-Accept", acceptKey);
-            reader.output.write((responseHeaders.toString()+ "\r\n").getBytes());
-            reader.output.flush();
+            response.headers.setStatus(Status.STATUS_SWITCHING_PROTOCOLS);
+            response.headers.set("Connection", "Upgrade");
+            response.headers.set("Upgrade", "websocket");
+            response.headers.set("Sec-WebSocket-Accept", acceptKey);
+            request.reader.output.write((response.headers.toString()+ "\r\n").getBytes());
+            request.reader.output.flush();
             onOpen();
-            reader.so.webSocketEventManager.put(uuid, this);
+            so.webSocketEventManager.put(uuid, this);
         } catch (final IOException ex) {
             close();
         } catch (final NoSuchAlgorithmException ex) {
@@ -220,7 +215,7 @@ public abstract class WebSocketEventManager extends EventManager{
     public void close() {
         try {
             connected = false;
-            reader.client.close();
+            request.reader.client.close();
             onClose();
         } catch (final IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
@@ -244,7 +239,7 @@ public abstract class WebSocketEventManager extends EventManager{
      */
     public void push(final String data) {
         try {
-            WebSocketEventManager.this.push(data.getBytes(reader.so.config.charset), false);
+            WebSocketEventManager.this.push(data.getBytes(so.config.charset), false);
         } catch (final UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -271,7 +266,7 @@ public abstract class WebSocketEventManager extends EventManager{
      */
     public void push(final byte[] data, final boolean binary) {
         int offset = 0;
-        final int maxLength = reader.so.config.webSocket.mtu - 1;
+        final int maxLength = so.config.webSocket.mtu - 1;
         if (data.length > maxLength) {
             while (offset < data.length) {
                 if (offset + maxLength > data.length) {
@@ -289,29 +284,29 @@ public abstract class WebSocketEventManager extends EventManager{
 
     private void encodeAndPushBytes(final byte[] messageBytes, final boolean binary) {
         try {
-            reader.output.flush();
+            request.reader.output.flush();
         } catch (final IOException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
         try {
             // We need to set only FIN and Opcode.
-            reader.output.write(binary ? 0x82 : 0x81);
+            request.reader.output.write(binary ? 0x82 : 0x81);
 
             // Prepare the payload length.
             if (messageBytes.length <= 125) {
-                reader.output.write(messageBytes.length);
+                request.reader.output.write(messageBytes.length);
             } else { // We assume it is 16 but length. Not more than that.
-                reader.output.write(0x7E);
+                request.reader.output.write(0x7E);
                 final int b1 = (messageBytes.length >> 8) & 0xff;
                 final int b2 = messageBytes.length & 0xff;
-                reader.output.write(b1);
-                reader.output.write(b2);
+                request.reader.output.write(b1);
+                request.reader.output.write(b2);
             }
 
             // Write the data.
-            reader.output.write(messageBytes);
+            request.reader.output.write(messageBytes);
             try {
-                reader.output.flush();
+                request.reader.output.flush();
             } catch (final IOException ex) {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
@@ -337,9 +332,9 @@ public abstract class WebSocketEventManager extends EventManager{
      * @param ignores list of clients to ignore. The server won't push the payload
                 to these clients.
      */
-    public void broadcast(final String data, final WebSocketController[] ignores) {
+    public void broadcast(final String data, final WebSocketEvent[] ignores) {
         try {
-            broadcast(data.getBytes(reader.so.config.charset), ignores, false);
+            broadcast(data.getBytes(so.config.charset), ignores, false);
         } catch (final UnsupportedEncodingException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -352,7 +347,7 @@ public abstract class WebSocketEventManager extends EventManager{
      * @param ignores list of clients to ignore. The server won't push the payload
                 to these clients.
      */
-    public void broadcast(final byte[] data, final WebSocketController[] ignores) {
+    public void broadcast(final byte[] data, final WebSocketEvent[] ignores) {
         broadcast(data, ignores, true);
     }
 
@@ -368,9 +363,9 @@ public abstract class WebSocketEventManager extends EventManager{
      *                0x82 otherwise it will be set to 0x81. Note that this won't
      *                encode or convert your data in any way.
      */
-    public void broadcast(final byte[] data, final WebSocketController[] ignores, final boolean binary) {
+    public void broadcast(final byte[] data, final WebSocketEvent[] ignores, final boolean binary) {
         boolean skip;
-        for (final WebSocketEvent e : reader.so.WEB_SOCKET_EVENTS.get(ignores.getClass().getCanonicalName())) {
+        for (final WebSocketEvent e : so.WEB_SOCKET_EVENTS.get(ignores.getClass().getCanonicalName())) {
             skip = false;
             for (final Object ignore : ignores) {
                 if (ignore == this) {
@@ -391,9 +386,9 @@ public abstract class WebSocketEventManager extends EventManager{
     public void push(final WebSocketCommit data) {
         if(data.getWebSocketGroup() != null){
             data.getWebSocketGroup().getMap().keySet().forEach((key) -> {
-                final WebSocketController c = data.getWebSocketGroup().getMap().get(key);
-                if((WebSocketEventManager)c != this){
-                    c.push(data.data,data.isBinary());
+                final WebSocketEvent e = data.getWebSocketGroup().getMap().get(key);
+                if((WebSocketEventManager)e != this){
+                    e.push(data.data,data.isBinary());
                 }
             });
         }else{

@@ -5,29 +5,30 @@ import static com.github.tncrazvan.arcano.SharedObject.LOGGER;
 import java.io.UnsupportedEncodingException;
 import java.util.logging.Level;
 
-import com.github.tncrazvan.arcano.bean.websocket.WebSocketService;
+import com.github.tncrazvan.arcano.tool.action.WebSocketEventAction;
 import com.github.tncrazvan.arcano.websocket.WebSocketCommit;
-import com.github.tncrazvan.arcano.websocket.WebSocketController;
+import com.github.tncrazvan.arcano.websocket.WebSocketEvent;
 
 /**
  *
  * @author razvan
  */
-@WebSocketService(path = "/WebSocketGroupApi")
-public class WebSocketGroupApi extends WebSocketController{
+public class WebSocketGroupApi implements WebSocketEventAction{
+
     private String groupName;
     private com.github.tncrazvan.arcano.websocket.WebSocketGroup group;
-    
+
+
     @Override
-    public void onOpen() {
+    public void onOpen(WebSocketEvent e) {
         //if "ALLOW" is true
-        if(reader.so.config.webSocket.groups.enabled){ //ws groups are enabled
+        if(e.so.config.webSocket.groups.enabled){ //ws groups are enabled
             //if query "?join" is present in the request URL
-            if(requestQueryStrings.containsKey("join")){
+            if(e.request.queryStrings.containsKey("join")){
                 //use that query value as the group's name
-                groupName = requestQueryStrings.get("join");
+                groupName = e.request.queryStrings.get("join");
                 //if the group exists in this controller
-                if(GROUP_MANAGER.groupExists(groupName)){
+                if(e.GROUP_MANAGER.groupExists(groupName)){
                     //NOTE: GROUP_MANAGER is relative to the controller,
                     //in this case relative to: "WebSocketGroupApi",
                     //so any other controller will have a different GROUP_MANAGER
@@ -37,52 +38,51 @@ public class WebSocketGroupApi extends WebSocketController{
 
 
                     //save the pointer in a local variable
-                    group = GROUP_MANAGER.getGroup(groupName);
+                    group = e.GROUP_MANAGER.getGroup(groupName);
                     //if the group is public
                     if(group.getVisibility() == com.github.tncrazvan.arcano.websocket.WebSocketGroup.PUBLIC){
                         try {
                             //add this client to the group
-                            group.addClient(this);
+                            group.addClient(e);
                         } catch (final UnsupportedEncodingException ex) {
                             LOGGER.log(Level.SEVERE, null, ex);
                         }
                     } else {
                         // if the group is not public, close the connection
-                        close();
+                        e.close();
                     }
 
                 }
             }
         } else {
             // "ALLOW" is false => ws groups are not enabled
-            close();
+            e.close();
         }
     }
 
     @Override
-    public void onMessage(final WebSocketCommit message) {
+    public void onMessage(WebSocketEvent e, WebSocketCommit commit) {
         //send data to everyone inside the group except for this client (obviously)
-        push(message);
+        e.push(commit);
         /**
          * NOTE: the other clients will receive the data as raw bytes.
          * in the case of JavaScript, you should read this data using a 
          * FileReader object and read the data as Text, Blob or ArrayBuffer.
          **/
-        
     }
 
     @Override
-    public void onClose() {
+    public void onClose(WebSocketEvent e) {
         if(group == null) return;
         //if the client exists in the group...
-        if(group.clientExists(this)){
+        if(group.clientExists(e)){
             //remove the client from group
-            group.removeClient(this);
+            group.removeClient(e);
         }
         //if groups has no clients, remove it from memory
-        if(GROUP_MANAGER.getGroup(groupName).getMap().size() <= 0){
+        if(e.GROUP_MANAGER.getGroup(groupName).getMap().size() <= 0){
             //remove the group from the public list
-            GROUP_MANAGER.removeGroup(group);
+            e.GROUP_MANAGER.removeGroup(group);
             //and mark the group for garbage collection to free memory
             //by setting it to null
             group = null;

@@ -1,19 +1,16 @@
 package com.github.tncrazvan.arcano;
 
 import static com.github.tncrazvan.arcano.SharedObject.NAME_SESSION_ID;
-import static com.github.tncrazvan.arcano.tool.encoding.Hashing.getSha1String;
 
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URLDecoder;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.logging.Level;
 
-import com.github.tncrazvan.arcano.http.HttpHeaders;
+import com.github.tncrazvan.arcano.http.HttpEventRequest;
+import com.github.tncrazvan.arcano.http.HttpEventResponse;
 import com.github.tncrazvan.arcano.http.HttpRequestReader;
 import com.github.tncrazvan.arcano.http.HttpSession;
-import com.github.tncrazvan.arcano.tool.system.Time;
 
 /**
  * Provides a layer of abstraction for both HttpEventManager and WebSocketEventManager.
@@ -23,57 +20,84 @@ import com.github.tncrazvan.arcano.tool.system.Time;
  * @author Razvan Tanase
  */
 public abstract class EventManager{
-    public HttpRequestReader reader = null;
-    public String requestId;
-    
-    public final void resolveRequestId(){
-        this.requestId = getSha1String(System.identityHashCode(reader.client) + "::" + System.currentTimeMillis(),reader.so.config.charset);
-    }
-    
-    //public HttpRequest request;
-    public HashMap<String,String> requestQueryStrings = new HashMap<>();
-    public HashMap<String, String> requestParameters = new HashMap<>();
-    //public String[] location = new String[]{};
-    public Map<String,String> userLanguages = new HashMap<>();
-    protected HttpHeaders responseHeaders = null;
-    //public Socket client;
+    public HttpEventRequest request = null;
+    public HttpEventResponse response = null;
     public HttpSession session = null;
-    
-    public final void setResponseHttpHeaders(final HttpHeaders headers) {
-        this.responseHeaders = headers;
+    public final SharedObject so;
+
+
+    public EventManager(HttpRequestReader reader, SharedObject so) throws UnsupportedEncodingException {
+        this.so = so;
+        this.request = new HttpEventRequest(this,reader);
+        this.response = new HttpEventResponse(this);
+        this.resolveRequestedUrl();
     }
 
-    public final void initEventManager() throws UnsupportedEncodingException {
-        String uri = reader.request.headers.getResource();
+    private final void resolveRequestedUrl() throws UnsupportedEncodingException {
+        String uri = request.reader.content.headers.getResource();
         try {
-            uri = URLDecoder.decode(uri, reader.so.config.charset);
+            uri = URLDecoder.decode(uri, so.config.charset);
         } catch (final IllegalArgumentException ex) {
+            SharedObject.LOGGER.log(Level.SEVERE, null, ex);
         }
 
         String[] tmp, object;
         final String[] uriParts = uri.split("\\?|\\&", 2);
-
-        //location.append(uriParts[0].replaceAll("^\\/", ""));
 
         if (uriParts.length > 1) {
             tmp = uriParts[1].split("\\&");
             for (final String part : tmp) {
                 object = part.split("=", 2);
                 if (object.length > 1) {
-                    requestQueryStrings.put(object[0].trim(), object[1]);
+                    request.queryStrings.put(object[0].trim(), object[1]);
                 } else {
-                    requestQueryStrings.put(object[0].trim(), "");
+                    request.queryStrings.put(object[0].trim(), "");
                 }
             }
         }
     }
+    
 
-    /*public final StringBuilder getLocation() {
-        return location;
+    /**
+     * Get the Socket connection to the client.
+     * 
+     * @return
+     */
+    public final Socket getClientSocket() {
+        return request.reader.client;
+    }
+
+    // FOR HTTP
+    /*protected static final WebObject getHttpWebObject(HttpRequestReader reader, final String[] location, final String httpMethod)
+            throws ClassNotFoundException {
+        for (int i = location.length; i > 0; i--) {
+            String tmp = "/" + String.join("/", Arrays.copyOf(location, i)).toLowerCase();
+            HashMap<String, WebObject> method = reader.so.HTTP_ROUTES.get(httpMethod);
+            if(method != null){
+                WebObject route = method.get(tmp);
+                if(route != null){
+                    return route;
+                }
+            }
+        }
+        throw new ClassNotFoundException();
+    }*/
+
+    // FOR WEBSOCKET
+    /*protected static final WebObject getWebSocketWebObject(HttpRequestReader reader, final String[] location, final String httpMethod)
+            throws ClassNotFoundException {
+        for (int i = location.length; i > 0; i--) {
+            //String path = "/" + String.join("/", Arrays.copyOf(location, i)).toLowerCase();
+            WebObject route = reader.so.WEB_SOCKET_ROUTES.get(httpMethod);
+            if(route != null){
+                return route;
+            }
+        }
+        throw new ClassNotFoundException();
     }*/
 
     public final boolean issetSession() {
-        return (issetRequestCookie(NAME_SESSION_ID) && reader.so.sessions.issetSession(getRequestCookie(NAME_SESSION_ID)));
+        return (request.issetCookie(NAME_SESSION_ID) && so.sessions.issetSession(request.getCookie(NAME_SESSION_ID)));
     }
 
     /**
@@ -96,7 +120,7 @@ public abstract class EventManager{
      *         SharedObject.NAME_SESSION_ID.
      */
     public final HttpSession startSession() {
-        session = reader.so.sessions.startSession(this, reader.so.config.session.ttl);
+        session = so.sessions.startSession(this, so.config.session.ttl);
         return session;
     }
 
@@ -108,237 +132,6 @@ public abstract class EventManager{
         if (session == null)
             session = startSession();
         if (issetSession())
-            reader.so.sessions.stopSession(session);
-    }
-
-    /**
-     * Get the Socket connection to the client.
-     * 
-     * @return
-     */
-    public final Socket getClient() {
-        return reader.client;
-    }
-
-    // FOR HTTP
-    protected static final WebObject getHttpWebObject(HttpRequestReader reader, final String[] location, final String httpMethod)
-            throws ClassNotFoundException {
-        for (int i = location.length; i > 0; i--) {
-            String tmp = "/" + String.join("/", Arrays.copyOf(location, i)).toLowerCase();
-            HashMap<String, WebObject> method = reader.so.HTTP_ROUTES.get(httpMethod);
-            if(method != null){
-                WebObject route = method.get(tmp);
-                if(route != null){
-                    return route;
-                }
-            }
-        }
-        throw new ClassNotFoundException();
-    }
-
-    // FOR WEBSOCKET
-    protected static final WebObject getWebSocketWebObject(HttpRequestReader reader, final String[] location, final String httpMethod)
-            throws ClassNotFoundException {
-        for (int i = location.length; i > 0; i--) {
-            //String path = "/" + String.join("/", Arrays.copyOf(location, i)).toLowerCase();
-            WebObject route = reader.so.WEB_SOCKET_ROUTES.get(httpMethod);
-            if(route != null){
-                return route;
-            }
-        }
-        throw new ClassNotFoundException();
-    }
-    
-    
-    /**
-     * Finds the languages of the client application. The value is stored in
-     * EventManager#userLanguages.
-     */
-    public final void findRequestLanguages() {
-        if (reader.request.headers.get("Accept-Language") == null) {
-            userLanguages.put("unknown", "unknown");
-        } else {
-            String[] tmp = new String[2];
-            final String[] languages = reader.request.headers.get("Accept-Language").split(",");
-            userLanguages.put("DEFAULT-LANGUAGE", languages[0]);
-            for (int i = 1; i < languages.length; i++) {
-                tmp = languages[i].split(";");
-                userLanguages.put(tmp[0], tmp[1]);
-            }
-        }
-    }
-
-    public final String getRequestDefaultLanguage() {
-        return userLanguages.get("DEFAULT-LANGUAGE");
-    }
-
-    public final Map<String, String> getUserLanguages() {
-        return userLanguages;
-    }
-
-    /**
-     * Get the HttpHeaders object of the request.
-     * 
-     * @return the HttpHeaders object.
-     */
-    public final HttpHeaders getRequestHttpHeaders() {
-        return reader.request.headers;
-    }
-
-    /**
-     * Get a header field from the HttpRequest.
-     * 
-     * @param name name of the header.
-     * @return the value of the header as a String.
-     */
-    public final String getRequestHeaderField(final String name) {
-        return reader.request.headers.get(name);
-    }
-
-    /**
-     * Check if a header is set.
-     * 
-     * @param name name of the header.
-     * @return true if the header is defined, false otherwise.
-     */
-    public final boolean issetRequestHeaderField(final String name) {
-        return reader.request.headers.isDefined(name);
-    }
-
-    /**
-     * Get the method of the HttpRequest.
-     * 
-     * @return the name of the method as a String.
-     */
-    public final String getRequestMethod() {
-        return reader.request.headers.getMethod();
-    }
-
-    /**
-     * Get the user agent of the client.
-     * 
-     * @return name of the user agent.
-     */
-    public final String getRequestUserAgent() {
-        return reader.request.headers.get("User-Agent");
-    }
-
-    /**
-     * Get the address of the client.
-     * 
-     * @return the remote IP address that identifies the client.
-     */
-    public final String getRequestAddress() {
-        return reader.client.getInetAddress().toString();
-    }
-
-    /**
-     * Get the client port number.
-     * 
-     * @return the remote port number that's sending the request or 0 if the
-     *         connection is not alive.
-     */
-    public final int getRequestPort() {
-        return reader.client.getPort();
-    }
-
-    /**
-     * Notices the client to unset the given cookie.
-     * 
-     * @param key    name of the cookie
-     * @param path   path of the cookie
-     * @param domain domain of the cookie
-     */
-    public final void unsetResponseCookie(final String key, final String path, final String domain) {
-        responseHeaders.setCookie(key, "deleted", path, domain, 0, reader.so.config.charset);
-    }
-
-    /**
-     * Notices the client to unset the given cookie.
-     * 
-     * @param key  name of the cookie
-     * @param path path of the cookie
-     */
-    public final void unsetResponseCookie(final String key, final String path) {
-        EventManager.this.unsetResponseCookie(key, path, reader.request.headers.get("Host"));
-    }
-
-    /**
-     * Notices the client to unset the given cookie.
-     * 
-     * @param key name of the cookie
-     */
-    public final void unsetResponseCookie(final String key) {
-        EventManager.this.unsetResponseCookie(key, "/", reader.request.headers.get("Host"));
-    }
-
-    /**
-     * Notices the client to set the given cookie.
-     * 
-     * @param name   name of the cookie.
-     * @param value  value of the cookie.
-     * @param path   path of the cookie.
-     * @param domain domain of the cooke.
-     * @param expire time to live of the cookie.
-     */
-    public final void setResponseCookie(final String name, final String value, final String path, final String domain,
-            final int expire) {
-        responseHeaders.setCookie(name, value, path, domain, expire, reader.so.config.charset);
-    }
-
-    /**
-     * Notices the client to set the given cookie.
-     * 
-     * @param name   name of the cookie.
-     * @param value  value of the cookie.
-     * @param path   path of the cookie.
-     * @param domain domain of the cooke.
-     */
-    public final void setResponseCookie(final String name, final String value, final String path, final String domain) {
-        responseHeaders.setCookie(name, value, path, domain,
-                (int) (Time.now(SharedObject.londonTimezone) + reader.so.config.cookie.ttl), reader.so.config.charset);
-    }
-
-    /**
-     * Notices the client to set the given cookie.
-     * 
-     * @param name  name of the cookie.
-     * @param value value of the cookie.
-     * @param path  path of the cookie.
-     */
-    public final void setResponseCookie(final String name, final String value, final String path) {
-        responseHeaders.setCookie(name, value, path, null, (int) (Time.now(SharedObject.londonTimezone) + reader.so.config.cookie.ttl),
-                reader.so.config.charset);
-    }
-
-    /**
-     * Notices the client to set the given cookie.
-     * 
-     * @param name  name of the cookie.
-     * @param value value of the cookie.
-     */
-    public final void setResponseCookie(final String name, final String value) {
-        responseHeaders.setCookie(name, value, "/", null, (int) (Time.now(SharedObject.londonTimezone) + reader.so.config.cookie.ttl),
-                reader.so.config.charset);
-    }
-
-    /**
-     * Gets the value of the cookie.
-     * 
-     * @param name name of the cookie.
-     * @return value of the cookie.
-     */
-    public final String getRequestCookie(final String name) {
-        return reader.request.headers.getCookie(name, reader.so.config.charset);
-    }
-
-    /**
-     * Checks if the cookie is set.
-     * 
-     * @param key name of the cookie.
-     * @return true if cookie is set, otherwise false.
-     */
-    public final boolean issetRequestCookie(final String key) {
-        return reader.request.headers.issetCookie(key);
+            so.sessions.stopSession(session);
     }
 }

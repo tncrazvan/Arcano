@@ -1,6 +1,11 @@
 package com.github.tncrazvan.arcano.websocket;
 
+import java.io.UnsupportedEncodingException;
+import java.util.logging.Level;
+
+import com.github.tncrazvan.arcano.SharedObject;
 import com.github.tncrazvan.arcano.WebObject;
+import com.github.tncrazvan.arcano.http.HttpHeaders;
 import com.github.tncrazvan.arcano.http.HttpRequestReader;
 import com.github.tncrazvan.arcano.tool.action.WebSocketEventAction;
 
@@ -11,29 +16,46 @@ import com.github.tncrazvan.arcano.tool.action.WebSocketEventAction;
  */
 public class WebSocketEvent extends WebSocketEventManager{
     private WebSocketEventAction action = null;
+    protected String[] args;
+    public static final WebSocketGroupManager GROUP_MANAGER = new WebSocketGroupManager();
+    
+    public WebSocketEvent(HttpRequestReader reader, SharedObject so, WebObject wo) throws UnsupportedEncodingException {
+        super(reader,so);
+
+        this.request.reader = reader;
+        this.args = reader.args;
+
+        this.response.setHttpHeaders(HttpHeaders.response());
+        this.request.resolveId();
+        this.request.findLanguages();
+    
+        this.activateWebObject(wo);
+    }
+
+    public void setArgs(final String[] args) {
+        this.args=args;
+    }
 
     public void activateWebObject(WebObject wo){
         action = wo.getWebSocketEventAction();
         this.execute();
     }
 
-    public static final void serve(HttpRequestReader reader){
+    public static final void serve(HttpRequestReader reader, SharedObject so) throws UnsupportedEncodingException {
         if(reader.location.length == 0 || "".equals(reader.location[0]))
             reader.location = new String[]{"/"};
             
         String key = String.join("/",reader.location);
-        WebObject wo = reader.so.WEB_SOCKET_ROUTES.get(key);
+        WebObject wo = so.WEB_SOCKET_ROUTES.get(key);
         if(wo == null){
-            wo = reader.so.WEB_SOCKET_ROUTES.get("@404");
+            wo = so.WEB_SOCKET_ROUTES.get("@404");
             if(wo == null){
                 return;
             }
             return;
         }
         
-        WebSocketController controller = new WebSocketController();
-        controller.install(reader);
-        controller.activateWebObject(wo);
+        new WebSocketEvent(reader,so,wo);
     }
 
     @Override
@@ -44,10 +66,10 @@ public class WebSocketEvent extends WebSocketEventManager{
     }
 
     @Override
-    protected void onMessage(WebSocketCommit payload) {
+    protected void onMessage(WebSocketCommit commit) {
         if(action == null) 
             return;
-        action.onMessage(this,payload);
+        action.onMessage(this,commit);
     }
 
     @Override

@@ -22,10 +22,10 @@ public class HttpSession{
     
     protected HttpSession(final EventManager e) {
         id = getSha1String(
-                e.getClient().getInetAddress().toString() + "," + e.getClient().getPort() + "," + Math.random(),
+                e.getClientSocket().getInetAddress().toString() + "," + e.getClientSocket().getPort() + "," + Math.random(),
                 "UTF-8");
-        final int expire = (int) Time.now(SharedObject.londonTimezone) + (int) e.reader.so.config.session.ttl;
-        e.setResponseCookie(NAME_SESSION_ID, id, "/", null, expire);
+        final int expire = (int) Time.now(SharedObject.londonTimezone) + (int) e.so.config.session.ttl;
+        e.response.setCookie(NAME_SESSION_ID, id, "/", null, expire);
         this.time = System.currentTimeMillis();
     }
 

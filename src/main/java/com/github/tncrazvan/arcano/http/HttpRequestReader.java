@@ -11,6 +11,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -26,33 +27,31 @@ import java.util.regex.Pattern;
 import javax.net.ssl.SSLSocket;
 
 import com.github.tncrazvan.arcano.SharedObject;
-import com.github.tncrazvan.arcano.websocket.WebSocketController;
+import com.github.tncrazvan.arcano.websocket.WebSocketEvent;
 
 /**
  *
  * @author Razvan Tanase
  */
-public class HttpRequestReader implements Runnable{
+public class HttpRequestReader implements Runnable {
     public Socket client;
-    public SSLSocket secureClient=null;
+    public SSLSocket secureClient = null;
     public final BufferedReader bufferedReader;
     public final BufferedWriter bufferedWriter;
     public final DataOutputStream output;
     public final DataInputStream input;
     public final StringBuilder outputString = new StringBuilder();
-    public HttpRequest request = null;
-    public final StringBuilder locationBuilder = new StringBuilder();
-    public final SharedObject so;
+    public HttpContent content = null;
     public String[] location = new String[0];
     public String[] args = new String[0];
-    public String stringifiedLocation;
     private Matcher matcher;
-    
-    public static final DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter.ofPattern("EEE, d MMM y HH:mm:ss z", Locale.US).withZone(londonTimezone);
-    private static final Pattern
-        UPGRADE_PATTERN = Pattern.compile("Upgrade"),
-        WEB_SOCKET_PATTERN = Pattern.compile("websocket"),
-        HTTP2_PATTERN = Pattern.compile("h2c");
+    private SharedObject so;
+
+    public static final DateTimeFormatter formatHttpDefaultDate = DateTimeFormatter
+            .ofPattern("EEE, d MMM y HH:mm:ss z", Locale.US).withZone(londonTimezone);
+    private static final Pattern UPGRADE_PATTERN = Pattern.compile("Upgrade"),
+            WEB_SOCKET_PATTERN = Pattern.compile("websocket"), HTTP2_PATTERN = Pattern.compile("h2c");
+
     public HttpRequestReader(final SharedObject so, final Socket client) throws NoSuchAlgorithmException, IOException {
         this.so = so;
         this.client = client;
@@ -74,7 +73,8 @@ public class HttpRequestReader implements Runnable{
                     chain[1] = chain[0];
                     chain[0] = input.readByte();
                     outputString.append((char) chain[0]);
-                    if ((char) chain[3] == '\r' && (char) chain[2] == '\n' && (char) chain[1] == '\r' && (char) chain[0] == '\n') {
+                    if ((char) chain[3] == '\r' && (char) chain[2] == '\n' && (char) chain[1] == '\r'
+                            && (char) chain[0] == '\n') {
                         keepReading = false;
                     }
                 } catch (final EOFException ex) {
@@ -132,11 +132,11 @@ public class HttpRequestReader implements Runnable{
                         inputBytes[pos] = bytes[i];
                     }
                 }
-                this.request = new HttpRequest(clientHeader, inputBytes);
-                String uri = request.headers.getResource();
-                if(uri == null) {
+                this.content = new HttpContent(clientHeader, inputBytes);
+                String uri = content.headers.getResource();
+                if (uri == null) {
                     output.write(SharedObject.HTTP_RESPONSE_NOT_FOUND.toString().getBytes(so.config.charset));
-                    System.out.println("Invalid resource requsted: "+request.headers.toString());
+                    System.out.println("Invalid resource requsted: " + content.headers.toString());
                     output.close();
                     input.close();
                     client.close();
@@ -148,10 +148,12 @@ public class HttpRequestReader implements Runnable{
                     return;
                 }
                 final String[] uriParts = uri.split("\\?|\\&", 2);
-                locationBuilder.append(uriParts[0].equals("/")?so.config.entryPoint:uriParts[0]/*.replaceAll("^\\/", "")*/);
-                
-                this.stringifiedLocation = this.locationBuilder.toString();
-                this.location = stringifiedLocation.split("/");
+
+                if(uriParts[0].equals("/")){
+                    this.location = so.config.entryPoint.split("/");
+                }else{
+                    this.location = uriParts[0].split("/");
+                }
                 this.onRequest();
             }
 
@@ -159,17 +161,16 @@ public class HttpRequestReader implements Runnable{
             try {
                 client.close();
             } catch (final IOException ex1) {
-                LOGGER.log(Level.SEVERE,null,ex);
+                LOGGER.log(Level.SEVERE, null, ex);
             }
         }
     }
-    
-    
-    public final void onRequest() {
-        if (request.headers != null && request.headers.get("Connection") != null) {
-            matcher = UPGRADE_PATTERN.matcher(request.headers.get("Connection"));
+
+    public final void onRequest() throws UnsupportedEncodingException {
+        if (content.headers != null && content.headers.get("Connection") != null) {
+            matcher = UPGRADE_PATTERN.matcher(content.headers.get("Connection"));
             if (matcher.find()) {
-                matcher = WEB_SOCKET_PATTERN.matcher(request.headers.get("Upgrade"));
+                matcher = WEB_SOCKET_PATTERN.matcher(content.headers.get("Upgrade"));
                 // Upgrade connection
                 upgrade();
             } else {
@@ -182,12 +183,11 @@ public class HttpRequestReader implements Runnable{
             }
         }
     }
-    
-    
-    private void http(){
+
+    private void http() throws UnsupportedEncodingException {
         try {
             client.setSoTimeout(so.config.timeout);
-            HttpController.serve(this);
+            HttpEvent.serve(this,so);
         } catch (SocketException ex) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
@@ -196,12 +196,12 @@ public class HttpRequestReader implements Runnable{
     private void upgrade(){
         if (matcher.find()) {
             try{
-                WebSocketController.serve(this);
+                WebSocketEvent.serve(this,so);
             }catch(Exception e){
                 LOGGER.log(Level.SEVERE, null, e);
             }
         } else {
-            matcher = HTTP2_PATTERN.matcher(request.headers.get("Upgrade"));
+            matcher = HTTP2_PATTERN.matcher(content.headers.get("Upgrade"));
             // Http 2.x connection
             if (matcher.find()) {
                 System.out.println("Http 2.0 connection detected. Not yet implemented.");

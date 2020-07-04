@@ -9,6 +9,6 @@ package com.github.tncrazvan.arcano.http;
  *
  * @author Razvan Tanase
  */
-public interface HttpControllerFeatures {
+public interface HttpEventFeatures {
     default void onClose(){}    
 }
