@@ -154,8 +154,8 @@ public class Configuration {
         return source;
     }
     
-    public void parse(final String settings, final SharedObject so, final String[] args) throws IOException {
-        this.parse(new File(settings),so,args);
+    public void parse(final String settings, final SharedObject so) throws IOException {
+        this.parse(new File(settings),so);
     }
 
 
@@ -165,10 +165,9 @@ public class Configuration {
      * Parse configuration from the input filename.
      * @param json json configuration filename.
      * @param so
-     * @param args
      * @throws IOException 
      */
-    public final void parse(final File json, final SharedObject so, final String[] args) throws IOException{
+    public final void parse(final File json, final SharedObject so) throws IOException{
         if(!json.exists()){
             System.out.println("Configuration file "+json.getAbsolutePath()+" does not seem to exist.");
             return;

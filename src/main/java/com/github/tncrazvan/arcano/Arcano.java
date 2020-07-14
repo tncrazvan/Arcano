@@ -67,7 +67,7 @@ public class Arcano extends SharedObject {
     public final void listen(String[] args) {
         System.out.println("ARGS: " + Arrays.toString(args));
         try {
-            config.parse(args[0], this, args);
+            config.parse(args[0], this);
             configureThreadPoolPolicy();
             configureSmtpPolicy();
             pushWebSocketCommits();
@@ -79,11 +79,10 @@ public class Arcano extends SharedObject {
             if (!config.certificate.name.equals(""))
                 try {
                     configureSecureServer();
-                } catch (KeyStoreException | CertificateException | UnrecoverableKeyException
-                        | KeyManagementException ex) {
+                } catch (KeyStoreException | CertificateException | UnrecoverableKeyException | KeyManagementException ex) {
                     LOGGER.log(Level.SEVERE, null, ex);
                 } catch (NoSuchAlgorithmException ex) {
-                    Logger.getLogger(Arcano.class.getName()).log(Level.SEVERE, null, ex);
+                    LOGGER.log(Level.SEVERE, null, ex);
                 }
             else {
                 configureServer();
