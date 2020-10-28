@@ -58,7 +58,7 @@
   <repositories>
     <repository>
       <id>com.github.tncrazvan.AsciiTable</id>
-      <url>https://raw.githubusercontent.com/tncrazvan/AsciiTable/maven-repository</url>
+      <url>https://raw.githubusercontent.com/tncrazvan/AsciiTable/master</url>
     </repository>
   </repositories>
   <distributionManagement>
